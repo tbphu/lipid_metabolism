@@ -4,16 +4,18 @@ Created on Wed June 03 2015
 
 @author: Vera
 """
+import matplotlib.pyplot as mat
+import random
 
 class lipids(object):
 	"""
 	general class for all kinds of lipids
 		subclasses will be: PA, PI, PS, PE, PC, neutral 
-		with the corresponding head groups 'p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral'
+		with the corresponding head groups 'p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp'
 	"""
 	def __init__(self, head):
 
-		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral']
+		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
 
 		self.head = head
 
@@ -26,15 +28,6 @@ class lipids(object):
 		if group not in self.head_groups:
 			raise TypeError('This is no head group.')
 		self.__head = group
-
-class PA(lipids):
-	"""
-	lipid subclass
-	first lipid that is built out of the precursors --> is precursor itself for all other lipids
-	head: 'p'
-	"""
-	def __init__(self, head):
-		super(PA, self).__init__(head)
 
 
 
@@ -68,16 +61,6 @@ class pyruvate(precursors):
 
 		self.C = 3
 
-		self.reaction()
-		self.transformation()
-
-	def reaction(self):
-		if self.C == 3:	
-			self.C -=1 			# release of CO2
-
-	def transformation(self):
-		if self.C == 2:
-			self.__class__ = acetyl_coa 		# transformation from class pyruvate to class acetyl_coa
 
 
 class acetyl_coa(precursors):
@@ -98,7 +81,6 @@ class acyl_coa(precursors):
 	def __init__(self, C):
 		super(acyl_coa, self).__init__(C)
 
-		self.C = 16
 
 class dhap(precursors):
 	"""
@@ -116,54 +98,100 @@ class model:
 	The model. 
 	At the beginning we set the available number of pyruvate and DHAP in the start function --> Acetyl-CoA_list and dhap_list
 	In the acyl_synthase reaction we use 8 Acetyl-CoA to synthesise Acyl-CoA --> acyl_coa_list
-	These ffa and the avilable DHAP are used for building the PAs --> PA_list
+	These ffa and the available DHAP are used for building the PAs --> PA_list
 	"""
 	def __init__(self):
-		self.timesteps = 20
+		self.timesteps = 40
+		self.pyruvate_list = [pyruvate(3) for i in range(500)]
 		self.acetyl_coa_list = []
-		self.dhap_list = []
+		self.dhap_list = [dhap(3) for i in range(20)]
 		self.acyl_coa_list = []
 		self.PA_list = []
+		self.CDP_DG_list = []
+		self.TAG_list = [0]
 		self.co2_counter = 0
-		
-		self.start()
-		self.acyl_synthase()
-		self.PA_synthase()
+		self.t = [i for i in range(self.timesteps)]
+		self.number_acetyl_coa = [0]
+		self.number_acyl_coa = [0]
+		self.number_pa = [0]
+		self.number_cdp_dg = [0]
+		self.number_tag = [0]
 
 
-	def start(self):
-		for i in range(100):
-			pyr = pyruvate(3)			
-			self.co2_counter += 1
-			self.acetyl_coa_list.append(pyr)		# initial number of pyruvate = number of acetyl_coa = len(acetyl_coa_list)
+		for t in range(self.timesteps):
+			self.acetyl_coa_synthese()
+			self.acyl_synthase()
+			self.PA_synthase()
+			self.CDP_DG_synthase()
+		fig = mat.figure()
+		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+		ax.plot(self.t, self.number_acetyl_coa[:-1], label = 'acetyl_coa')
+		ax.plot(self.t, self.number_acyl_coa[:-1], label = 'acyl_coa')
+		ax.plot(self.t, self.number_pa[:-1], label = 'pa')
+		ax.plot(self.t, self.number_cdp_dg[:-1], label = 'cdp-dg')
+		ax.plot(self.t, self.number_tag[:-1], label = 'tag')
+		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)			#bbox_to_anchor=(1., 1), loc=2, borderaxespad=0.5
+		#mat.tight_layout()
+		mat.show()
 
-		for j in range(50):
-			d = dhap(3)
-			self.dhap_list.append(d)			# initial number of dhap = len(dhap_list)
-
-		print 'Start Acetyl-CoA: ' + str(len(self.acetyl_coa_list))
-		print 'Start DHAP: ' + str(len(self.dhap_list))
-		print 'Released CO2: ' + str(self.co2_counter)
+	def acetyl_coa_synthese(self):
+		for i in range(3):
+			if self.pyruvate_list[0].C == 3:	
+				self.pyruvate_list[0].__class__ = acetyl_coa
+				self.acetyl_coa_list.append(self.pyruvate_list[0])
+				del self.pyruvate_list[0]								# transformation from class pyruvate to class acetyl_coa
+		self.number_acetyl_coa.append(len(self.acetyl_coa_list))
+		#print 'Number of Acetyl-CoA: ' + str(len(self.acetyl_coa_list))
 
 	def acyl_synthase(self):
-		x = len(self.acetyl_coa_list)/8 		# 8 acetyl_coa needed for acyl_coa synthesis
-		for i in range(x):						# synthesis as often as number of acetyl_coa can be divided by 8
-			del self.acetyl_coa_list[0:9]		# deletion of 8 acetyl_coa molecules from their list
-			ffa = acyl_coa 						# creating a ffa molecule in class acyl_coa
-			self.acyl_coa_list.append(ffa)		
+		x = random.random()
+		if x < 0.8:
+			for i in range(3):
+				if len(self.acetyl_coa_list) >= 2:
+					if len(self.acyl_coa_list) == 0 or self.acyl_coa_list[-1].C >= 16:
+						self.acetyl_coa_list[0].C -= 1
+						self.acetyl_coa_list[0].__class__ = acyl_coa
+						self.acyl_coa_list.append(self.acetyl_coa_list[0])
+						self.acyl_coa_list[-1].C += 2
+						del self.acetyl_coa_list[0:2]
+						self.co2_counter += 1
+		
+					else:
+						self.acyl_coa_list[-1].C += 2
+						del self.acetyl_coa_list[0]
+						self.co2_counter += 1
+		self.number_acyl_coa.append(len(self.acyl_coa_list))
 
-		print 'Number of built ffa: ' + str(len(self.acyl_coa_list))
+		#print 'Number of built ffa: ' + str(len(self.acyl_coa_list))
+
 
 	def PA_synthase(self):
-		x = len(self.dhap_list)					# available dhap
-		for i in range(x):
-			if len(self.acyl_coa_list) >= 2 : 	# test if there are enough available ffa: for PA-synthesis 2 ffa are needed
-				pa = PA('p')					# creating a new lipid: PA
-				self.PA_list.append(pa)			
-				del self.dhap_list[0] 			# deletion of the consumed dhap from the list of available dhap
-				del self.acyl_coa_list[0:2]		# deletion of the 2 consumed ffa
+		x = random.random()
+		if x < 0.8:	
+			if len(self.dhap_list) > 0:					# available dhap
+				for i in range(2):
+					if len(self.acyl_coa_list) >= 2 : 	# test if there are enough available ffa: for PA-synthesis 2 ffa are needed
+						pa = lipids('p')				# creating a new lipid: PA
+						self.PA_list.append(pa)			
+						del self.dhap_list[0] 			# deletion of the consumed dhap from the list of available dhap
+						del self.acyl_coa_list[0:2]		# deletion of the 2 consumed ffa
 
-		print 'Number of built PA: ' + str(len(self.PA_list))
-		print 'Number of unused dhap: ' + str(len(self.dhap_list))
-		print 'Number of unused ffa: ' + str(len(self.acyl_coa_list))
 
+	def CDP_DG_synthase(self):
+		x = random.random()
+		if x <= 0.3:
+			if len(self.PA_list) > 0:
+				self.PA_list[0].head = 'cdp'
+				self.CDP_DG_list.append(self.PA_list[0])
+				del self.PA_list[0]
+
+		elif x <= 0.6:
+			if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
+				self.PA_list[0].head = 'None'
+				self.TAG_list.append(self.PA_list[0])
+				del self.PA_list[0]
+				del self.acyl_coa_list[0]
+
+		self.number_pa.append(len(self.PA_list))
+		self.number_cdp_dg.append(len(self.CDP_DG_list))
+		self.number_tag.append(len(self.TAG_list))
