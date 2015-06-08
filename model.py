@@ -19,7 +19,7 @@ class lipids(object):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
 		self.sn2_options = ['C16:0', 'C16:1', 'C18:0', 'C18:1']		#unsaturated ffa not possible at the moment
-		self.sn1_options = ['C16:0', 'C18:0']						#saturated, because unsaturated not possible at the moment
+		self.sn1_options = ['C16:1', 'C18:1']						#saturated, because unsaturated not possible at the moment
 
 		self.head = head
 		self.sn2 = sn2
@@ -52,10 +52,15 @@ class lipids(object):
 			raise TypeError('This is no possible sn1 chain.')
 		self.__sn1 = chain
 
-	
+class CL(lipids):
+
+	def __init__(self, head, sn2, sn1, sn4, sn3):
+		super(CL, self).__init__(head, sn2, sn1)
+		sn4 = None
+		sn3 = None	
 
 
-class precursors(object):
+class precursors(object):	#name als attribut statt der einzelnen unterklassen
 	"""
 	class for all the small molecules that are needed to create the lipids
 	subclasses will be pyruvate, acetyl_coa, acyl_coa, dhap
@@ -97,9 +102,10 @@ class acyl_coa(precursors):
 	2 ffa are needed to construct a lipid --> PA_synthase
 	At the moment there are only saturated ffa
 	"""
-	def __init__(self, C):
+	def __init__(self, C, saturation):
 		super(acyl_coa, self).__init__(C)
-		#adding of an attribute saturation is missing
+		self.saturation = 0
+
 
 class dhap(precursors):
 	"""
@@ -110,7 +116,25 @@ class dhap(precursors):
 		super(dhap, self).__init__(C)
 
 
-class model:
+class glycerol_3_p(precursors):
+
+	def __init__(self, C):
+		super(glycerol_3_p, self).__init__(C)
+
+
+class inositol(precursors):
+
+	def __init__(self, C):
+		super(inositol, self).__init__(C)
+
+
+class smallMolecules(object):
+
+	def __init__(self):
+		pass
+
+
+class model():
 	"""
 	The model. 
 	At the beginning we set the available number of pyruvate and DHAP in the start function
@@ -120,34 +144,58 @@ class model:
 	PA is further transformed to CDP-DG or TAG --> CDP_DG_synthase
 	"""
 	def __init__(self):
-		self.timesteps = 100
-		self.pyruvate_list = [pyruvate(3) for i in range(1000)]		#number of pyruvate available
+		self.timesteps = 500			#average value machen mit z.B. 100 durchläufen (standard deviation)
+		self.t = [i for i in range(self.timesteps)]
+
+		self.pyruvate_list = [pyruvate(3) for i in range(10000)]		#number of pyruvate available
 		self.acetyl_coa_list = []
-		self.dhap_list = [dhap(3) for i in range(100)]				#number of dhap available
+		self.dhap_list = [dhap(3) for i in range(1000)]				#number of dhap available
 		self.acyl_coa_list = []
 		self.PA_list = []
+		self.ctp_list = [smallMolecules for i in range(1000)]
 		self.CDP_DG_list = []
 		self.TAG_list = []
+		self.PS_list = []
+		self.glycerol_3_p_list = [glycerol_3_p(6) for i in range(1000)]
+		self.inositol_list = []
+		self.PI_list = []
+		self.PE_list = []
+		self.PC_list = []
+		self.CL_list = []
 		self.co2_counter = 0
-		self.t = [i for i in range(self.timesteps)]
+		# phosphat zufügen
+
 		self.number_acetyl_coa = [0]
 		self.number_acyl_coa = [0]
 		self.number_pa = [0]
 		self.number_cdp_dg = [0]
 		self.number_tag = [0]
+		self.number_PS = [0]
+		self.number_PI = [0]
+		self.number_PE = [0]
+		self.number_PC = [0]
+		self.number_CL = [0]
 
-		self.chainlength_dict = {16: 'C16:0', 18: 'C18:0'}		#unsaturated ffa missing
+		self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}		
+		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
 
 		for t in range(self.timesteps):
-			self.acetyl_coa_synthese()
+			self.inositol_synthesis()
+			self.acetyl_coa_synthase()
 			self.acyl_synthase()
 			self.PA_synthase()
 			self.CDP_DG_synthase()
+			self.phospholipid_synthase()
+			self.PE_synthase()
+			self.PC_synthase()
+			self.CL_synthase()
+			self.numbers()
+#random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 		#control if pa is built correctly
-		if len(self.acyl_coa_list) >= 2:
-			for i in range(2):
+		if self.number_acyl_coa[-1] >= 3 and self.number_pa[-1] >= 3:
+			for i in range(3):
 				print self.acyl_coa_list[i].C
 				print self.PA_list[i].sn1, self.PA_list[i].sn2, self.PA_list[i].head
 
@@ -159,79 +207,149 @@ class model:
 		ax.plot(self.t, self.number_pa[:-1], label = 'pa')
 		ax.plot(self.t, self.number_cdp_dg[:-1], label = 'cdp-dg')
 		ax.plot(self.t, self.number_tag[:-1], label = 'tag')
+		ax.plot(self.t, self.number_PS[:-1], label = 'ps')
+		ax.plot(self.t, self.number_PI[:-1], label = 'pi')
+		ax.plot(self.t, self.number_PE[:-1], label = 'pe')
+		ax.plot(self.t, self.number_PC[:-1], label = 'pc')
+		ax.plot(self.t, self.number_CL[:-1], label = 'cl')
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
 
-	def acetyl_coa_synthese(self):
-		for i in range(10):							#10 acetyl_coa produced in 1 timestep
+	def inositol_synthesis(self):
+		x = random.random()
+		if x <= 0.7 and len(self.glycerol_3_p_list) >= 1:
+			self.glycerol_3_p_list[0].__class__ = inositol
+			self.inositol_list.append(self.glycerol_3_p_list[0])
+			del self.glycerol_3_p_list[0]
+
+	def acetyl_coa_synthase(self):
+		for i in range(5):							#5 acetyl_coa produced in 1 timestep
 			if self.pyruvate_list[0].C == 3:
 				self.pyruvate_list[0].C -= 1	
-				self.pyruvate_list[0].__class__ = acetyl_coa 		# transformation from class pyruvate to class acetyl_coa
-				self.acetyl_coa_list.append(self.pyruvate_list[0])
+				new_acetyl_coa = acetyl_coa(2)		# transformation from class pyruvate to class acetyl_coa
+				self.acetyl_coa_list.append(new_acetyl_coa)
 				del self.pyruvate_list[0]				
 				self.co2_counter += 1
-		self.number_acetyl_coa.append(len(self.acetyl_coa_list))
 		#print 'Number of Acetyl-CoA: ' + str(len(self.acetyl_coa_list))
 
 	def acyl_synthase(self):
 		x = random.random()
 		if x < 0.9:
-			for i in range(20):						#20 reactions in 1 timestep but only with a probability of 90%
+			for i in range(15):						#5 reactions in 1 timestep but only with a probability of 90%
 				if len(self.acetyl_coa_list) >= 2:	#control if at least 2 Acetyl-CoA are available
 					if len(self.acyl_coa_list) == 0:		#starting the first reaction
-						self.acetyl_coa_list[0].__class__ = acyl_coa
-						self.acyl_coa_list.append(self.acetyl_coa_list[0])
+						new_acyl = acyl_coa(2, 0)
+						self.acyl_coa_list.append(new_acyl)
 						self.acyl_coa_list[-1].C += 2
 						del self.acetyl_coa_list[0:2]
 
 					elif self.acyl_coa_list[-1].C >= 16 and x <= 0.45:	#stop the reaction cycle and starting a new one
-						self.acetyl_coa_list[0].__class__ = acyl_coa
-						self.acyl_coa_list.append(self.acetyl_coa_list[0])
+						new_acyl = acyl_coa(2, 0)
+						self.acyl_coa_list.append(new_acyl)
+						self.acyl_coa_list[-1].saturation = random.randint(0, 1)
 						self.acyl_coa_list[-1].C += 2
 						del self.acetyl_coa_list[0:2]
 
 					elif self.acyl_coa_list[-1].C >= 18:				#stop the reaction cycle and starting a new one
-						self.acetyl_coa_list[0].__class__ = acyl_coa
-						self.acyl_coa_list.append(self.acetyl_coa_list[0])
+						new_acyl = acyl_coa(2, 0)
+						self.acyl_coa_list.append(new_acyl)
+						self.acyl_coa_list[-1].saturation = random.randint(0, 1)
 						self.acyl_coa_list[-1].C += 2
 						del self.acetyl_coa_list[0:2]
 			
 					else:									#adding an Acetyl_CoA to the growing ffa
 						self.acyl_coa_list[-1].C += 2
 						del self.acetyl_coa_list[0]
-		self.number_acyl_coa.append(len(self.acyl_coa_list))
 
 		#print 'Number of built ffa: ' + str(len(self.acyl_coa_list))
 
 
-	def PA_synthase(self):
+	def PA_synthase(self):		#2 funktionen draus bauen (sn1 und sn2 einzeln)
 		x = random.random()
-		if x < 0.7:	
-			if len(self.dhap_list) > 0 and len(self.acyl_coa_list) >= 2\
-			and self.acyl_coa_list[0].C >= 16 and self.acyl_coa_list[1].C >= 16:		# available dhap and ffa
-				chainlength_sn2 = self.acyl_coa_list[0].C
-				chainlength_sn1 = self.acyl_coa_list[1].C
-				pa = lipids('p', self.chainlength_dict[chainlength_sn2] ,self.chainlength_dict[chainlength_sn1])				# creating a new lipid: PA
-				self.PA_list.append(pa)			
-				del self.dhap_list[0] 			# deletion of the consumed dhap from the list of available dhap
-				del self.acyl_coa_list[0:2]		# deletion of the 2 consumed ffa
+		if x < 0.9 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]:		#at least 1 ffa has to be unsaturated
+			if len(self.dhap_list) > 0 and len(self.acyl_coa_list) > 2:		# available dhap and ffa
+				r = random.randint(0, (len(self.acyl_coa_list)-2))
+				s = random.randint(0, (len(self.acyl_coa_list)-2))
+				if r != s:											# selection of 2 ffa
+					chainlength_sn2, chainlength_sn1 = self.acyl_coa_list[r].C, self.acyl_coa_list[s].C
+					if self.acyl_coa_list[s].saturation == 1:			#ffa for sn1 must be unsaturated
+						if self.acyl_coa_list[r].saturation == 0:
+							pa = lipids('p', self.chainlength_saturated[chainlength_sn2], self.chainlength_unsaturated[chainlength_sn1])	# creating a new lipid: PA
+						elif self.acyl_coa_list[r].saturation == 1:
+							pa = lipids('p', self.chainlength_unsaturated[chainlength_sn2], self.chainlength_unsaturated[chainlength_sn1])
+						self.PA_list.append(pa)			
+						del self.dhap_list[0] 			# deletion of the consumed dhap from the list of available dhap
+						del self.acyl_coa_list[r]		# deletion of the 2 consumed ffa
+						del self.acyl_coa_list[s]
+					elif self.acyl_coa_list[s].saturation == 0:			#new try if ffa for sn1 saturated
+							self.PA_synthase()
 
 
 	def CDP_DG_synthase(self):
 		x = random.random()
-		if x <= 0.1:
+		if x <= 0.4 and len(self.ctp_list) >=1:
 			if len(self.PA_list) > 0:
 				self.PA_list[0].head = 'cdp'
-				self.CDP_DG_list.append(self.PA_list[0])
+				self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
 				del self.PA_list[0]
 
-		elif x <= 0.3:
+		elif x <= 0.5:
 			if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
 				self.PA_list[0].head = 'None'
-				self.TAG_list.append(self.PA_list[0])
+				self.TAG_list.append(self.PA_list[0])			#TAG production from PA
 				del self.PA_list[0]
 				del self.acyl_coa_list[0]
 
+
+	def phospholipid_synthase(self):
+		x = random.random()
+		if len(self.CDP_DG_list) >= 1:
+			if x <= 0.4:
+				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
+				self.PS_list.append(self.CDP_DG_list[0])
+				del self.CDP_DG_list[0]
+
+			elif x <= 0.6 and len(self.inositol_list) >= 1:
+				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
+				self.PI_list.append(self.CDP_DG_list[0])
+				del self.CDP_DG_list[0]
+				del self.inositol_list[0]
+
+
+	def PE_synthase(self):
+		x = random.random()
+		if x <= 0.15 and len(self.PS_list) >= 1:
+			self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
+			self.PE_list.append(self.PS_list[0])
+			del self.PS_list[0]
+			self.co2_counter += 1
+
+		
+
+	def PC_synthase(self):
+		x = random.random()
+		if x <= 0.1 and len(self.PE_list) >= 1:
+			self.PE_list[0].head = 'choline'					#PC synthesis from PE
+			self.PC_list.append(self.PE_list[0])
+			del self.PE_list[0]
+
+	def CL_synthase(self):
+		x = random.random()
+		if x <= 0.1 and len(self.glycerol_3_p_list) >= 1 and len(self.CDP_DG_list) >= 2:
+			self.CDP_DG_list[0].head = 'neutral'
+			self.CL_list.append(self.CDP_DG_list[0])
+			self.CL_list[-1].sn4, self.CL_list[-1].sn3 = self.CDP_DG_list[1].sn2, self.CDP_DG_list[1].sn1
+			del self.CDP_DG_list[0:2]
+			del self.glycerol_3_p_list[0]
+
+	def numbers(self):											#collecting the number of the particular products
+		self.number_acetyl_coa.append(len(self.acetyl_coa_list))
+		self.number_acyl_coa.append(len(self.acyl_coa_list))
 		self.number_pa.append(len(self.PA_list))
 		self.number_cdp_dg.append(len(self.CDP_DG_list))
 		self.number_tag.append(len(self.TAG_list))
+		self.number_PS.append(len(self.PS_list))
+		self.number_PI.append(len(self.PI_list))
+		self.number_PE.append(len(self.PE_list))
+		self.number_PC.append(len(self.PC_list))
+		self.number_CL.append(len(self.CL_list))
