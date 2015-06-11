@@ -18,8 +18,8 @@ class lipids(object):
 	def __init__(self, head, sn2, sn1):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
-		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]		#unsaturated ffa not possible at the moment
-		self.sn1_options = ['C16:1', 'C18:1', None]						#saturated, because unsaturated not possible at the moment
+		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
+		self.sn1_options = ['C16:1', 'C18:1', None]						
 
 		self.head = head
 		self.sn2 = sn2
@@ -102,28 +102,31 @@ class model():
 		self.timesteps = 500			#average value machen mit z.B. 100 durchläufen (standard deviation)
 		self.t = [i for i in range(self.timesteps)]
 
-		self.pyruvate_number = 10000		#number of pyruvate available
+		# number of available precursors
+		self.pyruvate_number = 10000	
+		self.dhap_number = 1000	
+		self.ctp_number = 1000
+		self.serine_number = 1000
+		self.glucose_6_p_number = 1000
+		self.inositol_number = 0
 		self.acetyl_coa_number = 0
-		self.dhap_number = 1000			#number of dhap available
+		self.SAM_number = 1000
+		self.SAH_number = 0
+		self.glycerol_3_p_mito_number = 1000
+		self.co2_counter = 0
+		self.p_counter = 0
+
 		self.acyl_coa_list = []
 		self.lyso_pa_list = []
 		self.PA_list = []
-		self.ctp_number = 1000
 		self.CDP_DG_list = []
 		self.TAG_list = []
-		self.serine_number = 1000
 		self.PS_list = []
-		self.glucose_6_p_number = 1000
-		self.inositol_number = 0
 		self.PI_list = []
 		self.PE_list = []
-		self.SAM_number = 1000
-		self.SAH_number = 0
 		self.PC_list = []
-		self.glycerol_3_p_mito_number = 1000
 		self.CL_list = []
-		self.co2_counter = 0
-		self.p_counter = 0
+
 
 		self.number_acetyl_coa = [0]
 		self.number_acyl_coa = [0]
@@ -155,6 +158,7 @@ class model():
 			for i in range(10):
 				print 'sn1: ' + str(self.TAG_list[i].sn1)
 				print 'sn2: ' + str(self.TAG_list[i].sn2)
+
 
 	def plot(self):
 		fig = mat.figure()
