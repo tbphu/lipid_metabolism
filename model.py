@@ -15,15 +15,18 @@ class lipids(object):
 	possible ffa for sn2: C16:0, C16:1, C18:0, C18:1
 	possible ffa for sn1: C16:1 C18:1
 	"""
-	def __init__(self, head, sn2, sn1):
+	def __init__(self, head, sn2, sn1, comp):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
 		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
-		self.sn1_options = ['C16:1', 'C18:1', None]						
+		self.sn1_options = ['C16:1', 'C18:1', None]
+		self.compartment_options = ['plasma membrane', 'secretory vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light microsomes',\
+							'inner mit. membrane', 'outer mit. membrane', None]					
 
 		self.head = head
 		self.sn2 = sn2
 		self.sn1 = sn1
+		self.comp = comp
 
 	@property
 	def head(self):
@@ -51,6 +54,16 @@ class lipids(object):
 		if chain not in self.sn1_options:
 			raise TypeError('This is no possible sn1 chain.')
 		self.__sn1 = chain
+
+	@property
+	def comp(self):
+		return self.__comp
+	@comp.setter
+	def comp(self, local):
+		if local not in self.compartment_options:
+			raise TypeError('This is no compartment.')
+		self.__comp = local
+
 
 class CL(lipids):
 
@@ -116,16 +129,33 @@ class model():
 		self.co2_counter = 0
 		self.p_counter = 0
 
+		self.compartment = ['plasma membrane', 'secretory vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light microsomes',\
+							'inner mit. membrane', 'outer mit. membrane']	
+
 		self.acyl_coa_list = []
 		self.lyso_pa_list = []
 		self.PA_list = []
 		self.CDP_DG_list = []
 		self.TAG_list = []
 		self.PS_list = []
+		self.PS_membrane = []
 		self.PI_list = []
+		self.PI_membrane = []
 		self.PE_list = []
+		self.PE_membrane = []
 		self.PC_list = []
+		self.PC_membrane = []
 		self.CL_list = []
+		self.CL_membrane = []
+
+		self.plasma_membrane = []
+		self.secretory_vesicles = []
+		self.vacuoles = []
+		self.nucleus = []
+		self.peroxisomes = []
+		self.light_microsomes = []
+		self.inner_mit_membrane = []
+		self.outer_mit_membrane = []
 
 
 		self.number_acetyl_coa = [0]
@@ -152,12 +182,13 @@ class model():
 			self.PE_synthase()
 			self.PC_synthase()
 			self.CL_synthase()
+			self.transport()
 			self.numbers()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
-		if len(self.TAG_list) >= 10:
+		'''if len(self.TAG_list) >= 10:
 			for i in range(10):
 				print 'sn1: ' + str(self.TAG_list[i].sn1)
-				print 'sn2: ' + str(self.TAG_list[i].sn2)
+				print 'sn2: ' + str(self.TAG_list[i].sn2)'''
 
 
 	def plot(self):
@@ -240,7 +271,7 @@ class model():
 				sn1_chain = random.randint(0, (len(self.acyl_coa_list)-2))
 				if self.acyl_coa_list[sn1_chain].saturation == 1:
 					chainlength_sn1 = self.acyl_coa_list[sn1_chain].C
-					lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1])
+					lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None)
 					self.lyso_pa_list.append(lyso_pa)
 					self.dhap_number -= 1
 					del self.acyl_coa_list[sn1_chain]
@@ -326,6 +357,81 @@ class model():
 			self.CL_list[-1].sn4, self.CL_list[-1].sn3 = self.CDP_DG_list[1].sn2, self.CDP_DG_list[1].sn1
 			del self.CDP_DG_list[0:2]
 			self.glycerol_3_p_mito_number -= 1
+
+
+	def transport(self):
+		self.transport_PS()
+		self.transport_PI()
+		self.transport_PE()
+		self.transport_PC()
+		self.transport_CL()
+
+
+	def transport_PS(self):
+		if len(self.PS_list) > 5:
+			self.PS_list[0].comp = self.compartment[random.randint(0, 7)]
+			if self.PS_list[0].comp == 'plasma_membrane':
+				self.plasma_membrane.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'secretory_vesicles':
+				self.secretory_vesicles.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'vacuoles':
+				self.vacuoles.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'nucleus':
+				self.nucleus.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'peroxisomes':
+				self.peroxisomes.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'light_microsomes':
+				self.light_microsomes.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'inner_mit_membrane':
+				self.inner_mit_membrane.append(self.PS_list[0])
+			elif self.PS_list[0].comp == 'outer_mit_membrane':
+				self.outer_mit_membrane.append(self.PS_list[0])
+			del self.PS_list[0]
+
+
+
+	def transport_PI(self):
+		i = 0
+		if len(self.PI_list) > 5 and None in [self.PI_list[z].comp for z in range(len(self.PI_list))]:
+			if self.PI_list[i].comp == None:
+				self.PI_list[i].comp = self.compartment[random.randint(0, 7)]
+				self.PI_membrane.append(self.PI_list[i])
+				del self.PI_list[i]
+			else:
+				i += 1
+
+
+	def transport_PE(self):
+		i = 0
+		if len(self.PE_list) > 5 and None in [self.PE_list[z].comp for z in range(len(self.PE_list))]:
+			if self.PE_list[i].comp == None:
+				self.PE_list[i].comp = self.compartment[random.randint(0, 7)]
+				self.PE_membrane.append(self.PE_list[i])
+				del self.PE_list[i]
+			else:
+				i += 1
+
+
+	def transport_PC(self):
+		i = 0
+		if len(self.PC_list) > 5 and None in [self.PC_list[z].comp for z in range(len(self.PC_list))]:
+			if self.PC_list[i].comp == None:
+				self.PC_list[i].comp = self.compartment[random.randint(0, 7)]
+				self.PC_membrane.append(self.PC_list[i])
+				del self.PC_list[i]
+			else:
+				i += 1
+
+
+	def transport_CL(self):
+		i = 0
+		if len(self.CL_list) > 5 and None in [self.CL_list[z].comp for z in range(len(self.CL_list))]:
+			if self.CL_list[i].comp == None:
+				self.CL_list[i].comp = self.compartment[random.randint(0, 7)]
+				self.CL_membrane.append(self.CL_list[i])
+				del self.CL_list[i]
+			else:
+				i += 1
 
 
 	def numbers(self):											#collecting the number of the particular products
