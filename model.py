@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed June 03 2015
+Created/Started on Wed June 03 2015
 
 @author: Vera
 """
@@ -12,7 +12,7 @@ class lipids(object):
 	general class for all kinds of lipids
 	with the head groups 'p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 
 	'cdp'(for cdp-dg) and 'None'(for tag)
-	possible ffa for sn2: C16:0, C16:1, C18:0, C18:1
+	possible ffa for sn2: C14:0, C16:0, C16:1, C18:0, C18:1
 	possible ffa for sn1: C16:1 C18:1
 	"""
 	def __init__(self, head, sn2, sn1, comp):
@@ -20,8 +20,8 @@ class lipids(object):
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
 		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
 		self.sn1_options = ['C16:1', 'C18:1', None]
-		self.compartment_options = ['plasma membrane', 'secretory vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light microsomes',\
-							'inner mit. membrane', 'outer mit. membrane', None]					
+		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane', None]					
 
 		self.head = head
 		self.sn2 = sn2
@@ -105,14 +105,13 @@ class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
 class model():
 	"""
 	The model. 
-	At the beginning we set the available number of pyruvate and DHAP in the start function
-	acetyl_synthase produces Acetyl-CoA out of Pyruvate by releasing 1 CO2
-	In the acyl_synthase reaction we use Acetyl-CoA to synthesise Acyl-CoA --> acyl_coa_list
-	These ffa and the available DHAP are used for building the PAs --> PA_list
-	PA is further transformed to CDP-DG or TAG --> CDP_DG_synthase
+	At the beginning there are several lists defined which will contain the produced lipids. 
+	The model starts with a given amount of precursors (pyruvate, dhap, ctp, serine, glucose-6-p, SAM, glycerol-3-p).
+	After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
 	"""
 	def __init__(self):
-		self.timesteps = 500			#average value machen mit z.B. 100 durchläufen (standard deviation)
+		#determining the timesteps
+		self.timesteps = 500			
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
@@ -129,25 +128,22 @@ class model():
 		self.co2_counter = 0
 		self.p_counter = 0
 
-		self.compartment = ['plasma membrane', 'secretory vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light microsomes',\
-							'inner mit. membrane', 'outer mit. membrane']	
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane']	
 
+		#empty lists for the produced lipids
 		self.acyl_coa_list = []
 		self.lyso_pa_list = []
 		self.PA_list = []
 		self.CDP_DG_list = []
 		self.TAG_list = []
 		self.PS_list = []
-		self.PS_membrane = []
 		self.PI_list = []
-		self.PI_membrane = []
 		self.PE_list = []
-		self.PE_membrane = []
 		self.PC_list = []
-		self.PC_membrane = []
 		self.CL_list = []
-		self.CL_membrane = []
 
+		#lists to collect the transported lipids
 		self.plasma_membrane = []
 		self.secretory_vesicles = []
 		self.vacuoles = []
@@ -157,7 +153,7 @@ class model():
 		self.inner_mit_membrane = []
 		self.outer_mit_membrane = []
 
-
+		#collecting the products of every timestep
 		self.number_acetyl_coa = [0]
 		self.number_acyl_coa = [0]
 		self.number_pa = [0]
@@ -169,9 +165,20 @@ class model():
 		self.number_PC = [0]
 		self.number_CL = [0]
 
+		#counting the lipids in each membrane after every timestep
+		self.number_plasma_membrane = [0]
+		self.number_secretory_vesicles = [0]
+		self.number_vacuoles = [0]
+		self.number_nucleus = [0]
+		self.number_peroxisomes = [0]
+		self.number_light_microsomes = [0]
+		self.number_inner_mit_membrane = [0]
+		self.number_outer_mit_membrane = [0]
+
 		self.chainlength_saturated = {14: 'C14:0', 16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
+		#functions to run the model
 		for t in range(self.timesteps):
 			self.inositol_synthesis()
 			self.acetyl_coa_synthase()
@@ -185,19 +192,15 @@ class model():
 			self.transport()
 			self.numbers()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
-		'''if len(self.TAG_list) >= 10:
-			for i in range(10):
-				print 'sn1: ' + str(self.TAG_list[i].sn1)
-				print 'sn2: ' + str(self.TAG_list[i].sn2)'''
 
 
-	def plot(self):
+
+	def plot_lipids(self):
+		'''
+		Plotting the produced lipids before they are transported into the membranes
+		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-		ax.plot(self.t, self.number_acetyl_coa[:-1], label = 'acetyl_coa')
-		ax.plot(self.t, self.number_acyl_coa[:-1], label = 'acyl_coa')
-		ax.plot(self.t, self.number_pa[:-1], label = 'pa')
-		ax.plot(self.t, self.number_cdp_dg[:-1], label = 'cdp-dg')
 		ax.plot(self.t, self.number_tag[:-1], label = 'tag')
 		ax.plot(self.t, self.number_PS[:-1], label = 'ps')
 		ax.plot(self.t, self.number_PI[:-1], label = 'pi')
@@ -208,7 +211,40 @@ class model():
 		mat.show()
 
 
+	def plot_precursors(self):
+		fig = mat.figure()
+		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+		ax.plot(self.t, self.number_acetyl_coa[:-1], label = 'acetyl_coa')
+		ax.plot(self.t, self.number_acyl_coa[:-1], label = 'acyl_coa')
+		ax.plot(self.t, self.number_pa[:-1], label = 'pa')
+		ax.plot(self.t, self.number_cdp_dg[:-1], label = 'cdp-dg')
+		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
+		mat.show()
+
+
+	def plot_membranes(self):
+		'''
+		Plotting the number of lipids in the membranes of different compartments
+		'''
+		fig = mat.figure()
+		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+		ax.plot(self.t, self.number_plasma_membrane[:-1], label = 'plasma membrane')
+		ax.plot(self.t, self.number_secretory_vesicles[:-1], label = 'secretory vesicles')
+		ax.plot(self.t, self.number_vacuoles[:-1], label = 'vacuoles')
+		ax.plot(self.t, self.number_nucleus[:-1], label = 'nucleus')
+		ax.plot(self.t, self.number_peroxisomes[:-1], label = 'peroxisomes')
+		ax.plot(self.t, self.number_light_microsomes[:-1], label = 'light_microsomes')
+		ax.plot(self.t, self.number_inner_mit_membrane[:-1], label = 'inner_mit_membrane')
+		ax.plot(self.t, self.number_outer_mit_membrane[:-1], label = 'outer_mit_membrane')
+		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
+		mat.show()
+
+
 	def inositol_synthesis(self):
+		'''
+		Synthesis of inositol from glucose-6-p by the Myo-inositol-1-p synthase and the Myo-inositol 1
+		phosphatase.
+		'''
 		for i in range(random.randint(0,3)):
 			if self.glucose_6_p_number > 0:
 				self.inositol_number += 1
@@ -217,6 +253,9 @@ class model():
 
 
 	def acetyl_coa_synthase(self):
+		'''
+		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
+		'''
 		for i in range(random.randint(0,10)):			
 			if self.pyruvate_number >= 1:			# transformation from pyruvate to acetyl_coa
 				self.acetyl_coa_number += 1
@@ -225,6 +264,10 @@ class model():
 
 
 	def acyl_synthase(self):
+		'''
+		Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C14, C16:0, C16:1, C18:0 or C18:1)
+		The intermediate Malonyl-CoA is leaved out.
+		'''
 		for i in range(random.randint(0,10)):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
@@ -259,14 +302,20 @@ class model():
 
 
 	def PA_synthese(self):
-		for i in range(0,20):
+		'''
+		Synthesis of PA in two reaction steps.
+		'''
+		for i in range(0,30):
 			self.lyso_PA_synthase()
 			self.PA_synthase()
 
 
 	def lyso_PA_synthase(self):
+		'''
+		Production of Lyso-PA by adding one acyl-coa to DHAP (sn2: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
+		'''
 		x = random.random()
-		if x < 0.9 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
+		if x < 0.95 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
 			if self.dhap_number > 0 and len(self.acyl_coa_list) > 1:
 				sn1_chain = random.randint(0, (len(self.acyl_coa_list)-2))
 				if self.acyl_coa_list[sn1_chain].saturation == 1:
@@ -280,8 +329,11 @@ class model():
 
 
 	def PA_synthase(self):	
+		'''
+		Synthesis of PA by adding the second fatty acid to DHAP (sn1: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
+		'''
 		x = random.random()
-		if x < 0.9: 		
+		if x < 0.95: 		
 			if len(self.lyso_pa_list) > 0 and len(self.acyl_coa_list) > 1:		# available ffa
 				sn2_chain = random.randint(0, (len(self.acyl_coa_list)-2))		
 				chainlength_sn2 = self.acyl_coa_list[sn2_chain].C
@@ -295,6 +347,10 @@ class model():
 
 
 	def CDP_DG_synthase(self):
+		'''
+		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids, or to TAG (PA phosphatase/DAG acyltransferase) 
+		for fatty acid storage
+		'''
 		x = random.random()
 		if x <= 0.7 and self.ctp_number > 0:
 			if len(self.PA_list) > 0:
@@ -314,6 +370,9 @@ class model():
 
 
 	def phospholipid_synthase(self):
+		'''
+		CDP-DG is processed to PS (PS synthase) or PI (PI synthase) as phospholipids.
+		'''
 		x = random.random()
 		if len(self.CDP_DG_list) >= 1 and self.serine_number > 0:
 			if x <= 0.4:
@@ -330,6 +389,9 @@ class model():
 
 
 	def PE_synthase(self):
+		'''
+		PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
+		'''
 		x = random.random()
 		if x <= 0.15 and len(self.PS_list) >= 1:
 			self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
@@ -340,9 +402,12 @@ class model():
 		
 
 	def PC_synthase(self):
+		'''
+		PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
+		'''
 		x = random.random()
 		if x <= 0.1 and len(self.PE_list) >= 1 and self.SAM_number >= 3:
-			self.PE_list[0].head = 'choline'					#PC synthesis from PE
+			self.PE_list[0].head = 'choline'								#PC synthesis from PE
 			self.PC_list.append(self.PE_list[0])
 			del self.PE_list[0]
 			self.SAM_number -= 3
@@ -350,6 +415,9 @@ class model():
 
 
 	def CL_synthase(self):
+		'''
+		Synthesis of cardiolipin, for which 2 CDP-DG are needed. Different enzymes are needed.
+		'''
 		x = random.random()
 		if x <= 0.1 and self.glycerol_3_p_mito_number > 0 and len(self.CDP_DG_list) >= 2:
 			self.CDP_DG_list[0].head = 'neutral'
@@ -360,6 +428,9 @@ class model():
 
 
 	def transport(self):
+		'''
+		General transport function for all produced lipids.
+		'''
 		self.transport_PS()
 		self.transport_PI()
 		self.transport_PE()
@@ -368,7 +439,10 @@ class model():
 
 
 	def transport_PS(self):
-		if len(self.PS_list) > 5:
+		'''
+		Transport of PS to the different compartiment membranes. The distribution to the different membranes is random.
+		'''
+		if len(self.PS_list) > 3:
 			self.PS_list[0].comp = self.compartment[random.randint(0, 7)]
 			if self.PS_list[0].comp == 'plasma_membrane':
 				self.plasma_membrane.append(self.PS_list[0])
@@ -391,50 +465,112 @@ class model():
 
 
 	def transport_PI(self):
-		i = 0
-		if len(self.PI_list) > 5 and None in [self.PI_list[z].comp for z in range(len(self.PI_list))]:
-			if self.PI_list[i].comp == None:
-				self.PI_list[i].comp = self.compartment[random.randint(0, 7)]
-				self.PI_membrane.append(self.PI_list[i])
-				del self.PI_list[i]
-			else:
-				i += 1
+		'''
+		Transport of PI to the different compartiment membranes. The distribution to the different membranes is random.
+		'''
+		if len(self.PI_list) > 3:
+			self.PI_list[0].comp = self.compartment[random.randint(0, 7)]
+			if self.PI_list[0].comp == 'plasma_membrane':
+				self.plasma_membrane.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'secretory_vesicles':
+				self.secretory_vesicles.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'vacuoles':
+				self.vacuoles.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'nucleus':
+				self.nucleus.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'peroxisomes':
+				self.peroxisomes.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'light_microsomes':
+				self.light_microsomes.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'inner_mit_membrane':
+				self.inner_mit_membrane.append(self.PI_list[0])
+			elif self.PI_list[0].comp == 'outer_mit_membrane':
+				self.outer_mit_membrane.append(self.PI_list[0])
+			del self.PI_list[0]
+
 
 
 	def transport_PE(self):
-		i = 0
-		if len(self.PE_list) > 5 and None in [self.PE_list[z].comp for z in range(len(self.PE_list))]:
-			if self.PE_list[i].comp == None:
-				self.PE_list[i].comp = self.compartment[random.randint(0, 7)]
-				self.PE_membrane.append(self.PE_list[i])
-				del self.PE_list[i]
-			else:
-				i += 1
+		'''
+		Transport of PE to the different compartiment membranes. The distribution to the different membranes is random.
+		'''
+		if len(self.PE_list) > 3:
+			self.PE_list[0].comp = self.compartment[random.randint(0, 7)]
+			if self.PE_list[0].comp == 'plasma_membrane':
+				self.plasma_membrane.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'secretory_vesicles':
+				self.secretory_vesicles.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'vacuoles':
+				self.vacuoles.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'nucleus':
+				self.nucleus.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'peroxisomes':
+				self.peroxisomes.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'light_microsomes':
+				self.light_microsomes.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'inner_mit_membrane':
+				self.inner_mit_membrane.append(self.PE_list[0])
+			elif self.PE_list[0].comp == 'outer_mit_membrane':
+				self.outer_mit_membrane.append(self.PE_list[0])
+			del self.PE_list[0]
+
 
 
 	def transport_PC(self):
-		i = 0
-		if len(self.PC_list) > 5 and None in [self.PC_list[z].comp for z in range(len(self.PC_list))]:
-			if self.PC_list[i].comp == None:
-				self.PC_list[i].comp = self.compartment[random.randint(0, 7)]
-				self.PC_membrane.append(self.PC_list[i])
-				del self.PC_list[i]
-			else:
-				i += 1
+		'''
+		Transport of PC to the different compartiment membranes. The distribution to the different membranes is random.
+		'''
+		if len(self.PC_list) > 3:
+			self.PC_list[0].comp = self.compartment[random.randint(0, 7)]
+			if self.PC_list[0].comp == 'plasma_membrane':
+				self.plasma_membrane.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'secretory_vesicles':
+				self.secretory_vesicles.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'vacuoles':
+				self.vacuoles.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'nucleus':
+				self.nucleus.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'peroxisomes':
+				self.peroxisomes.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'light_microsomes':
+				self.light_microsomes.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'inner_mit_membrane':
+				self.inner_mit_membrane.append(self.PC_list[0])
+			elif self.PC_list[0].comp == 'outer_mit_membrane':
+				self.outer_mit_membrane.append(self.PC_list[0])
+			del self.PC_list[0]
+
 
 
 	def transport_CL(self):
+		'''
+		Transport of CL to the different compartiment membranes. The distribution to the different membranes is random.
+		'''
 		i = 0
-		if len(self.CL_list) > 5 and None in [self.CL_list[z].comp for z in range(len(self.CL_list))]:
-			if self.CL_list[i].comp == None:
-				self.CL_list[i].comp = self.compartment[random.randint(0, 7)]
-				self.CL_membrane.append(self.CL_list[i])
-				del self.CL_list[i]
-			else:
-				i += 1
+		if len(self.CL_list) > 3:
+			self.CL_list[i].comp = self.compartment[random.randint(0, 7)]
+			if self.CL_list[0].comp == 'plasma_membrane':
+				self.plasma_membrane.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'secretory_vesicles':
+				self.secretory_vesicles.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'vacuoles':
+				self.vacuoles.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'nucleus':
+				self.nucleus.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'peroxisomes':
+				self.peroxisomes.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'light_microsomes':
+				self.light_microsomes.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'inner_mit_membrane':
+				self.inner_mit_membrane.append(self.CL_list[0])
+			elif self.CL_list[0].comp == 'outer_mit_membrane':
+				self.outer_mit_membrane.append(self.CL_list[0])
+			del self.CL_list[0]
 
 
-	def numbers(self):											#collecting the number of the particular products
+
+	def numbers(self):							
+		#for plotting the production of the lipids
 		self.number_acetyl_coa.append(self.acetyl_coa_number)
 		self.number_acyl_coa.append(len(self.acyl_coa_list))
 		self.number_pa.append(len(self.PA_list))
@@ -445,4 +581,14 @@ class model():
 		self.number_PE.append(len(self.PE_list))
 		self.number_PC.append(len(self.PC_list))
 		self.number_CL.append(len(self.CL_list))
+
+		#for plotting the number of lipids in a certain membrane
+		self.number_plasma_membrane.append(len(self.plasma_membrane))
+		self.number_secretory_vesicles.append(len(self.secretory_vesicles))
+		self.number_vacuoles.append(len(self.vacuoles))
+		self.number_nucleus.append(len(self.nucleus))
+		self.number_peroxisomes.append(len(self.peroxisomes))
+		self.number_light_microsomes.append(len(self.light_microsomes))
+		self.number_inner_mit_membrane.append(len(self.inner_mit_membrane))
+		self.number_outer_mit_membrane.append(len(self.outer_mit_membrane))
 
