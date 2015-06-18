@@ -111,20 +111,20 @@ class model():
 	"""
 	def __init__(self):
 		#determining the timesteps
-		self.timesteps = 500			
+		self.timesteps = 2000			
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.pyruvate_number = 10000	
-		self.dhap_number = 1000	
-		self.ctp_number = 1000
-		self.serine_number = 1000
-		self.glucose_6_p_number = 1000
+		self.pyruvate_number = 50000	
+		self.dhap_number = 10000	
+		self.ctp_number = 10000
+		self.serine_number = 10000
+		self.glucose_6_p_number = 10000
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
-		self.SAM_number = 1000
+		self.SAM_number = 10000
 		self.SAH_number = 0
-		self.glycerol_3_p_mito_number = 1000
+		self.glycerol_3_p_mito_number = 10000
 		self.co2_counter = 0
 		self.p_counter = 0
 
@@ -191,6 +191,7 @@ class model():
 			self.CL_synthase()
 			self.transport()
 			self.numbers()
+		self.plasma_membrane_composition()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 
@@ -268,7 +269,7 @@ class model():
 		Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C14, C16:0, C16:1, C18:0 or C18:1)
 		The intermediate Malonyl-CoA is leaved out.
 		'''
-		for i in range(random.randint(0,10)):
+		for i in range(random.randint(0,9)):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
@@ -305,14 +306,14 @@ class model():
 		'''
 		Synthesis of PA in two reaction steps.
 		'''
-		for i in range(0,30):
+		for i in range(random.randint(30,40)):
 			self.lyso_PA_synthase()
 			self.PA_synthase()
 
 
 	def lyso_PA_synthase(self):
 		'''
-		Production of Lyso-PA by adding one acyl-coa to DHAP (sn2: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
+		Production of Lyso-PA by adding one acyl-coa to DHAP (sn1: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
 		'''
 		x = random.random()
 		if x < 0.95 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
@@ -330,7 +331,7 @@ class model():
 
 	def PA_synthase(self):	
 		'''
-		Synthesis of PA by adding the second fatty acid to DHAP (sn1: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
+		Synthesis of PA by adding the second fatty acid to DHAP (sn2: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
 		'''
 		x = random.random()
 		if x < 0.95: 		
@@ -338,12 +339,12 @@ class model():
 				sn2_chain = random.randint(0, (len(self.acyl_coa_list)-2))		
 				chainlength_sn2 = self.acyl_coa_list[sn2_chain].C
 				if self.acyl_coa_list[sn2_chain].saturation == 0:
-					self.lyso_pa_list[0].sn2 = self.chainlength_saturated[chainlength_sn2]	# creating a new lipid: PA
+					self.lyso_pa_list[-1].sn2 = self.chainlength_saturated[chainlength_sn2]	# creating a new lipid: PA
 				elif self.acyl_coa_list[sn2_chain].saturation == 1:
-					self.lyso_pa_list[0].sn2 = self.chainlength_unsaturated[chainlength_sn2]
-				self.PA_list.append(self.lyso_pa_list[0])			
+					self.lyso_pa_list[-1].sn2 = self.chainlength_unsaturated[chainlength_sn2]
+				self.PA_list.append(self.lyso_pa_list[-1])			
 				del self.acyl_coa_list[sn2_chain]		# deletion of the consumed ffa
-				del self.lyso_pa_list[0]
+				del self.lyso_pa_list[-1]
 
 
 	def CDP_DG_synthase(self):
@@ -352,7 +353,7 @@ class model():
 		for fatty acid storage
 		'''
 		x = random.random()
-		if x <= 0.7 and self.ctp_number > 0:
+		if x <= 0.5 and self.ctp_number > 0:
 			if len(self.PA_list) > 0:
 				self.PA_list[0].head = 'cdp'
 				self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
@@ -360,7 +361,7 @@ class model():
 				self.ctp_number -= 1
 				self.p_counter -= 2
 
-		elif x <= 0.8:
+		elif x <= 0.6:
 			if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
 				self.PA_list[0].head = 'None'
 				self.TAG_list.append(self.PA_list[0])			#TAG production from PA
@@ -568,6 +569,23 @@ class model():
 			del self.CL_list[0]
 
 
+	def plasma_membrane_composition(self):
+		self.PI_plasma_membrane_absolut = float(sum(i.head == 'inositol' for i in self.plasma_membrane))
+		self.PS_plasma_membrane_absolut = float(sum(i.head == 'serine' for i in self.plasma_membrane))
+		self.PC_plasma_membrane_absolut = float(sum(i.head == 'choline' for i in self.plasma_membrane))
+		self.PE_plasma_membrane_absolut = float(sum(i.head == 'ethanolamine' for i in self.plasma_membrane))
+		self.CL_plasma_membrane_absolut = float(sum(i.head == 'neutral' for i in self.plasma_membrane))
+
+
+		self.PI_plasma_membrane_relative = self.PI_plasma_membrane_absolut / len(self.plasma_membrane)
+		self.PS_plasma_membrane_relative = self.PS_plasma_membrane_absolut / len(self.plasma_membrane)
+		self.PC_plasma_membrane_relative = self.PC_plasma_membrane_absolut / len(self.plasma_membrane)
+		self.PE_plasma_membrane_relative = self.PE_plasma_membrane_absolut / len(self.plasma_membrane)
+		self.CL_plasma_membrane_relative = self.CL_plasma_membrane_absolut / len(self.plasma_membrane)
+
+		self.plasma_membrane_comp = [self.PI_plasma_membrane_relative, self.PS_plasma_membrane_relative,\
+									 self.PC_plasma_membrane_relative, self.PE_plasma_membrane_relative,\
+									 self.CL_plasma_membrane_relative]
 
 	def numbers(self):							
 		#for plotting the production of the lipids
