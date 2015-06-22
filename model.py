@@ -112,7 +112,7 @@ class model():
 	"""
 	def __init__(self):
 		#determining the timesteps
-		self.timesteps = 7200			
+		self.timesteps = 720			
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
@@ -128,6 +128,7 @@ class model():
 		self.glycerol_3_p_mito_number = 10000
 		self.co2_counter = 0
 		self.p_counter = 0
+		self.counter = 0
 
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane']	
@@ -188,15 +189,16 @@ class model():
 			self.acyl_synthase()
 			self.PA_synthese()
 			self.CDP_DG_synthase()
-			self.phospholipid_synthase()
+			self.PS_synthase()
+			self.PI_synthase()
 			self.PE_synthase()
 			self.PC_synthase()
 			self.CL_synthase()
-			#self.transport()
+			self.transport()
 			self.numbers()
 		print self.number_CL[-1], self.number_PS[-1], self.number_PI[-1], self.number_PE[-1], self.number_PC[-1]
 
-		#self.membranes_composition()
+		self.membranes_composition()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 
@@ -251,7 +253,7 @@ class model():
 		Synthesis of inositol from glucose-6-p by the Myo-inositol-1-p synthase and the Myo-inositol 1
 		phosphatase.
 		'''
-		for i in range(random.randint(0,3)):
+		for i in range(50):
 			if self.glucose_6_p_number > 0:
 				self.inositol_number += 1
 				self.glucose_6_p_number -= 1
@@ -262,7 +264,7 @@ class model():
 		'''
 		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
 		'''
-		for i in range(random.randint(0,10)):			
+		for i in range(100):			
 			if self.pyruvate_number >= 1:			# transformation from pyruvate to acetyl_coa
 				self.acetyl_coa_number += 1
 				self.pyruvate_number -= 1				
@@ -274,30 +276,32 @@ class model():
 		Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C14, C16:0, C16:1, C18:0 or C18:1)
 		The intermediate Malonyl-CoA is leaved out.
 		'''
-		for i in range(random.randint(0,9)):
+		choice_list = [0, 1]
+		weights = [0.05, 0.95]
+		for i in range(60):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
-					new_acyl = fatty_acids(2, random.randint(0,1))
+					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >=14 and x <= 0.1:
 					self.acyl_coa_list[-1].saturation = 0
-					new_acyl = fatty_acids(2, random.randint(0,1))
+					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 16 and x <= 0.45:	#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, random.randint(0,1))
+					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 18:				#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, random.randint(0,1))
+					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
@@ -311,7 +315,7 @@ class model():
 		'''
 		Synthesis of PA in two reaction steps.
 		'''
-		for i in range(random.randint(50,60)):
+		for i in range(6):
 			self.lyso_PA_synthase()
 			self.PA_synthase()
 
@@ -332,6 +336,8 @@ class model():
 					del self.acyl_coa_list[sn1_chain]
 				else:
 					self.lyso_PA_synthase()
+		else:
+			self.counter +=1
 
 
 	def PA_synthase(self):	
@@ -357,37 +363,44 @@ class model():
 		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids, or to TAG (PA phosphatase/DAG acyltransferase) 
 		for fatty acid storage
 		'''
-		x = random.random()
-		if x <= 0.5 and self.ctp_number > 0:
-			if len(self.PA_list) > 0:
-				self.PA_list[0].head = 'cdp'
-				self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
-				del self.PA_list[0]
-				self.ctp_number -= 1
-				self.p_counter -= 2
+		for i in range(5):
+			x = random.random()
+			if x <= 0.7 and self.ctp_number > 0:
+				if len(self.PA_list) > 0:
+					self.PA_list[0].head = 'cdp'
+					self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
+					del self.PA_list[0]
+					self.ctp_number -= 1
+					self.p_counter -= 2
 
-		elif x <= 0.6:
-			if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
-				self.PA_list[0].head = 'None'
-				self.TAG_list.append(self.PA_list[0])			#TAG production from PA
-				del self.PA_list[0]
-				del self.acyl_coa_list[0]
-				self.p_counter -= 1
+			elif x <= 0.8:
+				if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
+					self.PA_list[0].head = 'None'
+					self.TAG_list.append(self.PA_list[0])			#TAG production from PA
+					del self.PA_list[0]
+					del self.acyl_coa_list[0]
+					self.p_counter -= 1
 
 
-	def phospholipid_synthase(self):
+	def PS_synthase(self):
 		'''
-		CDP-DG is processed to PS (PS synthase) or PI (PI synthase) as phospholipids.
+		CDP-DG is processed to PS (PS synthase).
 		'''
-		x = random.random()
-		if len(self.CDP_DG_list) >= 1 and self.serine_number > 0:
-			if x <= 0.75:
+		for i in range(4):
+			x = random.random()
+			if x <= 0.7 and len(self.CDP_DG_list) >= 1 and self.serine_number > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
 				self.serine_number -= 1
 
-			elif x <= 0.95 and self.inositol_number > 0:
+	def PI_synthase(self):
+		'''
+ 		CDP-DG is processed to PI (PI synthase)
+		'''
+		for i in range(4):
+			x = random.random()
+			if x <= 0.3 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
 				self.PI_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
@@ -398,12 +411,13 @@ class model():
 		'''
 		PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
 		'''
-		x = random.random()
-		if x <= 0.8 and len(self.PS_list) >= 1:
-			self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
-			self.PE_list.append(self.PS_list[0])
-			del self.PS_list[0]
-			self.co2_counter += 1
+		for i in range(3):
+			x = random.random()
+			if x <= 0.8 and len(self.PS_list) >= 1:
+				self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
+				self.PE_list.append(self.PS_list[0])
+				del self.PS_list[0]
+				self.co2_counter += 1
 
 		
 
@@ -411,13 +425,14 @@ class model():
 		'''
 		PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
 		'''
-		x = random.random()
-		if x <= 0.13 and len(self.PE_list) >= 1 and self.SAM_number >= 3:
-			self.PE_list[0].head = 'choline'								#PC synthesis from PE
-			self.PC_list.append(self.PE_list[0])
-			del self.PE_list[0]
-			self.SAM_number -= 3
-			self.SAH_number += 3
+		for i in range(2):
+			x = random.random()
+			if x <= 0.7 and len(self.PE_list) >= 1 and self.SAM_number >= 3:
+				self.PE_list[0].head = 'choline'								#PC synthesis from PE
+				self.PC_list.append(self.PE_list[0])
+				del self.PE_list[0]
+				self.SAM_number -= 3
+				self.SAH_number += 3
 
 
 	def CL_synthase(self):
@@ -449,7 +464,7 @@ class model():
 		'''
 		Transport of PS to the different compartment membranes. The distribution to the different membranes is random.
 		'''
-		weights = [0.65, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+		weights = [0.7, 0.15, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025]
 		if len(self.PS_list) > 3:
 			self.PS_list[0].comp = choice(self.compartment, p = weights)
 			if self.PS_list[0].comp == 'plasma_membrane':
@@ -476,7 +491,7 @@ class model():
 		'''
 		Transport of PI to the different compartment membranes. The distribution to the different membranes is random.
 		'''
-		weights = [0.23, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11]
+		weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
 		if len(self.PI_list) > 3:
 			self.PI_list[0].comp = choice(self.compartment, p = weights)
 			if self.PI_list[0].comp == 'plasma_membrane':
@@ -503,7 +518,7 @@ class model():
 		'''
 		Transport of PE to the different compartment membranes. The distribution to the different membranes is random.
 		'''
-		weights = [0.37, 0.09, 0.09, 0.09, 0.09, 0.09, 0.09, 0.09]
+		weights = [0.15, 0.18, 0.22, 0.09, 0.09, 0.09, 0.09, 0.09]
 		if len(self.PE_list) > 3:
 			self.PE_list[0].comp = choice(self.compartment, p = weights)
 			if self.PE_list[0].comp == 'plasma_membrane':
@@ -530,7 +545,7 @@ class model():
 		'''
 		Transport of PC to the different compartment membranes. The distribution to the different membranes is random.
 		'''
-		weights = [0.16, 0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.12]
+		weights = [0.1, 0.25, 0.11, 0.06, 0.12, 0.12, 0.12, 0.12]
 		if len(self.PC_list) > 3:
 			self.PC_list[0].comp = choice(self.compartment, p = weights)
 			if self.PC_list[0].comp == 'plasma_membrane':
@@ -557,9 +572,9 @@ class model():
 		'''
 		Transport of CL to the different compartment membranes. The distribution to the different membranes is random.
 		'''
-		weights = [0.02, 0.14, 0.14, 0.14, 0.14, 0.14, 0.14, 0.14]
+		weights = [0.05, 0.05, 0.20, 0.14, 0.14, 0.14, 0.14, 0.14]
 		if len(self.CL_list) > 1:
-			self.CL_list[0].comp = self.compartment[random.randint(0, 7)]
+			self.CL_list[0].comp = choice(self.compartment, p = weights)
 			if self.CL_list[0].comp == 'plasma_membrane':
 				self.plasma_membrane.append(self.CL_list[0])
 			elif self.CL_list[0].comp == 'secretory_vesicles':
