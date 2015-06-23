@@ -22,7 +22,7 @@ class lipids(object):
 		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
 		self.sn1_options = ['C16:1', 'C18:1', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
-							'inner_mit_membrane', 'outer_mit_membrane', None]					
+							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]					
 
 		self.head = head
 		self.sn2 = sn2
@@ -116,16 +116,12 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.pyruvate_number = 50000	
-		self.dhap_number = 10000	
-		self.ctp_number = 10000
-		self.serine_number = 10000
-		self.glucose_6_p_number = 10000
+		self.precursors_dict = {'pyruvate_number' : 500000, 'dhap_number': 10000, 'ctp_number': 10000, 'serine_number': 10000,\
+									'glucose_6_p_number': 10000, 'SAM_number': 10000, 'SAH_number': 0, 'glycerol_3_p_mito_number': 10000}
+		
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
-		self.SAM_number = 10000
-		self.SAH_number = 0
-		self.glycerol_3_p_mito_number = 10000
+
 		self.co2_counter = 0
 		self.p_counter = 0
 		self.counter = 0
@@ -154,6 +150,7 @@ class model():
 		self.light_microsomes = []
 		self.inner_mit_membrane = []
 		self.outer_mit_membrane = []
+		self.lipid_droplets = []
 
 		#collecting the products of every timestep
 		self.number_acetyl_coa = [0]
@@ -254,9 +251,9 @@ class model():
 		phosphatase.
 		'''
 		for i in range(50):
-			if self.glucose_6_p_number > 0:
+			if self.precursors_dict['glucose_6_p_number'] > 0:
 				self.inositol_number += 1
-				self.glucose_6_p_number -= 1
+				self.precursors_dict['glucose_6_p_number'] -= 1
 				self.p_counter -= 1
 
 
@@ -264,10 +261,10 @@ class model():
 		'''
 		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
 		'''
-		for i in range(100):			
-			if self.pyruvate_number >= 1:			# transformation from pyruvate to acetyl_coa
+		for i in range(60):			
+			if self.precursors_dict['pyruvate_number'] >= 1:			# transformation from pyruvate to acetyl_coa
 				self.acetyl_coa_number += 1
-				self.pyruvate_number -= 1				
+				self.precursors_dict['pyruvate_number'] -= 1				
 				self.co2_counter += 1
 
 
@@ -326,13 +323,13 @@ class model():
 		'''
 		x = random.random()
 		if x < 0.95 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
-			if self.dhap_number > 0 and len(self.acyl_coa_list) > 1:
+			if self.precursors_dict['dhap_number'] > 0 and len(self.acyl_coa_list) > 1:
 				sn1_chain = random.randint(0, (len(self.acyl_coa_list)-2))
 				if self.acyl_coa_list[sn1_chain].saturation == 1:
 					chainlength_sn1 = self.acyl_coa_list[sn1_chain].C
 					lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None)
 					self.lyso_pa_list.append(lyso_pa)
-					self.dhap_number -= 1
+					self.precursors_dict['dhap_number'] -= 1
 					del self.acyl_coa_list[sn1_chain]
 				else:
 					self.lyso_PA_synthase()
@@ -365,12 +362,12 @@ class model():
 		'''
 		for i in range(5):
 			x = random.random()
-			if x <= 0.7 and self.ctp_number > 0:
+			if x <= 0.7 and self.precursors_dict['ctp_number'] > 0:
 				if len(self.PA_list) > 0:
 					self.PA_list[0].head = 'cdp'
 					self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
 					del self.PA_list[0]
-					self.ctp_number -= 1
+					self.precursors_dict['ctp_number'] -= 1
 					self.p_counter -= 2
 
 			elif x <= 0.8:
@@ -388,17 +385,18 @@ class model():
 		'''
 		for i in range(4):
 			x = random.random()
-			if x <= 0.7 and len(self.CDP_DG_list) >= 1 and self.serine_number > 0:
+			if x <= 0.6 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
-				self.serine_number -= 1
+				self.precursors_dict['serine_number'] -= 1
+
 
 	def PI_synthase(self):
 		'''
  		CDP-DG is processed to PI (PI synthase)
 		'''
-		for i in range(4):
+		for i in range(3):
 			x = random.random()
 			if x <= 0.3 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
@@ -413,12 +411,11 @@ class model():
 		'''
 		for i in range(3):
 			x = random.random()
-			if x <= 0.8 and len(self.PS_list) >= 1:
+			if x <= 0.6 and len(self.PS_list) >= 1:
 				self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
 				self.PE_list.append(self.PS_list[0])
 				del self.PS_list[0]
 				self.co2_counter += 1
-
 		
 
 	def PC_synthase(self):
@@ -427,12 +424,12 @@ class model():
 		'''
 		for i in range(2):
 			x = random.random()
-			if x <= 0.7 and len(self.PE_list) >= 1 and self.SAM_number >= 3:
+			if x <= 0.65 and len(self.PE_list) >= 1 and self.precursors_dict['SAM_number'] >= 3:
 				self.PE_list[0].head = 'choline'								#PC synthesis from PE
 				self.PC_list.append(self.PE_list[0])
 				del self.PE_list[0]
-				self.SAM_number -= 3
-				self.SAH_number += 3
+				self.precursors_dict['SAM_number'] -= 3
+				self.precursors_dict['SAH_number'] += 3
 
 
 	def CL_synthase(self):
@@ -440,13 +437,13 @@ class model():
 		Synthesis of cardiolipin, for which 2 CDP-DG are needed. Different enzymes are needed.
 		'''
 		x = random.random()
-		if x <= 0.5 and self.glycerol_3_p_mito_number > 0 and len(self.CDP_DG_list) >= 2:
+		if x <= 0.7 and self.precursors_dict['glycerol_3_p_mito_number'] > 0 and len(self.CDP_DG_list) >= 2:
 			self.CDP_DG_list[0].head = 'neutral'
 			self.CL_list.append(self.CDP_DG_list[0])
 			self.CL_list[-1].__class__ = CL
 			self.CL_list[-1].sn4, self.CL_list[-1].sn3 = self.CDP_DG_list[1].sn2, self.CDP_DG_list[1].sn1
 			del self.CDP_DG_list[0:2]
-			self.glycerol_3_p_mito_number -= 1
+			self.precursors_dict['glycerol_3_p_mito_number'] -= 1
 
 
 	def transport(self):
@@ -458,6 +455,7 @@ class model():
 		self.transport_PE()
 		self.transport_PC()
 		self.transport_CL()
+		self.transport_TAG()
 
 
 	def transport_PS(self):
@@ -466,24 +464,26 @@ class model():
 		'''
 		weights = [0.7, 0.15, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025]
 		if len(self.PS_list) > 3:
-			self.PS_list[0].comp = choice(self.compartment, p = weights)
-			if self.PS_list[0].comp == 'plasma_membrane':
-				self.plasma_membrane.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'secretory_vesicles':
-				self.secretory_vesicles.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'vacuoles':
-				self.vacuoles.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'nucleus':
-				self.nucleus.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'peroxisomes':
-				self.peroxisomes.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'light_microsomes':
-				self.light_microsomes.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'inner_mit_membrane':
-				self.inner_mit_membrane.append(self.PS_list[0])
-			elif self.PS_list[0].comp == 'outer_mit_membrane':
-				self.outer_mit_membrane.append(self.PS_list[0])
-			del self.PS_list[0]
+			z = len(self.PS_list)/10
+			for i in range(z):
+				self.PS_list[0].comp = choice(self.compartment, p = weights)
+				if self.PS_list[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'vacuoles':
+					self.vacuoles.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'nucleus':
+					self.nucleus.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'peroxisomes':
+					self.peroxisomes.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'light_microsomes':
+					self.light_microsomes.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(self.PS_list[0])
+				elif self.PS_list[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(self.PS_list[0])
+				del self.PS_list[0]
 
 
 
@@ -493,24 +493,26 @@ class model():
 		'''
 		weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
 		if len(self.PI_list) > 3:
-			self.PI_list[0].comp = choice(self.compartment, p = weights)
-			if self.PI_list[0].comp == 'plasma_membrane':
-				self.plasma_membrane.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'secretory_vesicles':
-				self.secretory_vesicles.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'vacuoles':
-				self.vacuoles.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'nucleus':
-				self.nucleus.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'peroxisomes':
-				self.peroxisomes.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'light_microsomes':
-				self.light_microsomes.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'inner_mit_membrane':
-				self.inner_mit_membrane.append(self.PI_list[0])
-			elif self.PI_list[0].comp == 'outer_mit_membrane':
-				self.outer_mit_membrane.append(self.PI_list[0])
-			del self.PI_list[0]
+			z = len(self.PI_list)/10
+			for i in range(z):
+				self.PI_list[0].comp = choice(self.compartment, p = weights)
+				if self.PI_list[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'vacuoles':
+					self.vacuoles.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'nucleus':
+					self.nucleus.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'peroxisomes':
+					self.peroxisomes.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'light_microsomes':
+					self.light_microsomes.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(self.PI_list[0])
+				elif self.PI_list[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(self.PI_list[0])
+				del self.PI_list[0]
 
 
 
@@ -520,24 +522,26 @@ class model():
 		'''
 		weights = [0.15, 0.18, 0.22, 0.09, 0.09, 0.09, 0.09, 0.09]
 		if len(self.PE_list) > 3:
-			self.PE_list[0].comp = choice(self.compartment, p = weights)
-			if self.PE_list[0].comp == 'plasma_membrane':
-				self.plasma_membrane.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'secretory_vesicles':
-				self.secretory_vesicles.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'vacuoles':
-				self.vacuoles.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'nucleus':
-				self.nucleus.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'peroxisomes':
-				self.peroxisomes.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'light_microsomes':
-				self.light_microsomes.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'inner_mit_membrane':
-				self.inner_mit_membrane.append(self.PE_list[0])
-			elif self.PE_list[0].comp == 'outer_mit_membrane':
-				self.outer_mit_membrane.append(self.PE_list[0])
-			del self.PE_list[0]
+			z = len(self.PE_list)/10
+			for i in range(z):
+				self.PE_list[0].comp = choice(self.compartment, p = weights)
+				if self.PE_list[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'vacuoles':
+					self.vacuoles.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'nucleus':
+					self.nucleus.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'peroxisomes':
+					self.peroxisomes.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'light_microsomes':
+					self.light_microsomes.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(self.PE_list[0])
+				elif self.PE_list[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(self.PE_list[0])
+				del self.PE_list[0]
 
 
 
@@ -547,24 +551,26 @@ class model():
 		'''
 		weights = [0.1, 0.25, 0.11, 0.06, 0.12, 0.12, 0.12, 0.12]
 		if len(self.PC_list) > 3:
-			self.PC_list[0].comp = choice(self.compartment, p = weights)
-			if self.PC_list[0].comp == 'plasma_membrane':
-				self.plasma_membrane.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'secretory_vesicles':
-				self.secretory_vesicles.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'vacuoles':
-				self.vacuoles.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'nucleus':
-				self.nucleus.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'peroxisomes':
-				self.peroxisomes.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'light_microsomes':
-				self.light_microsomes.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'inner_mit_membrane':
-				self.inner_mit_membrane.append(self.PC_list[0])
-			elif self.PC_list[0].comp == 'outer_mit_membrane':
-				self.outer_mit_membrane.append(self.PC_list[0])
-			del self.PC_list[0]
+			z = len(self.PC_list)/10
+			for i in range(z):
+				self.PC_list[0].comp = choice(self.compartment, p = weights)
+				if self.PC_list[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'vacuoles':
+					self.vacuoles.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'nucleus':
+					self.nucleus.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'peroxisomes':
+					self.peroxisomes.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'light_microsomes':
+					self.light_microsomes.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(self.PC_list[0])
+				elif self.PC_list[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(self.PC_list[0])
+				del self.PC_list[0]
 
 
 
@@ -574,24 +580,37 @@ class model():
 		'''
 		weights = [0.05, 0.05, 0.20, 0.14, 0.14, 0.14, 0.14, 0.14]
 		if len(self.CL_list) > 1:
-			self.CL_list[0].comp = choice(self.compartment, p = weights)
-			if self.CL_list[0].comp == 'plasma_membrane':
-				self.plasma_membrane.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'secretory_vesicles':
-				self.secretory_vesicles.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'vacuoles':
-				self.vacuoles.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'nucleus':
-				self.nucleus.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'peroxisomes':
-				self.peroxisomes.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'light_microsomes':
-				self.light_microsomes.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'inner_mit_membrane':
-				self.inner_mit_membrane.append(self.CL_list[0])
-			elif self.CL_list[0].comp == 'outer_mit_membrane':
-				self.outer_mit_membrane.append(self.CL_list[0])
-			del self.CL_list[0]
+			z = len(self.CL_list)/10
+			for i in range(z):
+				self.CL_list[0].comp = choice(self.compartment, p = weights)
+				if self.CL_list[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'vacuoles':
+					self.vacuoles.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'nucleus':
+					self.nucleus.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'peroxisomes':
+					self.peroxisomes.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'light_microsomes':
+					self.light_microsomes.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(self.CL_list[0])
+				elif self.CL_list[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(self.CL_list[0])
+				del self.CL_list[0]
+
+	def transport_TAG(self):
+		'''
+		Transport of TAG to lipid droplets
+		'''
+		if len(self.TAG_list) > 3:
+			z = len(self.TAG_list)/10
+			for i in range(z):
+				self.TAG_list[0].comp = 'lipid_droplets'
+				self.lipid_droplets.append(self.TAG_list[0])
+				del self.TAG_list[0]
 
 
 	def membranes_composition(self):
