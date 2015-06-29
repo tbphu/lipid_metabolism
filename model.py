@@ -18,7 +18,7 @@ class lipids(object):
 	"""
 	def __init__(self, head, sn2, sn1, comp):
 
-		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'None']
+		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', None]
 		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
 		self.sn1_options = ['C16:1', 'C18:1', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -65,6 +65,11 @@ class lipids(object):
 			raise TypeError('This is no compartment.')
 		self.__comp = local
 
+class TAG(lipids):
+
+	def __init__(self, sn3, sn2, sn1):
+		super(TAG, self).__init__(sn2, sn1)
+		sn3 = None
 
 class CL(lipids):
 
@@ -146,6 +151,7 @@ class model():
 	def __init__(self):
 		#determining the timesteps
 		self.timesteps = 720			
+		self.time = 0
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
@@ -167,6 +173,9 @@ class model():
 						enzyme('Cho1', 1000, 'outer_mit_membrane'), enzyme('Psd1', 1000, 'inner_mit_membrane'), \
 						enzyme('Cho2', 1000, 'ER'), enzyme('Opi3', 1000, 'mitochondrion'), enzyme('Pah1', 1000, 'cytoplasm'), \
 						enzyme('Dga1', 1000, 'lipid_particle')]
+
+		#list of the 4 cell cycle phases
+		self.cell_cycle_phases = ['G1', 'S', 'G2', 'M']
 
 		#empty lists for the produced lipids
 		self.acyl_coa_list = []
@@ -222,6 +231,8 @@ class model():
 		
 		#functions to run the model
 		for t in range(self.timesteps):
+			self.time += 1
+			self.cell_cycle()
 			self.function_list = [self.inositol_synthesis,
 								self.acetyl_coa_synthase,
 								self.acyl_synthase,
@@ -232,7 +243,8 @@ class model():
 								self.PE_synthase,
 								self.PC_synthase,
 								self.CL_synthase,
-								self.transport]
+								self.TAG_lipase]
+								#self.transport]
 
 			for i in self.function_list:
 				func = random.choice(self.function_list)
@@ -240,9 +252,11 @@ class model():
 				self.function_list.remove(func)
 			self.numbers()
 
-		print self.number_CL[-1], self.number_PS[-1], self.number_PI[-1], self.number_PE[-1], self.number_PC[-1]
-
-		self.membranes_composition()
+		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
+				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1])
+		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
+				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1]
+		#self.membranes_composition()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 
@@ -293,12 +307,22 @@ class model():
 		mat.show()
 
 
+	def cell_cycle(self):
+		if self.time <= 180:
+			self.phase = self.cell_cycle_phases[0]
+		elif self.time <= 450:
+			self.phase = self.cell_cycle_phases[1]
+		elif self.time <= 630:
+			self.phase = self.cell_cycle_phases[2]
+		else:
+			self.phase = self.cell_cycle_phases[3]	
+
 	def inositol_synthesis(self):
 		'''
 		Synthesis of inositol from glucose-6-p by the Myo-inositol-1-p synthase and the Myo-inositol 1
 		phosphatase.
 		'''
-		for i in range(50):
+		for i in range(100):
 			if self.precursors_dict['glucose_6_p_number'] > 0:
 				self.inositol_number += 1
 				self.precursors_dict['glucose_6_p_number'] -= 1
@@ -309,7 +333,7 @@ class model():
 		'''
 		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
 		'''
-		for i in range(60):			
+		for i in range(200):			
 			if self.precursors_dict['pyruvate_number'] >= 1:			# transformation from pyruvate to acetyl_coa
 				self.acetyl_coa_number += 1
 				self.precursors_dict['pyruvate_number'] -= 1				
@@ -323,7 +347,7 @@ class model():
 		'''
 		choice_list = [0, 1]
 		weights = [0.05, 0.95]
-		for i in range(60):
+		for i in range(150):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
@@ -360,7 +384,7 @@ class model():
 		'''
 		Synthesis of PA in two reaction steps.
 		'''
-		for i in range(6):
+		for i in range(80):
 			self.lyso_PA_synthase()
 			self.PA_synthase()
 
@@ -408,7 +432,7 @@ class model():
 		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids, or to TAG (PA phosphatase/DAG acyltransferase) 
 		for fatty acid storage
 		'''
-		for i in range(5):
+		for i in range(30):
 			x = random.random()
 			if x <= 0.7 and self.precursors_dict['ctp_number'] > 0:
 				if len(self.PA_list) > 0:
@@ -418,22 +442,46 @@ class model():
 					self.precursors_dict['ctp_number'] -= 1
 					self.p_counter -= 2
 
-			elif x <= 0.8:
-				if len(self.acyl_coa_list) > 0 and len(self.PA_list) > 0:
-					self.PA_list[0].head = 'None'
+			elif x <= 0.85:
+				if len(self.acyl_coa_list) > 1 and len(self.PA_list) > 0:
+					self.PA_list[0].head = None
 					self.TAG_list.append(self.PA_list[0])			#TAG production from PA
+					self.TAG_list[-1].__class__ = TAG
+					chainlength_sn3 = self.acyl_coa_list[0].C
+					if self.acyl_coa_list[0].saturation == 0:
+						self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
+					elif self.acyl_coa_list[0].saturation == 1:
+						self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
 					del self.PA_list[0]
 					del self.acyl_coa_list[0]
 					self.p_counter -= 1
 
+	def TAG_lipase(self):
+		'''
+		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
+		''' 
+		if self.phase != 'G1' and len(self.TAG_list) > 2:
+			for i in range(3):
+				self.PA_list.append(self.TAG_list[0])
+				self.PA_list[-1].__class__ = lipids
+				self.PA_list[-1].head = 'p'
+				if ':0' in self.TAG_list[0].sn3:
+					for key, value in self.chainlength_unsaturated.items():
+						if value == self.TAG_list[0].sn3:
+							self.acyl_coa_list.append(fatty_acids(key, 0))
+				elif ':1' in self.TAG_list[0].sn3:
+					for key, value in self.chainlength_saturated.items():
+						if value == self.TAG_list[0].sn3:
+							self.acyl_coa_list.append(fatty_acids(key, 1))
+				del self.TAG_list[0]
 
 	def PS_synthase(self):
 		'''
 		CDP-DG is processed to PS (PS synthase).
 		'''
-		for i in range(4):
+		for i in range(6):
 			x = random.random()
-			if x <= 0.6 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
+			if x <= 0.8 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
@@ -444,9 +492,9 @@ class model():
 		'''
  		CDP-DG is processed to PI (PI synthase)
 		'''
-		for i in range(3):
+		for i in range(2):
 			x = random.random()
-			if x <= 0.3 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
+			if x <= 0.4 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
 				self.PI_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
@@ -457,9 +505,9 @@ class model():
 		'''
 		PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
 		'''
-		for i in range(3):
+		for i in range(5):
 			x = random.random()
-			if x <= 0.6 and len(self.PS_list) >= 1:
+			if x <= 0.9 and len(self.PS_list) >= 1:
 				self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
 				self.PE_list.append(self.PS_list[0])
 				del self.PS_list[0]
@@ -470,9 +518,9 @@ class model():
 		'''
 		PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
 		'''
-		for i in range(2):
+		for i in range(4):
 			x = random.random()
-			if x <= 0.65 and len(self.PE_list) >= 1 and self.precursors_dict['SAM_number'] >= 3:
+			if x <= 0.7 and len(self.PE_list) >= 1 and self.precursors_dict['SAM_number'] >= 3:
 				self.PE_list[0].head = 'choline'								#PC synthesis from PE
 				self.PC_list.append(self.PE_list[0])
 				del self.PE_list[0]
@@ -485,7 +533,7 @@ class model():
 		Synthesis of cardiolipin, for which 2 CDP-DG are needed. Different enzymes are needed.
 		'''
 		x = random.random()
-		if x <= 0.7 and self.precursors_dict['glycerol_3_p_mito_number'] > 0 and len(self.CDP_DG_list) >= 2:
+		if x <= 0.3 and self.precursors_dict['glycerol_3_p_mito_number'] > 0 and len(self.CDP_DG_list) >= 2:
 			self.CDP_DG_list[0].head = 'neutral'
 			self.CL_list.append(self.CDP_DG_list[0])
 			self.CL_list[-1].__class__ = CL
