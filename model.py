@@ -182,6 +182,7 @@ class model():
 		self.lyso_pa_list = []
 		self.PA_list = []
 		self.CDP_DG_list = []
+		self.DAG_list = []
 		self.TAG_list = []
 		self.PS_list = []
 		self.PI_list = []
@@ -238,6 +239,7 @@ class model():
 								self.acyl_synthase,
 								self.PA_synthese,
 								self.CDP_DG_synthase,
+								self.TAG_synthese,
 								self.PS_synthase,
 								self.PI_synthase,
 								self.PE_synthase,
@@ -308,6 +310,9 @@ class model():
 
 
 	def cell_cycle(self):
+		'''
+		Function to determine the cell cycle phases depending on the elapsed time.
+		'''
 		if self.time <= 180:
 			self.phase = self.cell_cycle_phases[0]
 		elif self.time <= 450:
@@ -316,6 +321,7 @@ class model():
 			self.phase = self.cell_cycle_phases[2]
 		else:
 			self.phase = self.cell_cycle_phases[3]	
+
 
 	def inositol_synthesis(self):
 		'''
@@ -429,8 +435,7 @@ class model():
 
 	def CDP_DG_synthase(self):
 		'''
-		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids, or to TAG (PA phosphatase/DAG acyltransferase) 
-		for fatty acid storage
+		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids
 		'''
 		for i in range(30):
 			x = random.random()
@@ -442,19 +447,47 @@ class model():
 					self.precursors_dict['ctp_number'] -= 1
 					self.p_counter -= 2
 
-			elif x <= 0.85:
-				if len(self.acyl_coa_list) > 1 and len(self.PA_list) > 0:
+
+	def TAG_synthese(self):
+		'''
+		Function for TAG synthesis divided in production of DAG and TAG afterwards
+		'''
+		self.DAG_synthase()
+		self.TAG_synthase()
+
+
+	def DAG_synthase(self):
+		'''
+		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
+		'''
+		for i in range(10):
+			x = random.random()
+			if x <= 0.8:
+				if len(self.PA_list) > 0:
 					self.PA_list[0].head = None
-					self.TAG_list.append(self.PA_list[0])			#TAG production from PA
+					self.DAG_list.append(self.PA_list[0])
+					del self.PA_list[0]
+
+
+	def TAG_synthase(self):
+		'''
+		DAG is processed to TAG by adding a third acyl-chain at position sn3.
+		'''
+		for i in range(10):
+			x = random.random()
+			if x <= 0.85:
+				if len(self.acyl_coa_list) > 1 and len(self.DAG_list) > 0:
+					self.TAG_list.append(self.DAG_list[0])		
 					self.TAG_list[-1].__class__ = TAG
 					chainlength_sn3 = self.acyl_coa_list[0].C
 					if self.acyl_coa_list[0].saturation == 0:
 						self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
 					elif self.acyl_coa_list[0].saturation == 1:
 						self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
-					del self.PA_list[0]
+					del self.DAG_list[0]
 					del self.acyl_coa_list[0]
 					self.p_counter -= 1
+
 
 	def TAG_lipase(self):
 		'''
@@ -481,7 +514,7 @@ class model():
 		'''
 		for i in range(6):
 			x = random.random()
-			if x <= 0.8 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
+			if x <= 0.85 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
