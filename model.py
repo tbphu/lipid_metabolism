@@ -22,7 +22,9 @@ class lipids(object):
 		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
 		self.sn1_options = ['C16:1', 'C18:1', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
-							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]					
+							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane']					
 
 		self.head = head
 		self.sn2 = sn2
@@ -65,11 +67,28 @@ class lipids(object):
 			raise TypeError('This is no compartment.')
 		self.__comp = local
 
+
+	def comp_choice(self):
+		if self.head == 'inositol':
+			weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
+		elif self.head == 'serine':
+			weights = [0.7, 0.15, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025]
+		elif self.head == 'ethanolamine':
+			weights = [0.15, 0.18, 0.22, 0.09, 0.09, 0.09, 0.09, 0.09]
+		elif self.head == 'choline':
+			weights = [0.1, 0.25, 0.11, 0.06, 0.12, 0.12, 0.12, 0.12]
+
+		self.comp = choice(self.compartment, p = weights)
+
+
 class TAG(lipids):
 
 	def __init__(self, sn3, sn2, sn1):
 		super(TAG, self).__init__(sn2, sn1)
 		sn3 = None
+
+	def comp_choice(self):
+		self.comp = 'lipid_droplets'
 
 class CL(lipids):
 
@@ -77,6 +96,12 @@ class CL(lipids):
 		super(CL, self).__init__(head, sn2, sn1, comp)
 		sn4 = None
 		sn3 = None	
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane']
+
+	def comp_choice(self):
+		weights = [0.05, 0.05, 0.20, 0.14, 0.14, 0.14, 0.14, 0.14]
+		self.comp = choice(self.compartment, p = weights)
 
 
 class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
@@ -146,8 +171,16 @@ class sterol(object):
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'sterol', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane']
 		self.head = head
 		self.comp = comp
+
+	def comp_choice(self):
+		#if self.head == 'inositol':
+		weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
+		self.comp = choice(self.compartment, p = weights)
+
 
 	@property
 	def head(self):
@@ -258,7 +291,10 @@ class model():
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
 		self.membrane_lipids = ['PI', 'PS', 'PC', 'PE', 'CL']
-
+		self.lipid_lists = [self.TAG_list, self.PS_list, self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
+		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
+									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
+									self.outer_mit_membrane, self.lipid_droplets]
 		
 		#functions to run the model
 		for t in range(self.timesteps):
@@ -494,7 +530,11 @@ class model():
 		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
 		'''
 		for i in range(10):
-			x = random.random()
+			if self.phase != 'G1':
+				weights = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.3, 0.3]
+			else:
+				weights = [ 0.1 for p in range(10)]
+			x = choice([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], p = weights)
 			if x <= 0.8:
 				if len(self.PA_list) > 0:
 					self.PA_list[0].head = None
@@ -527,19 +567,21 @@ class model():
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
 		if self.phase != 'G1' and len(self.lipid_droplets) > 4:
-			for i in range(4):
-				self.PA_list.append(self.lipid_droplets[0])
-				self.PA_list[-1].__class__ = lipids
-				self.PA_list[-1].head = 'p'
-				if ':0' in self.lipid_droplets[0].sn3:
-					for key, value in self.chainlength_unsaturated.items():
-						if value == self.lipid_droplets[0].sn3:
-							self.acyl_coa_list.append(fatty_acids(key, 0))
-				elif ':1' in self.lipid_droplets[0].sn3:
-					for key, value in self.chainlength_saturated.items():
-						if value == self.lipid_droplets[0].sn3:
-							self.acyl_coa_list.append(fatty_acids(key, 1))
-				del self.lipid_droplets[0]
+			for i in range(3):
+				x = random.random()
+				if x <= 0.9:
+					self.PA_list.append(self.lipid_droplets[0])
+					self.PA_list[-1].__class__ = lipids
+					self.PA_list[-1].head = 'p'
+					if ':0' in self.lipid_droplets[0].sn3:
+						for key, value in self.chainlength_unsaturated.items():
+							if value == self.lipid_droplets[0].sn3:
+								self.acyl_coa_list.append(fatty_acids(key, 0))
+					elif ':1' in self.lipid_droplets[0].sn3:
+						for key, value in self.chainlength_saturated.items():
+							if value == self.lipid_droplets[0].sn3:
+								self.acyl_coa_list.append(fatty_acids(key, 1))
+					del self.lipid_droplets[0]
 
 	def PS_synthase(self):
 		'''
@@ -624,194 +666,28 @@ class model():
 		'''
 		General transport function for all produced lipids.
 		'''
-		self.transport_PS()
-		self.transport_PI()
-		self.transport_PE()
-		self.transport_PC()
-		self.transport_CL()
-		self.transport_Ergosterol()
-		self.transport_TAG()
-
-
-	def transport_PS(self):
-		'''
-		Transport of PS to the different compartment membranes. The distribution to the different membranes is random.
-		'''
-		weights = [0.7, 0.15, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025]
-		if len(self.PS_list) > 3:
-			z = len(self.PS_list)/10
-			for i in range(z):
-				self.PS_list[0].comp = choice(self.compartment, p = weights)
-				if self.PS_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'nucleus':
-					self.nucleus.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.PS_list[0])
-				elif self.PS_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.PS_list[0])
-				del self.PS_list[0]
-
-
-	def transport_PI(self):
-		'''
-		Transport of PI to the different compartment membranes. The distribution to the different membranes is random.
-		'''
-		weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
-		if len(self.PI_list) > 3:
-			z = len(self.PI_list)/10
-			for i in range(z):
-				self.PI_list[0].comp = choice(self.compartment, p = weights)
-				if self.PI_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'nucleus':
-					self.nucleus.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.PI_list[0])
-				elif self.PI_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.PI_list[0])
-				del self.PI_list[0]
-
-
-	def transport_PE(self):
-		'''
-		Transport of PE to the different compartment membranes. The distribution to the different membranes is random.
-		'''
-		weights = [0.15, 0.18, 0.22, 0.09, 0.09, 0.09, 0.09, 0.09]
-		if len(self.PE_list) > 3:
-			z = len(self.PE_list)/10
-			for i in range(z):
-				self.PE_list[0].comp = choice(self.compartment, p = weights)
-				if self.PE_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'nucleus':
-					self.nucleus.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.PE_list[0])
-				elif self.PE_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.PE_list[0])
-				del self.PE_list[0]
-
-
-	def transport_PC(self):
-		'''
-		Transport of PC to the different compartment membranes. The distribution to the different membranes is random.
-		'''
-		weights = [0.1, 0.25, 0.11, 0.06, 0.12, 0.12, 0.12, 0.12]
-		if len(self.PC_list) > 3:
-			z = len(self.PC_list)/10
-			for i in range(z):
-				self.PC_list[0].comp = choice(self.compartment, p = weights)
-				if self.PC_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'nucleus':
-					self.nucleus.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.PC_list[0])
-				elif self.PC_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.PC_list[0])
-				del self.PC_list[0]
-
-
-	def transport_CL(self):
-		'''
-		Transport of CL to the different compartment membranes. The distribution to the different membranes is random.
-		'''
-		weights = [0.05, 0.05, 0.20, 0.14, 0.14, 0.14, 0.14, 0.14]
-		if len(self.CL_list) > 1:
-			z = len(self.CL_list)/10
-			for i in range(z):
-				self.CL_list[0].comp = choice(self.compartment, p = weights)
-				if self.CL_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'nucleus':
-					self.nucleus.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.CL_list[0])
-				elif self.CL_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.CL_list[0])
-				del self.CL_list[0]
-
-
-	def transport_Ergosterol(self):
-		'''
-		Transport of Ergosterol to the membranes.
-		'''
-		weights = [0.40, 0.15, 0.05, 0.10, 0.10, 0.10, 0.05, 0.05]
-		if len(self.Ergosterol_list) > 1:
-			z = len(self.Ergosterol_list)/10
-			for i in range(z):
-				self.Ergosterol_list[0].comp = choice(self.compartment, p = weights)
-				if self.Ergosterol_list[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'vacuoles':
-					self.vacuoles.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'nucleus':
-					self.nucleus.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'peroxisomes':
-					self.peroxisomes.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'light_microsomes':
-					self.light_microsomes.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(self.Ergosterol_list[0])
-				elif self.Ergosterol_list[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(self.Ergosterol_list[0])
-				del self.Ergosterol_list[0]
-
-
-	def transport_TAG(self):
-		'''
-		Transport of TAG to lipid droplets
-		'''
-		if len(self.TAG_list) > 3:
-			z = len(self.TAG_list)/10
-			for i in range(z):
-				self.TAG_list[0].comp = 'lipid_droplets'
-				self.lipid_droplets.append(self.TAG_list[0])
-				del self.TAG_list[0]
-
+		for i in self.lipid_lists:
+			for j in range(len(i)/10):
+				i[0].comp_choice()
+				if i[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(i[0])
+				elif i[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(i[0])
+				elif i[0].comp == 'vacuoles':
+					self.vacuoles.append(i[0])
+				elif i[0].comp == 'nucleus':
+					self.nucleus.append(i[0])
+				elif i[0].comp == 'peroxisomes':
+					self.peroxisomes.append(i[0])
+				elif i[0].comp == 'light_microsomes':
+					self.light_microsomes.append(i[0])
+				elif i[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(i[0])
+				elif i[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(i[0])
+				elif i[0].comp == 'lipid_droplets':
+					self.lipid_droplets.append(i[0])
+				del i[0]
 
 
 	def membranes_composition(self):
@@ -830,6 +706,26 @@ class model():
 
 
 	def plasma_membrane_composition(self):
+		'''
+		for i in self.compartment_lists:
+			if len(i) > 0:
+			float(sum(j.head == 'inositol' for j in i)) / len(i)
+			float(sum(j.head == 'serine' for j in i)) / len(i)
+			float(sum(j.head == 'choline' for j in i)) / len(i)
+			float(sum(j.head == 'ethanolamine' for j in i)) / len(i)
+			float(sum(j.head == 'neutral' for j in i)) / len(i)
+			float(sum(j.head == 'sterol' for j in i)) / len(i)
+
+
+
+
+			self.plasma_membrane_relatives = [self.PI_plasma_membrane_relative, self.PS_plasma_membrane_relative,\
+										 	  self.PC_plasma_membrane_relative, self.PE_plasma_membrane_relative,\
+										 	  self.CL_plasma_membrane_relative, self.ES_plasma_membrane_relative]
+
+			self.plasma_membrane_comp = dict(zip(self.membrane_lipids, self.plasma_membrane_relatives))
+		'''
+
 		if len(self.plasma_membrane) > 0:
 			self.PI_plasma_membrane_absolut = float(sum(i.head == 'inositol' for i in self.plasma_membrane))
 			self.PS_plasma_membrane_absolut = float(sum(i.head == 'serine' for i in self.plasma_membrane))
