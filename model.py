@@ -19,8 +19,8 @@ class lipids(object):
 	def __init__(self, head, sn2, sn1, comp):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'sterol', None]
-		self.sn2_options = ['C14:0', 'C16:0', 'C16:1', 'C18:0', 'C18:1', None]	
-		self.sn1_options = ['C16:1', 'C18:1', None]
+		self.sn2_options = ['C16:1', 'C18:1', None]	
+		self.sn1_options = ['C14:0', 'C16:0', 'C18:0', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -165,6 +165,7 @@ class enzyme(object):
 			raise TypeError('This is no compartment.')
 		self.__localisation = comp
 
+
 class sterol(object):
 
 	def __init__(self, head, comp):
@@ -177,7 +178,6 @@ class sterol(object):
 		self.comp = comp
 
 	def comp_choice(self):
-		#if self.head == 'inositol':
 		weights = [0.18, 0.15, 0.12, 0.11, 0.11, 0.11, 0.11, 0.11]
 		self.comp = choice(self.compartment, p = weights)
 
@@ -226,9 +226,6 @@ class model():
 		self.p_counter = 0
 		self.counter = 0
 
-		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
-							'inner_mit_membrane', 'outer_mit_membrane']	
-
 		#list of all enzymes that are part of the reactions of the lipid metabolism
 		self.enzymes = [enzyme('Gat1_Ayr1', 1000, 'ER'), enzyme('Slc1', 1000, 'lipid_particle'), enzyme('Pis1', 1000, 'outer_mit_membrane'),\
 						enzyme('Cho1', 1000, 'outer_mit_membrane'), enzyme('Psd1', 1000, 'inner_mit_membrane'), \
@@ -252,7 +249,15 @@ class model():
 		self.CL_list = []
 		self.Ergosterol_list = []
 
+		self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
+								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
+
+		self.lipid_lists = [self.TAG_list, self.PS_list, self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
+
 		#lists to collect the transported lipids
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']	
+
 		self.plasma_membrane = []
 		self.secretory_vesicles = []
 		self.vacuoles = []
@@ -262,6 +267,10 @@ class model():
 		self.inner_mit_membrane = []
 		self.outer_mit_membrane = []
 		self.lipid_droplets = []
+
+		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
+									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
+									self.outer_mit_membrane, self.lipid_droplets]
 
 		#collecting the products of every timestep
 		self.number_acetyl_coa = [0]
@@ -276,6 +285,10 @@ class model():
 		self.number_CL = [0]
 		self.number_Ergosterol = [0]
 
+		self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,\
+									self.number_PS, self.number_PI, self.number_PE, self.number_PC,	self.number_CL,\
+									self.number_Ergosterol]
+
 		#counting the lipids in each membrane after every timestep
 		self.number_plasma_membrane = [0]
 		self.number_secretory_vesicles = [0]
@@ -287,15 +300,20 @@ class model():
 		self.number_outer_mit_membrane = [0]
 		self.number_lipid_droplets = [0]
 
+		self.number_membranes_list = [self.number_plasma_membrane, self.number_secretory_vesicles, self.number_vacuoles, \
+										self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,\
+										self.number_inner_mit_membrane,	self.number_outer_mit_membrane, self.number_lipid_droplets]
+
 		self.chainlength_saturated = {14: 'C14:0', 16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
-		self.membrane_lipids = ['PI', 'PS', 'PC', 'PE', 'CL']
-		self.lipid_lists = [self.TAG_list, self.PS_list, self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
-		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
-									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
-									self.outer_mit_membrane, self.lipid_droplets]
 		
+		self.membrane_lipids = ['PI', 'PS', 'PC', 'PE', 'CL', 'ES']
+
+		self.compartment_relatives_dict = {'plasma_membrane' : [], 'secretory_vesicles' : [], 'vacuoles' : [],\
+											'nucleus' : [], 'peroxisomes' : [], 'light_microsomes' : [],\
+											'inner_mit_membrane' : [], 'outer_mit_membrane' : []}
+
 		#functions to run the model
 		for t in range(self.timesteps):
 			self.time += 1
@@ -326,7 +344,7 @@ class model():
 				'ES:' + str(self.number_Ergosterol[-1])
 		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
 				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1]
-		self.membranes_composition()
+		self.membrane_compositions()
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 
@@ -421,7 +439,7 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
-		weights = [0.05, 0.95]
+		weights = [0.6, 0.4]
 		for i in range(150):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
@@ -469,19 +487,17 @@ class model():
 		Production of Lyso-PA by adding one acyl-coa to DHAP (sn1: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
 		'''
 		x = random.random()
-		if x < 0.95 and 1 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
+		if x < 0.95 and 0 in [self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 	#at least 1 ffa has to be unsaturated 
 			if self.precursors_dict['dhap_number'] > 0 and len(self.acyl_coa_list) > 1:
 				sn1_chain = random.randint(0, (len(self.acyl_coa_list)-2))
-				if self.acyl_coa_list[sn1_chain].saturation == 1:
+				if self.acyl_coa_list[sn1_chain].saturation == 0:
 					chainlength_sn1 = self.acyl_coa_list[sn1_chain].C
-					lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None)
+					lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None)
 					self.lyso_pa_list.append(lyso_pa)
 					self.precursors_dict['dhap_number'] -= 1
 					del self.acyl_coa_list[sn1_chain]
 				else:
 					self.lyso_PA_synthase()
-		else:
-			self.counter +=1
 
 
 	def PA_synthase(self):	
@@ -489,17 +505,17 @@ class model():
 		Synthesis of PA by adding the second fatty acid to DHAP (sn2: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
 		'''
 		x = random.random()
-		if x < 0.95: 		
+		if x < 0.95 and 1 in[self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 		
 			if len(self.lyso_pa_list) > 0 and len(self.acyl_coa_list) > 1:		# available ffa
 				sn2_chain = random.randint(0, (len(self.acyl_coa_list)-2))		
 				chainlength_sn2 = self.acyl_coa_list[sn2_chain].C
-				if self.acyl_coa_list[sn2_chain].saturation == 0:
-					self.lyso_pa_list[-1].sn2 = self.chainlength_saturated[chainlength_sn2]	# creating a new lipid: PA
-				elif self.acyl_coa_list[sn2_chain].saturation == 1:
+				if self.acyl_coa_list[sn2_chain].saturation == 1:
 					self.lyso_pa_list[-1].sn2 = self.chainlength_unsaturated[chainlength_sn2]
-				self.PA_list.append(self.lyso_pa_list[-1])			
-				del self.acyl_coa_list[sn2_chain]		# deletion of the consumed ffa
-				del self.lyso_pa_list[-1]
+					self.PA_list.append(self.lyso_pa_list[-1])			
+					del self.acyl_coa_list[sn2_chain]		# deletion of the consumed ffa
+					del self.lyso_pa_list[-1]
+				else:
+					self.PA_synthase()
 
 
 	def CDP_DG_synthase(self):
@@ -569,7 +585,7 @@ class model():
 		if self.phase != 'G1' and len(self.lipid_droplets) > 4:
 			for i in range(3):
 				x = random.random()
-				if x <= 0.9:
+				if x <= 0.8:
 					self.PA_list.append(self.lipid_droplets[0])
 					self.PA_list[-1].__class__ = lipids
 					self.PA_list[-1].head = 'p'
@@ -666,270 +682,55 @@ class model():
 		'''
 		General transport function for all produced lipids.
 		'''
-		for i in self.lipid_lists:
-			for j in range(len(i)/10):
-				i[0].comp_choice()
-				if i[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(i[0])
-				elif i[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(i[0])
-				elif i[0].comp == 'vacuoles':
-					self.vacuoles.append(i[0])
-				elif i[0].comp == 'nucleus':
-					self.nucleus.append(i[0])
-				elif i[0].comp == 'peroxisomes':
-					self.peroxisomes.append(i[0])
-				elif i[0].comp == 'light_microsomes':
-					self.light_microsomes.append(i[0])
-				elif i[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(i[0])
-				elif i[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(i[0])
-				elif i[0].comp == 'lipid_droplets':
-					self.lipid_droplets.append(i[0])
-				del i[0]
+		for lipid in self.lipid_lists:
+			for j in range(len(lipid)/10):
+				lipid[0].comp_choice()
+				if lipid[0].comp == 'plasma_membrane':
+					self.plasma_membrane.append(lipid[0])
+				elif lipid[0].comp == 'secretory_vesicles':
+					self.secretory_vesicles.append(lipid[0])
+				elif lipid[0].comp == 'vacuoles':
+					self.vacuoles.append(lipid[0])
+				elif lipid[0].comp == 'nucleus':
+					self.nucleus.append(lipid[0])
+				elif lipid[0].comp == 'peroxisomes':
+					self.peroxisomes.append(lipid[0])
+				elif lipid[0].comp == 'light_microsomes':
+					self.light_microsomes.append(lipid[0])
+				elif lipid[0].comp == 'inner_mit_membrane':
+					self.inner_mit_membrane.append(lipid[0])
+				elif lipid[0].comp == 'outer_mit_membrane':
+					self.outer_mit_membrane.append(lipid[0])
+				elif lipid[0].comp == 'lipid_droplets':
+					self.lipid_droplets.append(lipid[0])
+				del lipid[0]
 
 
-	def membranes_composition(self):
+	def membrane_compositions(self):
 		'''
-		Function to calculate the relative composition of all membranes. Each is calculated by counting the lipids of every kind
-		and dividing this number by the the number of all lipids in this membrane.
+		Function to calculate the lipid composition of all membranes.
 		'''
-		self.plasma_membrane_composition()
-		self.secretory_vesicles_composition()
-		self.vacuoles_composition()
-		self.nucleus_composition()
-		self.peroxisomes_composition()
-		self.light_microsomes_composition()
-		self.inner_mit_membrane_composition()
-		self.outer_mit_membrane_composition()
+		x = -1
+		for comp in self.compartment_lists:
+			x += 1
+			if len(comp) > 0:
+				self.relatives_list = [(float(sum(j.head == 'inositol' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'serine' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'choline' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'ethanolamine' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'neutral' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'sterol' for j in comp)) / len(comp))]
 
+				self.compartment_relatives_dict[self.compartment[x]] = dict(zip(self.membrane_lipids, self.relatives_list))
+		
 
-	def plasma_membrane_composition(self):
-		'''
-		for i in self.compartment_lists:
-			if len(i) > 0:
-			float(sum(j.head == 'inositol' for j in i)) / len(i)
-			float(sum(j.head == 'serine' for j in i)) / len(i)
-			float(sum(j.head == 'choline' for j in i)) / len(i)
-			float(sum(j.head == 'ethanolamine' for j in i)) / len(i)
-			float(sum(j.head == 'neutral' for j in i)) / len(i)
-			float(sum(j.head == 'sterol' for j in i)) / len(i)
-
-
-
-
-			self.plasma_membrane_relatives = [self.PI_plasma_membrane_relative, self.PS_plasma_membrane_relative,\
-										 	  self.PC_plasma_membrane_relative, self.PE_plasma_membrane_relative,\
-										 	  self.CL_plasma_membrane_relative, self.ES_plasma_membrane_relative]
-
-			self.plasma_membrane_comp = dict(zip(self.membrane_lipids, self.plasma_membrane_relatives))
-		'''
-
-		if len(self.plasma_membrane) > 0:
-			self.PI_plasma_membrane_absolut = float(sum(i.head == 'inositol' for i in self.plasma_membrane))
-			self.PS_plasma_membrane_absolut = float(sum(i.head == 'serine' for i in self.plasma_membrane))
-			self.PC_plasma_membrane_absolut = float(sum(i.head == 'choline' for i in self.plasma_membrane))
-			self.PE_plasma_membrane_absolut = float(sum(i.head == 'ethanolamine' for i in self.plasma_membrane))
-			self.CL_plasma_membrane_absolut = float(sum(i.head == 'neutral' for i in self.plasma_membrane))
-			self.ES_plasma_membrane_absolut = float(sum(i.head == 'sterol' for i in self.plasma_membrane))
-
-			self.PI_plasma_membrane_relative = self.PI_plasma_membrane_absolut / len(self.plasma_membrane)
-			self.PS_plasma_membrane_relative = self.PS_plasma_membrane_absolut / len(self.plasma_membrane)
-			self.PC_plasma_membrane_relative = self.PC_plasma_membrane_absolut / len(self.plasma_membrane)
-			self.PE_plasma_membrane_relative = self.PE_plasma_membrane_absolut / len(self.plasma_membrane)
-			self.CL_plasma_membrane_relative = self.CL_plasma_membrane_absolut / len(self.plasma_membrane)
-			self.ES_plasma_membrane_relative = self.ES_plasma_membrane_absolut / len(self.plasma_membrane)
-
-			self.plasma_membrane_relatives = [self.PI_plasma_membrane_relative, self.PS_plasma_membrane_relative,\
-										 	  self.PC_plasma_membrane_relative, self.PE_plasma_membrane_relative,\
-										 	  self.CL_plasma_membrane_relative, self.ES_plasma_membrane_relative]
-
-			self.plasma_membrane_comp = dict(zip(self.membrane_lipids, self.plasma_membrane_relatives))
-
-
-	def secretory_vesicles_composition(self):
-		if len(self.secretory_vesicles) >0:
-			self.PI_secretory_vesicles_absolut = float(sum(i.head == 'inositol' for i in self.secretory_vesicles))
-			self.PS_secretory_vesicles_absolut = float(sum(i.head == 'serine' for i in self.secretory_vesicles))
-			self.PC_secretory_vesicles_absolut = float(sum(i.head == 'choline' for i in self.secretory_vesicles))
-			self.PE_secretory_vesicles_absolut = float(sum(i.head == 'ethanolamine' for i in self.secretory_vesicles))
-			self.CL_secretory_vesicles_absolut = float(sum(i.head == 'neutral' for i in self.secretory_vesicles))
-			self.ES_secretory_vesicles_absolut = float(sum(i.head == 'sterol' for i in self.secretory_vesicles))
-
-			self.PI_secretory_vesicles_relative = self.PI_secretory_vesicles_absolut / len(self.secretory_vesicles)
-			self.PS_secretory_vesicles_relative = self.PS_secretory_vesicles_absolut / len(self.secretory_vesicles)
-			self.PC_secretory_vesicles_relative = self.PC_secretory_vesicles_absolut / len(self.secretory_vesicles)
-			self.PE_secretory_vesicles_relative = self.PE_secretory_vesicles_absolut / len(self.secretory_vesicles)
-			self.CL_secretory_vesicles_relative = self.CL_secretory_vesicles_absolut / len(self.secretory_vesicles)
-			self.ES_secretory_vesicles_relative = self.ES_secretory_vesicles_absolut / len(self.secretory_vesicles)
-
-			self.secretory_vesicles_relatives = [self.PI_secretory_vesicles_relative, self.PS_secretory_vesicles_relative,\
-												  self.PC_secretory_vesicles_relative, self.PE_secretory_vesicles_relative,\
-												  self.CL_secretory_vesicles_relative, self.ES_secretory_vesicles_relative]
-
-			self.secretory_vesicles_comp = dict(zip(self.membrane_lipids, self.secretory_vesicles_relatives))
-
-
-	def vacuoles_composition(self):
-		if len(self.vacuoles) >0:
-			self.PI_vacuoles_absolut = float(sum(i.head == 'inositol' for i in self.vacuoles))
-			self.PS_vacuoles_absolut = float(sum(i.head == 'serine' for i in self.vacuoles))
-			self.PC_vacuoles_absolut = float(sum(i.head == 'choline' for i in self.vacuoles))
-			self.PE_vacuoles_absolut = float(sum(i.head == 'ethanolamine' for i in self.vacuoles))
-			self.CL_vacuoles_absolut = float(sum(i.head == 'neutral' for i in self.vacuoles))
-			self.ES_vacuoles_absolut = float(sum(i.head == 'sterol' for i in self.vacuoles))
-
-			self.PI_vacuoles_relative = self.PI_vacuoles_absolut / len(self.vacuoles)
-			self.PS_vacuoles_relative = self.PS_vacuoles_absolut / len(self.vacuoles)
-			self.PC_vacuoles_relative = self.PC_vacuoles_absolut / len(self.vacuoles)
-			self.PE_vacuoles_relative = self.PE_vacuoles_absolut / len(self.vacuoles)
-			self.CL_vacuoles_relative = self.CL_vacuoles_absolut / len(self.vacuoles)
-			self.ES_vacuoles_relative = self.ES_vacuoles_absolut / len(self.vacuoles)
-
-			self.vacuoles_relatives = [self.PI_vacuoles_relative, self.PS_vacuoles_relative, self.PC_vacuoles_relative,\
-										self.PE_vacuoles_relative, self.CL_vacuoles_relative, self.ES_vacuoles_relative]
-
-			self.vacuoles_comp = dict(zip(self.membrane_lipids, self.vacuoles_relatives))
-
-
-	def nucleus_composition(self):
-		if len(self.nucleus) >0:
-			self.PI_nucleus_absolut = float(sum(i.head == 'inositol' for i in self.nucleus))
-			self.PS_nucleus_absolut = float(sum(i.head == 'serine' for i in self.nucleus))
-			self.PC_nucleus_absolut = float(sum(i.head == 'choline' for i in self.nucleus))
-			self.PE_nucleus_absolut = float(sum(i.head == 'ethanolamine' for i in self.nucleus))
-			self.CL_nucleus_absolut = float(sum(i.head == 'neutral' for i in self.nucleus))
-			self.ES_nucleus_absolut = float(sum(i.head == 'sterol' for i in self.nucleus))
-
-			self.PI_nucleus_relative = self.PI_nucleus_absolut / len(self.nucleus)
-			self.PS_nucleus_relative = self.PS_nucleus_absolut / len(self.nucleus)
-			self.PC_nucleus_relative = self.PC_nucleus_absolut / len(self.nucleus)
-			self.PE_nucleus_relative = self.PE_nucleus_absolut / len(self.nucleus)
-			self.CL_nucleus_relative = self.CL_nucleus_absolut / len(self.nucleus)
-			self.ES_nucleus_relative = self.ES_nucleus_absolut / len(self.nucleus)
-
-			self.nucleus_relatives = [self.PI_nucleus_relative, self.PS_nucleus_relative, self.PC_nucleus_relative,\
-										self.PE_nucleus_relative, self.CL_nucleus_relative, self.ES_nucleus_relative]
-
-			self.nucleus_comp = dict(zip(self.membrane_lipids, self.nucleus_relatives))
-
-
-	def peroxisomes_composition(self):
-		if len(self.peroxisomes) >0:
-			self.PI_peroxisomes_absolut = float(sum(i.head == 'inositol' for i in self.peroxisomes))
-			self.PS_peroxisomes_absolut = float(sum(i.head == 'serine' for i in self.peroxisomes))
-			self.PC_peroxisomes_absolut = float(sum(i.head == 'choline' for i in self.peroxisomes))
-			self.PE_peroxisomes_absolut = float(sum(i.head == 'ethanolamine' for i in self.peroxisomes))
-			self.CL_peroxisomes_absolut = float(sum(i.head == 'neutral' for i in self.peroxisomes))
-			self.ES_peroxisomes_absolut = float(sum(i.head == 'sterol' for i in self.peroxisomes))
-
-			self.PI_peroxisomes_relative = self.PI_peroxisomes_absolut / len(self.peroxisomes)
-			self.PS_peroxisomes_relative = self.PS_peroxisomes_absolut / len(self.peroxisomes)
-			self.PC_peroxisomes_relative = self.PC_peroxisomes_absolut / len(self.peroxisomes)
-			self.PE_peroxisomes_relative = self.PE_peroxisomes_absolut / len(self.peroxisomes)
-			self.CL_peroxisomes_relative = self.CL_peroxisomes_absolut / len(self.peroxisomes)
-			self.ES_peroxisomes_relative = self.ES_peroxisomes_absolut / len(self.peroxisomes)
-
-			self.peroxisomes_relatives = [self.PI_peroxisomes_relative, self.PS_peroxisomes_relative,\
-											self.PC_peroxisomes_relative, self.PE_peroxisomes_relative,\
-											self.CL_peroxisomes_relative, self.ES_peroxisomes_relative]
-
-			self.peroxisomes_comp = dict(zip(self.membrane_lipids, self.peroxisomes_relatives))
-
-
-	def light_microsomes_composition(self):
-		if len(self.light_microsomes) >0:
-			self.PI_light_microsomes_absolut = float(sum(i.head == 'inositol' for i in self.light_microsomes))
-			self.PS_light_microsomes_absolut = float(sum(i.head == 'serine' for i in self.light_microsomes))
-			self.PC_light_microsomes_absolut = float(sum(i.head == 'choline' for i in self.light_microsomes))
-			self.PE_light_microsomes_absolut = float(sum(i.head == 'ethanolamine' for i in self.light_microsomes))
-			self.CL_light_microsomes_absolut = float(sum(i.head == 'neutral' for i in self.light_microsomes))
-			self.ES_light_microsomes_absolut = float(sum(i.head == 'sterol' for i in self.light_microsomes))
-
-			self.PI_light_microsomes_relative = self.PI_light_microsomes_absolut / len(self.light_microsomes)
-			self.PS_light_microsomes_relative = self.PS_light_microsomes_absolut / len(self.light_microsomes)
-			self.PC_light_microsomes_relative = self.PC_light_microsomes_absolut / len(self.light_microsomes)
-			self.PE_light_microsomes_relative = self.PE_light_microsomes_absolut / len(self.light_microsomes)
-			self.CL_light_microsomes_relative = self.CL_light_microsomes_absolut / len(self.light_microsomes)
-			self.ES_light_microsomes_relative = self.ES_light_microsomes_absolut / len(self.light_microsomes)
-
-			self.light_microsomes_relatives = [self.PI_light_microsomes_relative, self.PS_light_microsomes_relative,\
-											self.PC_light_microsomes_relative, self.PE_light_microsomes_relative,\
-											self.CL_light_microsomes_relative, self.ES_light_microsomes_relative]
-
-			self.light_microsomes_comp = dict(zip(self.membrane_lipids, self.light_microsomes_relatives))
-
-
-	def inner_mit_membrane_composition(self):
-		if len(self.inner_mit_membrane) >0:
-			self.PI_inner_mit_membrane_absolut = float(sum(i.head == 'inositol' for i in self.inner_mit_membrane))
-			self.PS_inner_mit_membrane_absolut = float(sum(i.head == 'serine' for i in self.inner_mit_membrane))
-			self.PC_inner_mit_membrane_absolut = float(sum(i.head == 'choline' for i in self.inner_mit_membrane))
-			self.PE_inner_mit_membrane_absolut = float(sum(i.head == 'ethanolamine' for i in self.inner_mit_membrane))
-			self.CL_inner_mit_membrane_absolut = float(sum(i.head == 'neutral' for i in self.inner_mit_membrane))
-			self.ES_inner_mit_membrane_absolut = float(sum(i.head == 'sterol' for i in self.inner_mit_membrane))
-
-			self.PI_inner_mit_membrane_relative = self.PI_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-			self.PS_inner_mit_membrane_relative = self.PS_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-			self.PC_inner_mit_membrane_relative = self.PC_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-			self.PE_inner_mit_membrane_relative = self.PE_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-			self.CL_inner_mit_membrane_relative = self.CL_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-			self.ES_inner_mit_membrane_relative = self.ES_inner_mit_membrane_absolut / len(self.inner_mit_membrane)
-
-			self.inner_mit_membrane_relatives = [self.PI_inner_mit_membrane_relative, self.PS_inner_mit_membrane_relative,\
-											self.PC_inner_mit_membrane_relative, self.PE_inner_mit_membrane_relative,\
-											self.CL_inner_mit_membrane_relative, self.ES_inner_mit_membrane_relative]
-
-			self.inner_mit_membrane_comp = dict(zip(self.membrane_lipids, self.inner_mit_membrane_relatives))
-
-
-	def outer_mit_membrane_composition(self):
-		if len(self.outer_mit_membrane) >0:
-			self.PI_outer_mit_membrane_absolut = float(sum(i.head == 'inositol' for i in self.outer_mit_membrane))
-			self.PS_outer_mit_membrane_absolut = float(sum(i.head == 'serine' for i in self.outer_mit_membrane))
-			self.PC_outer_mit_membrane_absolut = float(sum(i.head == 'choline' for i in self.outer_mit_membrane))
-			self.PE_outer_mit_membrane_absolut = float(sum(i.head == 'ethanolamine' for i in self.outer_mit_membrane))
-			self.CL_outer_mit_membrane_absolut = float(sum(i.head == 'neutral' for i in self.outer_mit_membrane))
-			self.ES_outer_mit_membrane_absolut = float(sum(i.head == 'sterol' for i in self.outer_mit_membrane))
-
-			self.PI_outer_mit_membrane_relative = self.PI_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-			self.PS_outer_mit_membrane_relative = self.PS_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-			self.PC_outer_mit_membrane_relative = self.PC_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-			self.PE_outer_mit_membrane_relative = self.PE_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-			self.CL_outer_mit_membrane_relative = self.CL_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-			self.ES_outer_mit_membrane_relative = self.ES_outer_mit_membrane_absolut / len(self.outer_mit_membrane)
-
-			self.outer_mit_membrane_relatives = [self.PI_outer_mit_membrane_relative, self.PS_outer_mit_membrane_relative,\
-											self.PC_outer_mit_membrane_relative, self.PE_outer_mit_membrane_relative,\
-											self.CL_outer_mit_membrane_relative, self.ES_outer_mit_membrane_relative]
-
-			self.outer_mit_membrane_comp = dict(zip(self.membrane_lipids, self.outer_mit_membrane_relatives))
-
-
-
-	def numbers(self):							
+	def numbers(self):		
 		#for plotting the production of the lipids
 		self.number_acetyl_coa.append(self.acetyl_coa_number)
-		self.number_acyl_coa.append(len(self.acyl_coa_list))
-		self.number_pa.append(len(self.PA_list))
-		self.number_cdp_dg.append(len(self.CDP_DG_list))
-		self.number_tag.append(len(self.TAG_list))
-		self.number_PS.append(len(self.PS_list))
-		self.number_PI.append(len(self.PI_list))
-		self.number_PE.append(len(self.PE_list))
-		self.number_PC.append(len(self.PC_list))
-		self.number_CL.append(len(self.CL_list))
-		self.number_Ergosterol.append(len(self.Ergosterol_list))
+		for current_precursor_number, number_of_precursor in zip(self.number_lipids_list, self.precursor_list):
+			current_precursor_number.append(len(number_of_precursor))
 
 		#for plotting the number of lipids in a certain membrane
-		self.number_plasma_membrane.append(len(self.plasma_membrane))
-		self.number_secretory_vesicles.append(len(self.secretory_vesicles))
-		self.number_vacuoles.append(len(self.vacuoles))
-		self.number_nucleus.append(len(self.nucleus))
-		self.number_peroxisomes.append(len(self.peroxisomes))
-		self.number_light_microsomes.append(len(self.light_microsomes))
-		self.number_inner_mit_membrane.append(len(self.inner_mit_membrane))
-		self.number_outer_mit_membrane.append(len(self.outer_mit_membrane))
-		self.number_lipid_droplets.append(len(self.lipid_droplets))
+		for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
+			current_membrane_number.append(len(number_of_membrane))
 
