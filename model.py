@@ -252,21 +252,31 @@ class model():
 		self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
 								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
 
-		self.lipid_lists = [self.TAG_list, self.PS_list, self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
+		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.Ergosterol_list, self.TAG_list]
 
 		#lists to collect the transported lipids
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']	
 
 		self.plasma_membrane = []
+		self.plasma_membrane_comp = {'PS': 0.336, 'PI': 0.177, 'PC': 0.168, 'PE': 0.203, 'CL': 0.002, 'ES': 0.108, 'TAG': 0.0}
 		self.secretory_vesicles = []
+		self.secretory_vesicles_comp = {'PS': 0.129, 'PI': 0.191, 'PC': 0.350, 'PE': 0.223, 'CL': 0.007, 'ES': 0.100, 'TAG': 0.0}
 		self.vacuoles = []
+		self.vacuoles_comp = {'PS': 0.044, 'PI': 0.183, 'PC': 0.465, 'PE': 0.194, 'CL': 0.016, 'ES': 0.098, 'TAG': 0.0}
 		self.nucleus = []
+		self.nucleus_comp = {'PS': 0.059, 'PI': 0.151, 'PC': 0.446, 'PE': 0.269, 'CL': 0.01, 'ES': 0.065, 'TAG': 0.0}
 		self.peroxisomes = []
+		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'ES': 0.016, 'TAG': 0.0}
 		self.light_microsomes = []
+		self.light_microsomes_comp = {'PS': 0.066, 'PI': 0.075, 'PC': 0.513, 'PE': 0.334, 'CL': 0.004, 'ES': 0.007, 'TAG': 0.0}
 		self.inner_mit_membrane = []
+		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'ES': 0.015, 'TAG': 0.0}
 		self.outer_mit_membrane = []
+		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'ES': 0.044, 'TAG': 0.0}
 		self.lipid_droplets = []
+		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'ES': 0.0, 'TAG': 1.0}
+
 
 		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
 									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
@@ -308,11 +318,9 @@ class model():
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
 		
-		self.membrane_lipids = ['PI', 'PS', 'PC', 'PE', 'CL', 'ES']
+		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'ES', 'TAG']
 
-		self.compartment_relatives_dict = {'plasma_membrane' : [], 'secretory_vesicles' : [], 'vacuoles' : [],\
-											'nucleus' : [], 'peroxisomes' : [], 'light_microsomes' : [],\
-											'inner_mit_membrane' : [], 'outer_mit_membrane' : []}
+		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(7)])) for comp in self.compartment}
 
 		#functions to run the model
 		for t in range(self.timesteps):
@@ -338,13 +346,14 @@ class model():
 				func()
 				self.function_list.remove(func)
 			self.numbers()
+			self.membrane_compositions()
 
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
 				'ES:' + str(self.number_Ergosterol[-1])
 		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
 				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1]
-		self.membrane_compositions()
+		
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
 
@@ -682,47 +691,61 @@ class model():
 		'''
 		General transport function for all produced lipids.
 		'''
+		i = 0
 		for lipid in self.lipid_lists:
 			for j in range(len(lipid)/10):
 				lipid[0].comp_choice()
-				if lipid[0].comp == 'plasma_membrane':
+				if lipid[0].comp == 'plasma_membrane' and self.compartment_relatives_dict['plasma_membrane']\
+				[self.membrane_lipids[i]] <= self.plasma_membrane_comp[self.membrane_lipids[i]]:
 					self.plasma_membrane.append(lipid[0])
-				elif lipid[0].comp == 'secretory_vesicles':
+				elif lipid[0].comp == 'secretory_vesicles' and self.compartment_relatives_dict['secretory_vesicles']\
+				[self.membrane_lipids[i]] <= self.secretory_vesicles_comp[self.membrane_lipids[i]]:
 					self.secretory_vesicles.append(lipid[0])
-				elif lipid[0].comp == 'vacuoles':
+				elif lipid[0].comp == 'vacuoles' and self.compartment_relatives_dict['vacuoles']\
+				[self.membrane_lipids[i]] <= self.vacuoles_comp[self.membrane_lipids[i]]:
 					self.vacuoles.append(lipid[0])
-				elif lipid[0].comp == 'nucleus':
+				elif lipid[0].comp == 'nucleus' and self.compartment_relatives_dict['nucleus']\
+				[self.membrane_lipids[i]] <= self.nucleus_comp[self.membrane_lipids[i]]:
 					self.nucleus.append(lipid[0])
-				elif lipid[0].comp == 'peroxisomes':
+				elif lipid[0].comp == 'peroxisomes' and self.compartment_relatives_dict['peroxisomes']\
+				[self.membrane_lipids[i]] <= self.peroxisomes_comp[self.membrane_lipids[i]]:
 					self.peroxisomes.append(lipid[0])
-				elif lipid[0].comp == 'light_microsomes':
+				elif lipid[0].comp == 'light_microsomes' and self.compartment_relatives_dict['light_microsomes']\
+				[self.membrane_lipids[i]] <= self.light_microsomes_comp[self.membrane_lipids[i]]:
 					self.light_microsomes.append(lipid[0])
-				elif lipid[0].comp == 'inner_mit_membrane':
+				elif lipid[0].comp == 'inner_mit_membrane' and self.compartment_relatives_dict['inner_mit_membrane']\
+				[self.membrane_lipids[i]] <= self.inner_mit_membrane_comp[self.membrane_lipids[i]]:
 					self.inner_mit_membrane.append(lipid[0])
-				elif lipid[0].comp == 'outer_mit_membrane':
+				elif lipid[0].comp == 'outer_mit_membrane' and self.compartment_relatives_dict['outer_mit_membrane']\
+				[self.membrane_lipids[i]] <= self.outer_mit_membrane_comp[self.membrane_lipids[i]]:
 					self.outer_mit_membrane.append(lipid[0])
-				elif lipid[0].comp == 'lipid_droplets':
+				elif lipid[0].comp == 'lipid_droplets' and self.compartment_relatives_dict['lipid_droplets']\
+				[self.membrane_lipids[i]] <= self.lipid_droplets_comp[self.membrane_lipids[i]]:
 					self.lipid_droplets.append(lipid[0])
+				else:
+					pass
 				del lipid[0]
+			i += 1
 
 
 	def membrane_compositions(self):
 		'''
 		Function to calculate the lipid composition of all membranes.
 		'''
-		x = -1
+		x = 0
 		for comp in self.compartment_lists:
-			x += 1
 			if len(comp) > 0:
-				self.relatives_list = [(float(sum(j.head == 'inositol' for j in comp)) / len(comp)),\
-										(float(sum(j.head == 'serine' for j in comp)) / len(comp)),\
+				self.relatives_list = [(float(sum(j.head == 'serine' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'inositol' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'choline' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'ethanolamine' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'neutral' for j in comp)) / len(comp)),\
-										(float(sum(j.head == 'sterol' for j in comp)) / len(comp))]
+										(float(sum(j.head == 'sterol' for j in comp)) / len(comp)),\
+										(float(sum(j.comp == 'lipid_droplets' for j in comp)) / len(comp))]
+				for i in range(len(self.relatives_list)):
+					self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
+			x += 1
 
-				self.compartment_relatives_dict[self.compartment[x]] = dict(zip(self.membrane_lipids, self.relatives_list))
-		
 
 	def numbers(self):		
 		#for plotting the production of the lipids
