@@ -26,15 +26,15 @@ class lipids(object):
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane']	
 		self.compartment_weights = [0.3, 0.1, 0.15, 0.15, 0.05, 0.05, 0.1, 0.1]		
-		self.plasma_membrane_comp = {'PS': 0.336, 'PI': 0.177, 'PC': 0.168, 'PE': 0.203, 'CL': 0.002, 'ES': 0.108, 'TAG': 0.0}
-		self.secretory_vesicles_comp = {'PS': 0.129, 'PI': 0.191, 'PC': 0.350, 'PE': 0.223, 'CL': 0.007, 'ES': 0.100, 'TAG': 0.0}
-		self.vacuoles_comp = {'PS': 0.044, 'PI': 0.183, 'PC': 0.465, 'PE': 0.194, 'CL': 0.016, 'ES': 0.098, 'TAG': 0.0}
-		self.nucleus_comp = {'PS': 0.059, 'PI': 0.151, 'PC': 0.446, 'PE': 0.269, 'CL': 0.01, 'ES': 0.065, 'TAG': 0.0}
-		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'ES': 0.016, 'TAG': 0.0}
-		self.light_microsomes_comp = {'PS': 0.066, 'PI': 0.075, 'PC': 0.513, 'PE': 0.334, 'CL': 0.004, 'ES': 0.007, 'TAG': 0.0}
-		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'ES': 0.015, 'TAG': 0.0}
-		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'ES': 0.044, 'TAG': 0.0}
-		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'ES': 0.0, 'TAG': 1.0}
+		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0}
+		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0}
+		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0}
+		self.nucleus_comp = {'PS': 0.0662, 'PI': 0.1582, 'PC': 0.4532, 'PE': 0.2762, 'CL': 0.0172, 'PA': 0.0292, 'ES': 0.0, 'TAG': 0.0}
+		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'PA':0.016, 'ES': 0.0, 'TAG': 0.0}
+		self.light_microsomes_comp = {'PS': 0.0668, 'PI': 0.0758, 'PC': 0.5138, 'PE': 0.3348, 'CL': 0.0048, 'PA':0.0028, 'ES': 0.0, 'TAG': 0.0}
+		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'PA':0.015, 'ES': 0.0, 'TAG': 0.0}
+		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'PA':0.044, 'ES': 0.0, 'TAG': 0.0}
+		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0, 'ES': 0.0, 'TAG': 1.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
 								self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
 								self.outer_mit_membrane_comp, self.lipid_droplets_comp]		
@@ -192,25 +192,26 @@ class sterol(object):
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane']
 		self.compartment_weights = [0.3, 0.1, 0.15, 0.15, 0.05, 0.05, 0.1, 0.1]		
-		self.plasma_membrane_comp = {'PS': 0.336, 'PI': 0.177, 'PC': 0.168, 'PE': 0.203, 'CL': 0.002, 'ES': 0.108, 'TAG': 0.0}
-		self.secretory_vesicles_comp = {'PS': 0.129, 'PI': 0.191, 'PC': 0.350, 'PE': 0.223, 'CL': 0.007, 'ES': 0.100, 'TAG': 0.0}
-		self.vacuoles_comp = {'PS': 0.044, 'PI': 0.183, 'PC': 0.465, 'PE': 0.194, 'CL': 0.016, 'ES': 0.098, 'TAG': 0.0}
-		self.nucleus_comp = {'PS': 0.059, 'PI': 0.151, 'PC': 0.446, 'PE': 0.269, 'CL': 0.01, 'ES': 0.065, 'TAG': 0.0}
-		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'ES': 0.016, 'TAG': 0.0}
-		self.light_microsomes_comp = {'PS': 0.066, 'PI': 0.075, 'PC': 0.513, 'PE': 0.334, 'CL': 0.004, 'ES': 0.007, 'TAG': 0.0}
-		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'ES': 0.015, 'TAG': 0.0}
-		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'ES': 0.044, 'TAG': 0.0}
-		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'ES': 0.0, 'TAG': 1.0}
+		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0}
+		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0}
+		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0}
+		self.nucleus_comp = {'PS': 0.0662, 'PI': 0.1582, 'PC': 0.4532, 'PE': 0.2762, 'CL': 0.0172, 'PA': 0.0292, 'ES': 0.0, 'TAG': 0.0}
+		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'PA':0.016, 'ES': 0.0, 'TAG': 0.0}
+		self.light_microsomes_comp = {'PS': 0.0668, 'PI': 0.0758, 'PC': 0.5138, 'PE': 0.3348, 'CL': 0.0048, 'PA':0.0028, 'ES': 0.0, 'TAG': 0.0}
+		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'PA':0.015, 'ES': 0.0, 'TAG': 0.0}
+		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'PA':0.044, 'ES': 0.0, 'TAG': 0.0}
+		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0, 'ES': 0.0, 'TAG': 1.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
 								self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
 								self.outer_mit_membrane_comp, self.lipid_droplets_comp]		
 		self.head = head
 		self.comp = comp
 
-	def comp_choice(self):
+	def comp_choice(self):	
 		weights = [self.compartment_weights[i] * self.membranes_comp[i]['ES'] for i in range(len(self.compartment_weights))]
-		weights_normal = [weight / sum(weights) for weight in weights]
-		self.comp = choice(self.compartment, p = weights_normal)
+		if sum(weights) != 0:
+			weights_normal = [weight / sum(weights) for weight in weights]
+			self.comp = choice(self.compartment, p = weights_normal)
 
 
 	@property
@@ -471,31 +472,30 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
-		weights = [0.6, 0.4]
 		for i in range(150):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
-					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
+					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >=14 and x <= 0.1:
 					self.acyl_coa_list[-1].saturation = 0
-					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
+					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 16 and x <= 0.45:	#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
+					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 18:				#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, choice(choice_list, p = weights))
+					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
@@ -703,11 +703,12 @@ class model():
 		'''
 		Synthesis of the most existing sterol in yeast: ergosterol
 		'''
-		x = random.random()
-		if x <= 0.5 and self.acetyl_coa_number >= 18:
-			self.Ergosterol_list.append(sterol('sterol', None))
-			self.acetyl_coa_number -= 18
-			self.p_counter += 2
+		for i in range(4):
+			x = random.random()
+			if x <= 0.7 and self.acetyl_coa_number >= 18:
+				self.Ergosterol_list.append(sterol('sterol', None))
+				self.acetyl_coa_number -= 18
+				self.p_counter += 2
 
 
 
