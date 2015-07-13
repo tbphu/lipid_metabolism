@@ -29,11 +29,11 @@ class lipids(object):
 		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0}
 		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0}
 		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0}
-		self.nucleus_comp = {'PS': 0.0662, 'PI': 0.1582, 'PC': 0.4532, 'PE': 0.2762, 'CL': 0.0172, 'PA': 0.0292, 'ES': 0.0, 'TAG': 0.0}
-		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'PA':0.016, 'ES': 0.0, 'TAG': 0.0}
-		self.light_microsomes_comp = {'PS': 0.0668, 'PI': 0.0758, 'PC': 0.5138, 'PE': 0.3348, 'CL': 0.0048, 'PA':0.0028, 'ES': 0.0, 'TAG': 0.0}
-		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'PA':0.015, 'ES': 0.0, 'TAG': 0.0}
-		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'PA':0.044, 'ES': 0.0, 'TAG': 0.0}
+		self.nucleus_comp = {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'TAG': 0.0}
+		self.peroxisomes_comp = {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'TAG': 0.0}
+		self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'TAG': 0.0}
+		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'TAG': 0.0}
+		self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'TAG': 0.0}
 		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0, 'ES': 0.0, 'TAG': 1.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
 								self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
@@ -93,6 +93,9 @@ class lipids(object):
 			weights_normal = [weight / sum(weights) for weight in weights]
 		elif self.head == 'ethanolamine':
 			weights = [self.compartment_weights[i] * self.membranes_comp[i]['PE'] for i in range(len(self.compartment_weights))]
+			weights_normal = [weight / sum(weights) for weight in weights]
+		elif self.head == 'p':
+			weights = [self.compartment_weights[i] * self.membranes_comp[i]['PA'] for i in range(len(self.compartment_weights))]
 			weights_normal = [weight / sum(weights) for weight in weights]
 		self.comp = choice(self.compartment, p = weights_normal)
 
@@ -195,11 +198,11 @@ class sterol(object):
 		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0}
 		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0}
 		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0}
-		self.nucleus_comp = {'PS': 0.0662, 'PI': 0.1582, 'PC': 0.4532, 'PE': 0.2762, 'CL': 0.0172, 'PA': 0.0292, 'ES': 0.0, 'TAG': 0.0}
-		self.peroxisomes_comp = {'PS': 0.045, 'PI': 0.158, 'PC': 0.482, 'PE': 0.229, 'CL': 0.070, 'PA':0.016, 'ES': 0.0, 'TAG': 0.0}
-		self.light_microsomes_comp = {'PS': 0.0668, 'PI': 0.0758, 'PC': 0.5138, 'PE': 0.3348, 'CL': 0.0048, 'PA':0.0028, 'ES': 0.0, 'TAG': 0.0}
-		self.inner_mit_membrane_comp = {'PS': 0.038, 'PI': 0.162, 'PC': 0.384, 'PE': 0.240, 'CL': 0.161, 'PA':0.015, 'ES': 0.0, 'TAG': 0.0}
-		self.outer_mit_membrane_comp = {'PS': 0.012, 'PI': 0.102, 'PC': 0.456, 'PE': 0.326, 'CL': 0.059, 'PA':0.044, 'ES': 0.0, 'TAG': 0.0}
+		self.nucleus_comp = {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'TAG': 0.0}
+		self.peroxisomes_comp = {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'TAG': 0.0}
+		self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'TAG': 0.0}
+		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'TAG': 0.0}
+		self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'TAG': 0.0}
 		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0, 'ES': 0.0, 'TAG': 1.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
 								self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
@@ -248,8 +251,8 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.precursors_dict = {'pyruvate_number' : 500000, 'dhap_number': 500000, 'ctp_number': 500000, 'serine_number': 200000,\
-									'glucose_6_p_number': 500000, 'SAM_number': 500000, 'SAH_number': 0, 'glycerol_3_p_mito_number': 100000}
+		self.precursors_dict = {'pyruvate_number' : 1000000, 'dhap_number': 1000000, 'ctp_number': 1000000, 'serine_number': 1000000,\
+									'glucose_6_p_number': 1000000, 'SAM_number': 1000000, 'SAH_number': 0, 'glycerol_3_p_mito_number': 1000000}
 		
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
@@ -284,7 +287,7 @@ class model():
 		self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
 								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list]
 
-		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.Ergosterol_list, self.TAG_list]
+		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.TAG_list]
 
 		#lists to collect the transported lipids
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -342,9 +345,9 @@ class model():
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 
 		
-		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'ES', 'TAG']
+		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG']
 
-		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(7)])) for comp in self.compartment}
+		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(8)])) for comp in self.compartment}
 
 		#functions to run the model
 		for t in range(self.timesteps):
@@ -377,6 +380,9 @@ class model():
 				'ES:' + str(self.number_Ergosterol[-1])
 		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
 				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1]
+		print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
+				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
+				len(self.outer_mit_membrane) + len(self.lipid_droplets)
 		
 #random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
 
@@ -459,7 +465,7 @@ class model():
 		'''
 		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
 		'''
-		for i in range(100):			
+		for i in range(200):			
 			if self.precursors_dict['pyruvate_number'] >= 1:			# transformation from pyruvate to acetyl_coa
 				self.acetyl_coa_number += 1
 				self.precursors_dict['pyruvate_number'] -= 1				
@@ -472,7 +478,7 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
-		for i in range(150):
+		for i in range(280):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
@@ -536,25 +542,26 @@ class model():
 		'''
 		Synthesis of PA by adding the second fatty acid to DHAP (sn2: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
 		'''
-		x = random.random()
-		if x < 0.95 and 1 in[self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 		
-			if len(self.lyso_pa_list) > 0 and len(self.acyl_coa_list) > 1:		# available ffa
-				sn2_chain = random.randint(0, (len(self.acyl_coa_list)-2))		
-				chainlength_sn2 = self.acyl_coa_list[sn2_chain].C
-				if self.acyl_coa_list[sn2_chain].saturation == 1:
-					self.lyso_pa_list[-1].sn2 = self.chainlength_unsaturated[chainlength_sn2]
-					self.PA_list.append(self.lyso_pa_list[-1])			
-					del self.acyl_coa_list[sn2_chain]		# deletion of the consumed ffa
-					del self.lyso_pa_list[-1]
-				else:
-					self.PA_synthase()
+		for i in range (20):
+			x = random.random()
+			if x < 0.95 and 1 in[self.acyl_coa_list[z].saturation for z in range(len(self.acyl_coa_list))]: 		
+				if len(self.lyso_pa_list) > 0 and len(self.acyl_coa_list) > 1:		# available ffa
+					sn2_chain = random.randint(0, (len(self.acyl_coa_list)-2))		
+					chainlength_sn2 = self.acyl_coa_list[sn2_chain].C
+					if self.acyl_coa_list[sn2_chain].saturation == 1:
+						self.lyso_pa_list[-1].sn2 = self.chainlength_unsaturated[chainlength_sn2]
+						self.PA_list.append(self.lyso_pa_list[-1])			
+						del self.acyl_coa_list[sn2_chain]		# deletion of the consumed ffa
+						del self.lyso_pa_list[-1]
+					#else:
+						#self.PA_synthase()
 
 
 	def CDP_DG_synthase(self):
 		'''
 		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids
 		'''
-		for i in range(70):
+		for i in range(100):
 			x = random.random()
 			if x <= 0.7 and self.precursors_dict['ctp_number'] > 0:
 				if len(self.PA_list) > 0:
@@ -577,7 +584,7 @@ class model():
 		'''
 		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
 		'''
-		for i in range(10):
+		for i in range(20):
 			if self.phase != 'G1':
 				weights = [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.3, 0.3]
 			else:
@@ -594,7 +601,7 @@ class model():
 		'''
 		DAG is processed to TAG by adding a third acyl-chain at position sn3.
 		'''
-		for i in range(10):
+		for i in range(20):
 			x = random.random()
 			if x <= 0.85:
 				if len(self.acyl_coa_list) > 1 and len(self.DAG_list) > 0:
@@ -614,8 +621,8 @@ class model():
 		'''
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
-		if self.phase != 'G1' and len(self.lipid_droplets) > 4:
-			for i in range(3):
+		if self.phase != 'G1' and len(self.lipid_droplets) > 5:
+			for i in range(6):
 				x = random.random()
 				if x <= 0.8:
 					self.PA_list.append(self.lipid_droplets[0])
@@ -636,7 +643,7 @@ class model():
 		'''
 		CDP-DG is processed to PS (PS synthase).
 		'''
-		for i in range(20):
+		for i in range(30):
 			x = random.random()
 			if x <= 0.85 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
@@ -649,7 +656,7 @@ class model():
 		'''
  		CDP-DG is processed to PI (PI synthase)
 		'''
-		for i in range(6):
+		for i in range(10):
 			x = random.random()
 			if x <= 0.4 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
@@ -662,7 +669,7 @@ class model():
 		'''
 		PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
 		'''
-		for i in range(8):
+		for i in range(10):
 			x = random.random()
 			if x <= 0.9 and len(self.PS_list) >= 10:
 				self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
@@ -675,9 +682,9 @@ class model():
 		'''
 		PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
 		'''
-		for i in range(3):
+		for i in range(5):
 			x = random.random()
-			if x <= 0.5 and len(self.PE_list) >= 5 and self.precursors_dict['SAM_number'] >= 3:
+			if x <= 0.4 and len(self.PE_list) >= 5 and self.precursors_dict['SAM_number'] >= 3:
 				self.PE_list[0].head = 'choline'								#PC synthesis from PE
 				self.PC_list.append(self.PE_list[0])
 				del self.PE_list[0]
@@ -703,7 +710,7 @@ class model():
 		'''
 		Synthesis of the most existing sterol in yeast: ergosterol
 		'''
-		for i in range(4):
+		for i in range(6):
 			x = random.random()
 			if x <= 0.7 and self.acetyl_coa_number >= 18:
 				self.Ergosterol_list.append(sterol('sterol', None))
@@ -754,6 +761,7 @@ class model():
 										(float(sum(j.head == 'choline' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'ethanolamine' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'neutral' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'p' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'sterol' for j in comp)) / len(comp)),\
 										(float(sum(j.comp == 'lipid_droplets' for j in comp)) / len(comp))]
 				for i in range(len(self.relatives_list)):
