@@ -251,8 +251,8 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.precursors_dict = {'pyruvate_number' : 5000000, 'dhap_number': 1000000, 'ctp_number': 1000000, 'serine_number': 1000000,\
-									'glucose_6_p_number': 1000000, 'SAM_number': 1000000, 'SAH_number': 0, 'glycerol_3_p_mito_number': 1000000}
+		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 30000., 'dhap_number': 20000., 'ctp_number': 50000., 'serine_number': 10000.,\
+									'glucose_6_p_number': 100000., 'SAM_number': 30000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000.}
 		
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
@@ -262,10 +262,11 @@ class model():
 		self.counter = 0
 
 		#list of all enzymes that are part of the reactions of the lipid metabolism
-		self.enzymes = [enzyme('Gat1_Ayr1', 1000, 'ER'), enzyme('Slc1', 1000, 'lipid_particle'), enzyme('Pis1', 1000, 'outer_mit_membrane'),\
+		'''self.enzymes = [enzyme('Gat1_Ayr1', 1000, 'ER'), enzyme('Slc1', 1000, 'lipid_particle'), enzyme('Pis1', 1000, 'outer_mit_membrane'),\
 						enzyme('Cho1', 1000, 'outer_mit_membrane'), enzyme('Psd1', 1000, 'inner_mit_membrane'), \
 						enzyme('Cho2', 1000, 'ER'), enzyme('Opi3', 1000, 'mitochondrion'), enzyme('Pah1', 1000, 'cytoplasm'), \
 						enzyme('Dga1', 1000, 'lipid_particle')]
+		'''
 
 		#list of the 4 cell cycle phases
 		self.cell_cycle_phases = ['G1', 'S', 'G2', 'M']
@@ -351,9 +352,9 @@ class model():
 
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(8)])) for comp in self.compartment}
 
-		self.rates = {'inositol_synthesis': 250, 'acetyl_coa_synthase': 350, 'acyl_synthase': 250, 'PA_synthese': 200, \
-						'CDP_DG_synthase': 180, 'TAG_synthese': 80, 'TAG_lipase': 15, 'PS_synthase': 100, 'PI_synthase': 50,\
-						'PE_synthase': 75, 'PC_synthase': 40, 'CL_synthase': 30, 'Ergosterol_synthase': 15}
+		self.rates = {'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
+						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 110, 'PI_synthase': 60,\
+						'PE_synthase': 80, 'PC_synthase': 44, 'CL_synthase': 35, 'Ergosterol_synthase': 20}
 
 		#functions to run the model
 		for t in range(self.timesteps):
@@ -537,13 +538,22 @@ class model():
 		'''
 		Production of Lyso-PA by adding one acyl-coa to DHAP (sn1: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
 		'''
-		x = random.random()
-		if x < 0.95 and len(self.acyl_coa_list_saturated) > 0 and self.precursors_dict['dhap_number']: 	#at least 1 ffa has to be unsaturated 
+		choice_list = [0, 1]
+		weights_pa = [self.precursors_dict['dhap_number'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']),\
+					self.precursors_dict['glycerol-3-p'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'])]
+		y = (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']) / 50000
+		z = random.random()
+		x = y*z
+		if x > 0.05 and len(self.acyl_coa_list_saturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
 			sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
 			chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
 			lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None)
 			self.lyso_pa_list.append(lyso_pa)
-			self.precursors_dict['dhap_number'] -= 1
+			i = choice(choice_list, p = weights_pa)
+			if i == 0:
+				self.precursors_dict['dhap_number'] -= 1
+			else:
+				self.precursors_dict['glycerol-3-p'] -= 1
 			del self.acyl_coa_list_saturated[sn1_chain]
 
 
@@ -567,8 +577,10 @@ class model():
 		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids
 		'''
 		for i in range(self.rates['CDP_DG_synthase']):
-			x = random.random()
-			if x <= 0.7 and self.precursors_dict['ctp_number'] > 0:
+			y = self.precursors_dict['ctp_number'] / 50000
+			z = random.random()
+			x = y*z
+			if x > 0.3 and self.precursors_dict['ctp_number'] > 0:
 				if len(self.PA_list) > 0:
 					self.PA_list[0].head = 'cdp'
 					self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
@@ -611,11 +623,11 @@ class model():
 			if len(self.DAG_list) > 0 and len(self.acyl_coa_list_saturated) > 0 and len(self.acyl_coa_list_unsaturated) > 0:
 				self.TAG_list.append(self.DAG_list[0])		
 				self.TAG_list[-1].__class__ = TAG
-				if x <= 0.4:# and len(self.acyl_coa_list_saturated) > 0:
+				if x <= 0.4:
 					chainlength_sn3 = self.acyl_coa_list_saturated[0].C
 					self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
 					del self.acyl_coa_list_saturated[0]
-				else:# len(self.acyl_coa_list_unsaturated) > 0:
+				else:
 					chainlength_sn3 = self.acyl_coa_list_unsaturated[0].C
 					self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
 					del self.acyl_coa_list_unsaturated[0]
@@ -643,7 +655,7 @@ class model():
 							if value == self.lipid_droplets[0].sn3:
 								self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
 					del self.lipid_droplets[0]
-					self.ctp_number -= 1
+					self.precursors_dict['ctp_number'] -= 1
 
 
 	def PS_synthase(self):
@@ -651,8 +663,10 @@ class model():
 		CDP-DG is processed to PS (PS synthase).
 		'''
 		for i in range(self.rates['PS_synthase']):
-			x = random.random()
-			if x <= 0.85 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
+			y = self.precursors_dict['serine_number'] / 10000
+			z = random.random()
+			x = y*z
+			if x >= 0.15 and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
@@ -664,7 +678,9 @@ class model():
  		CDP-DG is processed to PI (PI synthase)
 		'''
 		for i in range(self.rates['PI_synthase']):
-			x = random.random()
+			y = self.inositol_number / 100000
+			z = random.random()
+			x = y*z
 			if x <= 0.4 and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
 				self.PI_list.append(self.CDP_DG_list[0])
