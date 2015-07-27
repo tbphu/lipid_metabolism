@@ -251,7 +251,7 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 30000., 'dhap_number': 20000., 'ctp_number': 50000., 'serine_number': 10000.,\
+		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 50000., 'serine_number': 10000.,\
 									'glucose_6_p_number': 100000., 'SAM_number': 30000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000.}
 		
 		self.inositol_number = 0
@@ -352,7 +352,7 @@ class model():
 
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(8)])) for comp in self.compartment}
 
-		self.rates = {'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
+		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
 						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 110, 'PI_synthase': 60,\
 						'PE_synthase': 80, 'PC_synthase': 44, 'CL_synthase': 35, 'Ergosterol_synthase': 20}
 
@@ -360,7 +360,8 @@ class model():
 		for t in range(self.timesteps):
 			self.time += 1
 			self.cell_cycle()
-			self.function_list = [self.inositol_synthesis,
+			self.function_list = [self.glycerol_3_p_synthesis,
+								self.inositol_synthesis,
 								self.acetyl_coa_synthase,
 								self.acyl_synthase,
 								self.PA_synthese,
@@ -454,6 +455,15 @@ class model():
 			self.phase = self.cell_cycle_phases[2]
 		else:
 			self.phase = self.cell_cycle_phases[3]	
+
+
+	def glycerol_3_p_synthesis(self):
+		'''
+		Synthesis of glycerol-3-p out of DHAP.
+		'''
+		if self.precursors_dict['dhap_number'] > self.rates['glycerol_3_p_synthesis']:
+			self.precursors_dict['glycerol-3-p'] += self.rates['glycerol_3_p_synthesis']
+			self.precursors_dict['dhap_number'] -= self.rates['glycerol_3_p_synthesis']
 
 
 	def inositol_synthesis(self):
@@ -607,6 +617,7 @@ class model():
 		else:
 			weights = [ 0.1 for p in range(10)]
 		x = choice([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], p = weights)
+		y = self.precursors_dict['ctp_number'] / 50000
 		if x <= 0.8:
 			if len(self.PA_list) > 0:
 				self.PA_list[0].head = None
@@ -797,11 +808,11 @@ class model():
 		#for plotting the production of the lipids
 		self.number_acetyl_coa.append(self.acetyl_coa_number)
 		for current_precursor_number, number_of_precursor in zip(self.number_lipids_list, self.precursor_list):
-			current_precursor_number.append(len(number_of_precursor))
+			current_precursor_number.append(len(number_of_precursor)*(10**4))
 
 		#for plotting the number of lipids in a certain membrane
 		for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
-			current_membrane_number.append(len(number_of_membrane))
+			current_membrane_number.append(len(number_of_membrane)*(10**4))
 
 
 '''
