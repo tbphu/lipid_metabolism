@@ -25,7 +25,7 @@ class lipids(object):
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane']	
-		self.compartment_weights = [0.3, 0.1, 0.15, 0.15, 0.05, 0.05, 0.1, 0.1]		
+		self.compartment_weights = [0.73, 0.02, 0.05, 0.13, 0.01, 0.01, 0.03, 0.02]		
 		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0}
 		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0}
 		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0}
@@ -102,12 +102,13 @@ class lipids(object):
 
 class TAG(lipids):
 
-	def __init__(self, sn3, sn2, sn1):
-		super(TAG, self).__init__(sn2, sn1)
+	def __init__(self, head, sn3, sn2, sn1, comp):
+		super(TAG, self).__init__(head, sn2, sn1, comp)
 		sn3 = None
 
 	def comp_choice(self):
 		self.comp = 'lipid_droplets'
+
 
 class CL(lipids):
 
@@ -246,7 +247,7 @@ class model():
 	"""
 	def __init__(self):
 		#determining the timesteps
-		self.timesteps = 7200			
+		self.timesteps = 4200			
 		self.time = 0
 		self.t = [i for i in range(self.timesteps)]
 
@@ -330,15 +331,15 @@ class model():
 									self.number_Ergosterol]
 
 		#counting the lipids in each membrane after every timestep
-		self.number_plasma_membrane = [0]
-		self.number_secretory_vesicles = [0]
-		self.number_vacuoles = [0]
-		self.number_nucleus = [0]
-		self.number_peroxisomes = [0]
-		self.number_light_microsomes = [0]
-		self.number_inner_mit_membrane = [0]
-		self.number_outer_mit_membrane = [0]
-		self.number_lipid_droplets = [0]
+		self.number_plasma_membrane = []
+		self.number_secretory_vesicles = []
+		self.number_vacuoles = []
+		self.number_nucleus = []
+		self.number_peroxisomes = []
+		self.number_light_microsomes = []
+		self.number_inner_mit_membrane = []
+		self.number_outer_mit_membrane = []
+		self.number_lipid_droplets = []
 
 		self.number_membranes_list = [self.number_plasma_membrane, self.number_secretory_vesicles, self.number_vacuoles, \
 										self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,\
@@ -346,6 +347,7 @@ class model():
 
 		self.chainlength_saturated = {14: 'C14:0', 16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
+		self.chainlength_saturated_unsaturated = ['C14:0', 'C16:0', 'C18:0', 'C16:1', 'C18:1']
 
 		
 		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG']
@@ -357,6 +359,7 @@ class model():
 						'PE_synthase': 80, 'PC_synthase': 44, 'CL_synthase': 35, 'Ergosterol_synthase': 20}
 
 		#functions to run the model
+		self.start()
 		for t in range(self.timesteps):
 			self.time += 1
 			self.cell_cycle()
@@ -430,17 +433,87 @@ class model():
 		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-		ax.plot(self.t, self.number_plasma_membrane[:-1], label = 'plasma membrane')
-		ax.plot(self.t, self.number_secretory_vesicles[:-1], label = 'secretory vesicles')
-		ax.plot(self.t, self.number_vacuoles[:-1], label = 'vacuoles')
-		ax.plot(self.t, self.number_nucleus[:-1], label = 'nucleus')
-		ax.plot(self.t, self.number_peroxisomes[:-1], label = 'peroxisomes')
-		ax.plot(self.t, self.number_light_microsomes[:-1], label = 'light_microsomes')
-		ax.plot(self.t, self.number_inner_mit_membrane[:-1], label = 'inner_mit_membrane')
-		ax.plot(self.t, self.number_outer_mit_membrane[:-1], label = 'outer_mit_membrane')
-		ax.plot(self.t, self.number_lipid_droplets[:-1], label = 'lipid_droplets')
+		ax.plot(self.t, self.number_plasma_membrane, label = 'plasma membrane')
+		ax.plot(self.t, self.number_secretory_vesicles, label = 'secretory vesicles')
+		ax.plot(self.t, self.number_vacuoles, label = 'vacuoles')
+		ax.plot(self.t, self.number_nucleus, label = 'nucleus')
+		ax.plot(self.t, self.number_peroxisomes, label = 'peroxisomes')
+		ax.plot(self.t, self.number_light_microsomes, label = 'light_microsomes')
+		ax.plot(self.t, self.number_inner_mit_membrane, label = 'inner_mit_membrane')
+		ax.plot(self.t, self.number_outer_mit_membrane, label = 'outer_mit_membrane')
+		ax.plot(self.t, self.number_lipid_droplets, label = 'lipid_droplets')
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
+
+
+	def start(self):
+		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
+
+		self.plasma_membrane_comp_start = [0.08062, 0.04373, 0.04164, 0.04976, 0.00313, 0.01172, 0.76800, 0.0]
+		self.plasma_membrane_comp_relative = [z / sum(self.plasma_membrane_comp_start) for z in self.plasma_membrane_comp_start]
+		self.secretory_vesicles_comp_start = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0]
+		self.secretory_vesicles_comp_relative = [z / sum(self.secretory_vesicles_comp_start) for z in self.secretory_vesicles_comp_start]
+		self.vacuoles_comp_start = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0]
+		self.vacuoles_comp_relative = [z / sum(self.vacuoles_comp_start) for z in self.vacuoles_comp_start]
+		self.nucleus_comp_start = [0.04038, 0.09650, 0.27645, 0.16848, 0.01049, 0.01781, 0.390, 0.0]
+		self.nucleus_comp_relative = [z / sum(self.nucleus_comp_start) for z in self.nucleus_comp_start]
+		self.peroxisomes_comp_start = [0.03235, 0.11360, 0.34656, 0.16465, 0.05033, 0.01150, 0.281, 0.0]
+		self.peroxisomes_comp_relative = [z / sum(self.peroxisomes_comp_start) for z in self.peroxisomes_comp_start]
+		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0]
+		self.light_microsomes_comp_relative = [z / sum(self.light_microsomes_comp_start) for z in self.light_microsomes_comp_start]
+		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0]
+		self.inner_mit_membrane_comp_relative = [z / sum(self.inner_mit_membrane_comp_start) for z in self.inner_mit_membrane_comp_start]
+		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0]
+		self.outer_mit_membrane_comp_relative = [z / sum(self.outer_mit_membrane_comp_start) for z in self.outer_mit_membrane_comp_start]
+		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+		self.lipid_droplets_comp_relative = [z / sum(self.lipid_droplets_comp_start) for z in self.lipid_droplets_comp_start]
+		self.compositions_start = [self.plasma_membrane_comp_relative, self.secretory_vesicles_comp_relative, self.vacuoles_comp_relative, self.nucleus_comp_relative,\
+									self.peroxisomes_comp_relative, self.light_microsomes_comp_relative, self.inner_mit_membrane_comp_relative,\
+									self.outer_mit_membrane_comp_relative, self.lipid_droplets_comp_relative]
+		self.membrane_compositions_start = dict(zip(self.compartment, self.compositions_start))
+		x = 0
+		self.start_lipids = [32950, 500, 2500, 6000, 500, 500, 1500, 1000, 1000]
+		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
+		for membrane in self.compartment_lists:
+			for i in range(self.membrane_start[self.compartment[x]]):
+				self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', None]
+				weights_start = self.membrane_compositions_start[self.compartment[x]]
+				head = choice(self.head_groups_start, p = weights_start)
+				if head == 'sterol':
+					new_lipid = sterol(head, self.compartment[x])
+				elif head == 'neutral':
+					new_lipid = CL(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()),\
+									random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+				elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
+					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+				else:
+					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+					new_lipid.__class__ = TAG
+					new_lipid.sn3 = 'C16:0'
+				membrane.append(new_lipid)
+			x += 1
+
+
+		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.TAG_list]
+		z = 0
+		for lipid_list in self.lipid_lists:
+			for i in range(20):
+				head = self.head_groups_start[z]
+				if head == 'sterol':
+					new_lipid = sterol(head, None)
+				elif head == 'neutral':
+					new_lipid = CL(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()),\
+											random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+				elif head == None:
+					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+					new_lipid.__class__ = TAG
+					new_lipid.sn3 = 'C16:0'
+				else:
+					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+				lipid_list.append(new_lipid)
+			z += 1
+
 
 
 	def cell_cycle(self):
@@ -653,19 +726,19 @@ class model():
 		if self.phase != 'G1' and len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()
-				if x <= 0.8:
-					self.PA_list.append(self.lipid_droplets[0])
+				if x <= 0.8 and hasattr(self.lipid_droplets[-2], 'sn3') == True:
+					self.PA_list.append(self.lipid_droplets[-2])
 					self.PA_list[-1].__class__ = lipids
 					self.PA_list[-1].head = 'p'
-					if ':0' in self.lipid_droplets[0].sn3:
+					if ':0' in self.lipid_droplets[-2].sn3:
 						for key, value in self.chainlength_unsaturated.items():
-							if value == self.lipid_droplets[0].sn3:
+							if value == self.lipid_droplets[-2].sn3:
 								self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
-					elif ':1' in self.lipid_droplets[0].sn3:
+					elif ':1' in self.lipid_droplets[-2].sn3:
 						for key, value in self.chainlength_saturated.items():
-							if value == self.lipid_droplets[0].sn3:
+							if value == self.lipid_droplets[-2].sn3:
 								self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
-					del self.lipid_droplets[0]
+					del self.lipid_droplets[-2]
 					self.precursors_dict['ctp_number'] -= 1
 
 
