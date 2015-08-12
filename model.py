@@ -359,7 +359,7 @@ class model():
 						'PE_synthase': 95, 'PC_synthase': 50, 'CL_synthase': 35, 'Ergosterol_synthase': 15}
 
 		self.probabilities = {'acyl_synthase_C14': 0.1, 'acyl_synthase_C16': 0.45, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.95,\
-								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.85, 'TAG_lipase': 0.8, 'PS_synthase': 0.1,\
+								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.85, 'TAG_lipase': 0.1, 'PS_synthase': 0.1,\
 								'PI_synthase': 0.4, 'PE_synthase': 0.95, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5}
 
@@ -452,38 +452,43 @@ class model():
 
 
 	def start(self):
+		'''
+		Function that produces the starting lipids. Membrane compositions are given in self.membrane_compositions_start_relatives. 
+		Number of starting lipids for each membrane are given in self.start_lipids.
+		'''
+
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
 
 		self.plasma_membrane_comp_start = [0.08062, 0.04373, 0.04164, 0.04976, 0.00313, 0.01172, 0.76800, 0.0]
-		self.plasma_membrane_comp_relative = [z / sum(self.plasma_membrane_comp_start) for z in self.plasma_membrane_comp_start]
 		self.secretory_vesicles_comp_start = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0]
-		self.secretory_vesicles_comp_relative = [z / sum(self.secretory_vesicles_comp_start) for z in self.secretory_vesicles_comp_start]
 		self.vacuoles_comp_start = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0]
-		self.vacuoles_comp_relative = [z / sum(self.vacuoles_comp_start) for z in self.vacuoles_comp_start]
 		self.nucleus_comp_start = [0.04038, 0.09650, 0.27645, 0.16848, 0.01049, 0.01781, 0.390, 0.0]
-		self.nucleus_comp_relative = [z / sum(self.nucleus_comp_start) for z in self.nucleus_comp_start]
 		self.peroxisomes_comp_start = [0.03235, 0.11360, 0.34656, 0.16465, 0.05033, 0.01150, 0.281, 0.0]
-		self.peroxisomes_comp_relative = [z / sum(self.peroxisomes_comp_start) for z in self.peroxisomes_comp_start]
 		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0]
-		self.light_microsomes_comp_relative = [z / sum(self.light_microsomes_comp_start) for z in self.light_microsomes_comp_start]
 		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0]
-		self.inner_mit_membrane_comp_relative = [z / sum(self.inner_mit_membrane_comp_start) for z in self.inner_mit_membrane_comp_start]
 		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0]
-		self.outer_mit_membrane_comp_relative = [z / sum(self.outer_mit_membrane_comp_start) for z in self.outer_mit_membrane_comp_start]
 		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
-		self.lipid_droplets_comp_relative = [z / sum(self.lipid_droplets_comp_start) for z in self.lipid_droplets_comp_start]
-		self.compositions_start = [self.plasma_membrane_comp_relative, self.secretory_vesicles_comp_relative, self.vacuoles_comp_relative, self.nucleus_comp_relative,\
-									self.peroxisomes_comp_relative, self.light_microsomes_comp_relative, self.inner_mit_membrane_comp_relative,\
-									self.outer_mit_membrane_comp_relative, self.lipid_droplets_comp_relative]
-		self.membrane_compositions_start = dict(zip(self.compartment, self.compositions_start))
+		
+		self.membrane_compositions_start = [self.plasma_membrane_comp_start, self.secretory_vesicles_comp_start, self.vacuoles_comp_start, self.nucleus_comp_start,\
+									self.peroxisomes_comp_start, self.light_microsomes_comp_start, self.inner_mit_membrane_comp_start,\
+									self.outer_mit_membrane_comp_start, self.lipid_droplets_comp_start]
+
+		self.membrane_compositions_start_relatives = []
+
+		for membrane_comp_start in self.membrane_compositions_start:
+			membrane_comp_start_relative = [z / sum(membrane_comp_start) for z in membrane_comp_start]
+			self.membrane_compositions_start_relatives.append(membrane_comp_start_relative)
+
+		self.compositions_start = dict(zip(self.compartment, self.membrane_compositions_start_relatives))
+		
 		x = 0
 		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1500, 1000, 1000]
 		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
 		for membrane in self.compartment_lists:
 			for i in range(self.membrane_start[self.compartment[x]]):
 				self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', None]
-				weights_start = self.membrane_compositions_start[self.compartment[x]]
+				weights_start = self.compositions_start[self.compartment[x]]
 				head = choice(self.head_groups_start, p = weights_start)
 				if head == 'sterol':
 					new_lipid = sterol(head, self.compartment[x])
@@ -690,10 +695,10 @@ class model():
 		'''
 		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
 		'''
-		if self.phase != 'G1':
-			DAG_prob = 0.2
-		else:
+		if self.phase == 'G1':
 			DAG_prob = 0.8
+		else:
+			DAG_prob = 0.2
 		y = self.precursors_dict['ctp_number'] / 50000
 		x = random.random()*y
 		if x <= DAG_prob:
@@ -728,7 +733,9 @@ class model():
 		'''
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
-		if self.phase != 'G1' and len(self.lipid_droplets) > self.rates['TAG_lipase']:
+		if self.phase != 'G1': 
+			self.probabilities['TAG_lipase'] = 0.8
+		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()
 				if x <= self.probabilities['TAG_lipase'] and hasattr(self.lipid_droplets[-2], 'sn3') == True:
@@ -831,7 +838,6 @@ class model():
 				self.Ergosterol_list.append(sterol('sterol', None))
 				self.acetyl_coa_number -= 18
 				self.p_counter += 2
-
 
 
 	def transport(self):
