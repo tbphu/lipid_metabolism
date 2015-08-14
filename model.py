@@ -252,8 +252,8 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
-		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 50000., 'serine_number': 10000.,\
-									'glucose_6_p_number': 100000., 'SAM_number': 30000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000.}
+		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
+									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000.}
 		
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
@@ -308,7 +308,7 @@ class model():
 		self.lipid_droplets = []
 
 
-
+		self.relatives_list = []
 		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
 									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
 									self.outer_mit_membrane, self.lipid_droplets]
@@ -353,10 +353,12 @@ class model():
 		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG']
 
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(8)])) for comp in self.compartment}
+		#self.compartment_absolutes_dict = {comp: dict(zip(self.membrane_lipids, [0 for z in range(8)])) for comp in self.compartment}
+		#self.compartment_absolutes = []
 
 		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
 						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 120, 'PI_synthase': 50,\
-						'PE_synthase': 95, 'PC_synthase': 50, 'CL_synthase': 35, 'Ergosterol_synthase': 15}
+						'PE_synthase': 95, 'PC_synthase': 50, 'CL_synthase': 35, 'Ergosterol_synthase': 10}
 
 		self.probabilities = {'acyl_synthase_C14': 0.1, 'acyl_synthase_C16': 0.45, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.95,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.85, 'TAG_lipase': 0.1, 'PS_synthase': 0.1,\
@@ -389,7 +391,7 @@ class model():
 				func()
 				self.function_list.remove(func)
 			self.numbers()
-			self.membrane_compositions()
+		self.membrane_compositions()
 		
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
@@ -483,7 +485,7 @@ class model():
 		self.compositions_start = dict(zip(self.compartment, self.membrane_compositions_start_relatives))
 		
 		x = 0
-		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1500, 1000, 1000]
+		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1000, 750, 1000]
 		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
 		for membrane in self.compartment_lists:
 			for i in range(self.membrane_start[self.compartment[x]]):
@@ -887,18 +889,19 @@ class model():
 										(float(sum(j.comp == 'lipid_droplets' for j in comp)) / len(comp))]
 				for i in range(len(self.relatives_list)):
 					self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
+					#self.compartment_absolutes_dict[self.compartment[x]][self.membrane_lipids[i]] = self.absolutes_list[i]
 			x += 1
-
+		
 
 	def numbers(self):		
 		#for plotting the production of the lipids
 		self.number_acetyl_coa.append(self.acetyl_coa_number)
 		for current_precursor_number, number_of_precursor in zip(self.number_lipids_list, self.precursor_list):
-			current_precursor_number.append(len(number_of_precursor)*(10**4))
+			current_precursor_number.append(len(number_of_precursor))#*(10**4))
 
 		#for plotting the number of lipids in a certain membrane
 		for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
-			current_membrane_number.append(len(number_of_membrane)*(10**4))
+			current_membrane_number.append(len(number_of_membrane))#*(10**4))
 
 
 '''
@@ -906,4 +909,24 @@ if __name__ == '__main__':
 	print 'meep'
 	model()
 	print 'fertsch'
+'''
+
+'''
+				self.absolutes_list = [(sum(j.head == 'serine' for j in comp)),
+										(sum(j.head == 'inositol' for j in comp)),
+										(sum(j.head == 'choline' for j in comp)),
+										(sum(j.head == 'ethanolamine' for j in comp)),
+										(sum(j.head == 'neutral' for j in comp)),
+										(sum(j.head == 'p' for j in comp)),
+										(sum(j.head == 'sterol' for j in comp)),
+										(sum(j.comp == 'lipid_droplets' for j in comp))]
+'''
+
+'''
+		compartment_absolutes_sum = 0
+		for i in self.membrane_lipids:
+			compartment_absolutes_sum = 0
+			for j in self.compartment:
+				compartment_absolutes_sum += self.compartment_absolutes_dict[j][i]
+			self.compartment_absolutes.append(compartment_absolutes_sum)
 '''
