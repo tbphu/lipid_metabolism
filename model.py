@@ -252,6 +252,8 @@ class model():
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors
+		self.precursors_dict_max = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
+									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 100, 'glycerol_3_p_mito_number': 5000.}
 		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
 									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000.}
 		
@@ -358,11 +360,11 @@ class model():
 
 		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
 						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 120, 'PI_synthase': 50,\
-						'PE_synthase': 95, 'PC_synthase': 50, 'CL_synthase': 35, 'Ergosterol_synthase': 10}
+						'PE_synthase': 100, 'PC_synthase': 55, 'CL_synthase': 25, 'Ergosterol_synthase': 10}
 
-		self.probabilities = {'acyl_synthase_C14': 0.1, 'acyl_synthase_C16': 0.45, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.95,\
-								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.85, 'TAG_lipase': 0.1, 'PS_synthase': 0.1,\
-								'PI_synthase': 0.4, 'PE_synthase': 0.95, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
+		self.probabilities = {'acyl_synthase_C14': 0.9, 'acyl_synthase_C16': 0.55, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
+								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'PS_synthase': 0.1,\
+								'PI_synthase': 0.6, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5}
 
 		#functions to run the model
@@ -587,14 +589,14 @@ class model():
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
-				elif self.acyl_coa_list[-1].C >=14 and x <= self.probabilities['acyl_synthase_C14']:
+				elif self.acyl_coa_list[-1].C >=14 and x >= self.probabilities['acyl_synthase_C14']:
 					self.acyl_coa_list[-1].saturation = 0
 					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
-				elif self.acyl_coa_list[-1].C >= 16 and x <= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
+				elif self.acyl_coa_list[-1].C >= 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
 					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
@@ -636,10 +638,8 @@ class model():
 		choice_list = [0, 1]
 		weights_pa = [self.precursors_dict['dhap_number'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']),\
 					self.precursors_dict['glycerol-3-p'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'])]
-		y = (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']) / 50000
-		z = random.random()
-		x = y*z
-		if x > self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
+		x = random.random() * (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'] / (self.precursors_dict_max['dhap_number'] + self.precursors_dict_max['glycerol-3-p']))
+		if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
 			sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
 			chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
 			lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None)
@@ -658,7 +658,7 @@ class model():
 		'''
 		for i in range (20):
 			x = random.random()
-			if x < self.probabilities['PA_synthase'] and len(self.acyl_coa_list_unsaturated) > 0 and len(self.lyso_pa_list) > 0:
+			if x >= self.probabilities['PA_synthase'] and len(self.acyl_coa_list_unsaturated) > 0 and len(self.lyso_pa_list) > 0:
 				sn2_chain = random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))		
 				chainlength_sn2 = self.acyl_coa_list_unsaturated[sn2_chain].C
 				self.lyso_pa_list[-1].sn2 = self.chainlength_unsaturated[chainlength_sn2]
@@ -672,10 +672,8 @@ class model():
 		PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids
 		'''
 		for i in range(self.rates['CDP_DG_synthase']):
-			y = self.precursors_dict['ctp_number'] / 50000
-			z = random.random()
-			x = y*z
-			if x > self.probabilities['CDP_DG_synthase'] and self.precursors_dict['ctp_number'] > 0:
+			x = random.random() * self.precursors_dict['ctp_number'] / self.precursors_dict_max['ctp_number'] * len(self.PA_list) / 10
+			if x >= self.probabilities['CDP_DG_synthase'] and self.precursors_dict['ctp_number'] > 0:
 				if len(self.PA_list) > 0:
 					self.PA_list[0].head = 'cdp'
 					self.CDP_DG_list.append(self.PA_list[0])		#CDP-DG production from PA
@@ -715,7 +713,7 @@ class model():
 		DAG is processed to TAG by adding a third acyl-chain at position sn3.
 		'''
 		x = random.random()
-		if x <= self.probabilities['TAG_synthase']:
+		if x >= self.probabilities['TAG_synthase']:
 			if len(self.DAG_list) > 0 and len(self.acyl_coa_list_saturated) > 0 and len(self.acyl_coa_list_unsaturated) > 0:
 				self.TAG_list.append(self.DAG_list[0])		
 				self.TAG_list[-1].__class__ = TAG
@@ -736,11 +734,11 @@ class model():
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
 		if self.phase != 'G1': 
-			self.probabilities['TAG_lipase'] = 0.8
+			self.probabilities['TAG_lipase'] = 0.2
 		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
-				x = random.random()
-				if x <= self.probabilities['TAG_lipase'] and hasattr(self.lipid_droplets[-2], 'sn3') == True:
+				x = random.random() * len(self.lipid_droplets) / 5000
+				if x >= self.probabilities['TAG_lipase'] and hasattr(self.lipid_droplets[-2], 'sn3') == True:
 					self.PA_list.append(self.lipid_droplets[-2])
 					self.PA_list[-1].__class__ = lipids
 					self.PA_list[-1].head = 'p'
@@ -761,9 +759,7 @@ class model():
 		CDP-DG is processed to PS (PS synthase).
 		'''
 		for i in range(self.rates['PS_synthase']):
-			y = self.precursors_dict['serine_number'] / 10000
-			z = random.random()
-			x = y*z
+			x = random.random() * self.precursors_dict['serine_number'] / self.precursors_dict_max['serine_number'] * len(self.CDP_DG_list) / 10
 			if x >= self.probabilities['PS_synthase'] and len(self.CDP_DG_list) >= 1 and self.precursors_dict['serine_number'] > 0:
 				self.CDP_DG_list[0].head = 'serine'				#PS synthesis from CDP-DG
 				self.PS_list.append(self.CDP_DG_list[0])
@@ -776,10 +772,8 @@ class model():
  		CDP-DG is processed to PI (PI synthase)
 		'''
 		for i in range(self.rates['PI_synthase']):
-			y = self.inositol_number / 100000
-			z = random.random()
-			x = y*z
-			if x <= self.probabilities['PI_synthase'] and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
+			x = random.random() * self.inositol_number / 50 * len(self.CDP_DG_list) / 10
+			if x >= self.probabilities['PI_synthase'] and len(self.CDP_DG_list) >= 1 and self.inositol_number > 0:
 				self.CDP_DG_list[0].head = 'inositol'			#PI synthesis from CDP-DG
 				self.PI_list.append(self.CDP_DG_list[0])
 				del self.CDP_DG_list[0]
@@ -791,8 +785,8 @@ class model():
 		PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
 		'''
 		for i in range(self.rates['PE_synthase']):
-			x = random.random()
-			if x <= self.probabilities['PE_synthase'] and len(self.PS_list) >= 10:
+			x = random.random() * len(self.PE_list) / 10
+			if x >= self.probabilities['PE_synthase'] and len(self.PS_list) >= 10:
 				self.PS_list[0].head = 'ethanolamine'				#PE synthesis from PS
 				self.PE_list.append(self.PS_list[0])
 				del self.PS_list[0]
@@ -804,9 +798,7 @@ class model():
 		PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
 		'''
 		for i in range(self.rates['PC_synthase']):
-			z = random.random()
-			y = self.precursors_dict['SAM_number'] / 30000
-			x = y*z
+			x = random.random() * self.precursors_dict['SAM_number'] / self.precursors_dict_max['SAM_number'] * len(self.PE_list) / 10
 			if x >= self.probabilities['PC_synthase'] and len(self.PE_list) >= 5 and self.precursors_dict['SAM_number'] >= 3:
 				self.PE_list[0].head = 'choline'								#PC synthesis from PE
 				self.PC_list.append(self.PE_list[0])
@@ -821,7 +813,7 @@ class model():
 		'''
 		for i in range(self.rates['CL_synthase']):
 			x = random.random()
-			if x <= self.probabilities['CL_synthase'] and self.precursors_dict['glycerol_3_p_mito_number'] > 0 and len(self.CDP_DG_list) >= 2:
+			if x >= self.probabilities['CL_synthase'] and self.precursors_dict['glycerol_3_p_mito_number'] > 0 and len(self.CDP_DG_list) >= 2:
 				self.CDP_DG_list[0].head = 'neutral'
 				self.CL_list.append(self.CDP_DG_list[0])
 				self.CL_list[-1].__class__ = CL
@@ -836,7 +828,7 @@ class model():
 		'''
 		for i in range(self.rates['Ergosterol_synthase']):
 			x = random.random()
-			if x <= self.probabilities['Ergosterol_synthase'] and self.acetyl_coa_number >= 18:
+			if x >= self.probabilities['Ergosterol_synthase'] and self.acetyl_coa_number >= 18:
 				self.Ergosterol_list.append(sterol('sterol', None))
 				self.acetyl_coa_number -= 18
 				self.p_counter += 2
@@ -846,30 +838,38 @@ class model():
 		'''
 		General transport function for all produced lipids.
 		'''
-		i = 0
 		for lipid in self.lipid_lists:
-			for j in range(len(lipid)/10):
-				lipid[0].comp_choice()
-				if lipid[0].comp == 'plasma_membrane':
-					self.plasma_membrane.append(lipid[0])
-				elif lipid[0].comp == 'secretory_vesicles':
-					self.secretory_vesicles.append(lipid[0])
-				elif lipid[0].comp == 'vacuoles':
-					self.vacuoles.append(lipid[0])
-				elif lipid[0].comp == 'nucleus':
-					self.nucleus.append(lipid[0])
-				elif lipid[0].comp == 'peroxisomes':
-					self.peroxisomes.append(lipid[0])
-				elif lipid[0].comp == 'light_microsomes':
-					self.light_microsomes.append(lipid[0])
-				elif lipid[0].comp == 'inner_mit_membrane':
-					self.inner_mit_membrane.append(lipid[0])
-				elif lipid[0].comp == 'outer_mit_membrane':
-					self.outer_mit_membrane.append(lipid[0])
-				elif lipid[0].comp == 'lipid_droplets':
-					self.lipid_droplets.append(lipid[0])
-				del lipid[0]
-			i += 1
+			if lipid == self.TAG_list:
+				if len(lipid) > 10:
+					for j in range(10):
+						lipid[0].comp_choice()
+						if lipid[0].comp == 'lipid_droplets':
+							self.lipid_droplets.append(lipid[0])
+						del lipid[0]
+			else:
+				if len(lipid) > 5:
+					for j in range(5):
+						lipid[0].comp_choice()
+						if lipid[0].comp == 'plasma_membrane':
+							self.plasma_membrane.append(lipid[0])
+						elif lipid[0].comp == 'secretory_vesicles':
+							self.secretory_vesicles.append(lipid[0])
+						elif lipid[0].comp == 'vacuoles':
+							self.vacuoles.append(lipid[0])
+						elif lipid[0].comp == 'nucleus':
+							self.nucleus.append(lipid[0])
+						elif lipid[0].comp == 'peroxisomes':
+							self.peroxisomes.append(lipid[0])
+						elif lipid[0].comp == 'light_microsomes':
+							self.light_microsomes.append(lipid[0])
+						elif lipid[0].comp == 'inner_mit_membrane':
+							self.inner_mit_membrane.append(lipid[0])
+						elif lipid[0].comp == 'outer_mit_membrane':
+							self.outer_mit_membrane.append(lipid[0])
+						elif lipid[0].comp == 'lipid_droplets':
+							self.lipid_droplets.append(lipid[0])
+						del lipid[0]
+		
 
 
 	def membrane_compositions(self):
