@@ -13,14 +13,14 @@ class lipids(object):
 	general class for all kinds of lipids
 	with the head groups 'p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 
 	'cdp'(for cdp-dg) and 'None'(for tag)
-	possible ffa for sn2: C14:0, C16:0, C16:1, C18:0, C18:1
+	possible ffa for sn2: C16:0, C16:1, C18:0, C18:1
 	possible ffa for sn1: C16:1 C18:1
 	"""
 	def __init__(self, head, sn2, sn1, comp):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'sterol', None]
 		self.sn2_options = ['C16:1', 'C18:1', None]	
-		self.sn1_options = ['C14:0', 'C16:0', 'C18:0', None]
+		self.sn1_options = ['C16:0', 'C18:0', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -154,39 +154,6 @@ class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
 		self.__saturation = number
 
 
-class enzyme(object):
-	'''
-	class for the enzymes that are part of the lipid metabolism
-	attribute name: enzyme name
-	attribute number: amount of the enzyme in one yeast cell
-	attribute localisation: localisation of the enzyme and therefore of the reaction
-	'''
-	def __init__(self, name, number, localisation):
-		self.localisation_options = ['cytoplasm', 'ER', 'lipid_particle', 'mitochondrion', 'inner_mit_membrane', 'outer_mit_membrane']
-		self.name = name
-		self.number = number
-		self.localisation = localisation
-
-	@property
-	def number(self):
-		return self.__number
-	@number.setter
-	def number(self, number):
-		if not isinstance(number, int):
-			raise TypeError('Number of enzyme must be an int.')
-		self.__number = number
-
-
-	@property
-	def localisation(self):
-		return self.__localisation
-	@localisation.setter
-	def localisation(self, comp):
-		if comp not in self.localisation_options:
-			raise TypeError('This is no compartment.')
-		self.__localisation = comp
-
-
 class sterol(object):
 
 	def __init__(self, head, comp):
@@ -264,13 +231,7 @@ class model():
 		self.p_counter = 0
 		self.counter = 0
 
-		#list of all enzymes that are part of the reactions of the lipid metabolism
-		'''self.enzymes = [enzyme('Gat1_Ayr1', 1000, 'ER'), enzyme('Slc1', 1000, 'lipid_particle'), enzyme('Pis1', 1000, 'outer_mit_membrane'),\
-						enzyme('Cho1', 1000, 'outer_mit_membrane'), enzyme('Psd1', 1000, 'inner_mit_membrane'), \
-						enzyme('Cho2', 1000, 'ER'), enzyme('Opi3', 1000, 'mitochondrion'), enzyme('Pah1', 1000, 'cytoplasm'), \
-						enzyme('Dga1', 1000, 'lipid_particle')]
-		'''
-
+	
 		#list of the 4 cell cycle phases
 		self.cell_cycle_phases = ['G1', 'S', 'G2', 'M']
 
@@ -347,22 +308,20 @@ class model():
 										self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,\
 										self.number_inner_mit_membrane,	self.number_outer_mit_membrane, self.number_lipid_droplets]
 
-		self.chainlength_saturated = {14: 'C14:0', 16: 'C16:0', 18: 'C18:0'}		
+		self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
-		self.chainlength_saturated_unsaturated = ['C14:0', 'C16:0', 'C18:0', 'C16:1', 'C18:1']
+		self.chainlength_saturated_unsaturated = ['C16:0', 'C18:0', 'C16:1', 'C18:1']
 
 		
 		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG']
 
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(8)])) for comp in self.compartment}
-		#self.compartment_absolutes_dict = {comp: dict(zip(self.membrane_lipids, [0 for z in range(8)])) for comp in self.compartment}
-		#self.compartment_absolutes = []
 
 		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
 						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 120, 'PI_synthase': 50,\
 						'PE_synthase': 100, 'PC_synthase': 55, 'CL_synthase': 25, 'Ergosterol_synthase': 10}
 
-		self.probabilities = {'acyl_synthase_C14': 0.9, 'acyl_synthase_C16': 0.55, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
+		self.probabilities = {'acyl_synthase_C16': 0.5, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'PS_synthase': 0.1,\
 								'PI_synthase': 0.6, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5}
@@ -576,7 +535,7 @@ class model():
 
 	def acyl_synthase(self):
 		'''
-		Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C14:0, C16:0, C16:1, C18:0 or C18:1)
+		Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C16:0, C16:1, C18:0 or C18:1)
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
@@ -584,13 +543,6 @@ class model():
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
-					new_acyl = fatty_acids(2, choice(choice_list))
-					self.acyl_coa_list.append(new_acyl)
-					self.acyl_coa_list[-1].C += 2
-					self.acetyl_coa_number -= 2
-
-				elif self.acyl_coa_list[-1].C >=14 and x >= self.probabilities['acyl_synthase_C14']:
-					self.acyl_coa_list[-1].saturation = 0
 					new_acyl = fatty_acids(2, choice(choice_list))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
@@ -897,11 +849,11 @@ class model():
 		#for plotting the production of the lipids
 		self.number_acetyl_coa.append(self.acetyl_coa_number)
 		for current_precursor_number, number_of_precursor in zip(self.number_lipids_list, self.precursor_list):
-			current_precursor_number.append(len(number_of_precursor))#*(10**4))
+			current_precursor_number.append(len(number_of_precursor)*(10**4))
 
 		#for plotting the number of lipids in a certain membrane
 		for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
-			current_membrane_number.append(len(number_of_membrane))#*(10**4))
+			current_membrane_number.append(len(number_of_membrane)*(10**4))
 
 
 '''
