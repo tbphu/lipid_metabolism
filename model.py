@@ -13,14 +13,14 @@ class lipids(object):
 	general class for all kinds of lipids
 	with the head groups 'p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 
 	'cdp'(for cdp-dg) and 'None'(for tag)
-	possible ffa for sn2: C16:0, C16:1, C18:0, C18:1
-	possible ffa for sn1: C16:1 C18:1
+	possible ffa for sn2: C16:1, C18:1
+	possible ffa for sn1: C16:0, C16:1, C18:0, C18:1
 	"""
 	def __init__(self, head, sn2, sn1, comp):
 
 		self.head_groups = ['p', 'inositol', 'serine', 'ethanolamine', 'choline', 'neutral', 'cdp', 'sterol', None]
 		self.sn2_options = ['C16:1', 'C18:1', None]	
-		self.sn1_options = ['C16:0', 'C18:0', None]
+		self.sn1_options = ['C16:0', 'C16:1', 'C18:0', 'C18:1', None]
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -310,7 +310,9 @@ class model():
 
 		self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
+		self.unsaturated_weights = [0.375, 0.625]
 		self.chainlength_saturated_unsaturated = ['C16:0', 'C18:0', 'C16:1', 'C18:1']
+		self.saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
 		
 		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG']
@@ -321,7 +323,7 @@ class model():
 						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 120, 'PI_synthase': 50,\
 						'PE_synthase': 100, 'PC_synthase': 55, 'CL_synthase': 25, 'Ergosterol_synthase': 10}
 
-		self.probabilities = {'acyl_synthase_C16': 0.5, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
+		self.probabilities = {'acyl_synthase_C16': 0.625, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'PS_synthase': 0.1,\
 								'PI_synthase': 0.6, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5}
@@ -353,6 +355,7 @@ class model():
 				self.function_list.remove(func)
 			self.numbers()
 		self.membrane_compositions()
+		self.saturation_counter()
 		
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
@@ -456,14 +459,14 @@ class model():
 				if head == 'sterol':
 					new_lipid = sterol(head, self.compartment[x])
 				elif head == 'neutral':
-					new_lipid = CL(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()),\
-									random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+					new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
+									choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x])
 				elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
-					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+					new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x])
 				else:
-					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), self.compartment[x])
+					new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x])
 					new_lipid.__class__ = TAG
-					new_lipid.sn3 = 'C16:0'
+					new_lipid.sn3 = choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total)
 				membrane.append(new_lipid)
 			x += 1
 
@@ -476,14 +479,14 @@ class model():
 				if head == 'sterol':
 					new_lipid = sterol(head, None)
 				elif head == 'neutral':
-					new_lipid = CL(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()),\
-											random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+					new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
+											choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None)
 				elif head == None:
-					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+					new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None)
 					new_lipid.__class__ = TAG
-					new_lipid.sn3 = 'C16:0'
+					new_lipid.sn3 = choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total)
 				else:
-					new_lipid = lipids(head, random.choice(self.chainlength_unsaturated.values()), random.choice(self.chainlength_saturated.values()), None)
+					new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None)
 				lipid_list.append(new_lipid)
 			z += 1
 
@@ -539,23 +542,24 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
+		choice_weights = [0.2, 0.8]
 		for i in range(self.rates['acetyl_coa_synthase']):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
 				if len(self.acyl_coa_list) == 0:		#starting the first reaction
-					new_acyl = fatty_acids(2, choice(choice_list))
+					new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, choice(choice_list))
+					new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
 
 				elif self.acyl_coa_list[-1].C >= 18:				#stop the reaction cycle and starting a new one
-					new_acyl = fatty_acids(2, choice(choice_list))
+					new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
 					self.acyl_coa_list.append(new_acyl)
 					self.acyl_coa_list[-1].C += 2
 					self.acetyl_coa_number -= 2
@@ -588,20 +592,28 @@ class model():
 		Production of Lyso-PA by adding one acyl-coa to DHAP (sn1: always unsaturated) --> DHAP acyltransferase/acyl-DHAP reductase
 		'''
 		choice_list = [0, 1]
+		weigths_fa = [0.4, 0.6]
 		weights_pa = [self.precursors_dict['dhap_number'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']),\
 					self.precursors_dict['glycerol-3-p'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'])]
 		x = random.random() * (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'] / (self.precursors_dict_max['dhap_number'] + self.precursors_dict_max['glycerol-3-p']))
-		if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
-			sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
-			chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
-			lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None)
+		if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 0 and len(self.acyl_coa_list_unsaturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
+			if choice(choice_list, p = weigths_fa) == 0:
+				sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
+				chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
+				lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None)
+				del self.acyl_coa_list_saturated[sn1_chain]
+			else:
+				sn1_chain = random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
+				chainlength_sn1 = self.acyl_coa_list_unsaturated[sn1_chain].C
+				lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None)
+				del self.acyl_coa_list_unsaturated[sn1_chain]
 			self.lyso_pa_list.append(lyso_pa)
 			i = choice(choice_list, p = weights_pa)
 			if i == 0:
 				self.precursors_dict['dhap_number'] -= 1
 			else:
 				self.precursors_dict['glycerol-3-p'] -= 1
-			del self.acyl_coa_list_saturated[sn1_chain]
+			
 
 
 	def PA_synthase(self):	
@@ -669,7 +681,7 @@ class model():
 			if len(self.DAG_list) > 0 and len(self.acyl_coa_list_saturated) > 0 and len(self.acyl_coa_list_unsaturated) > 0:
 				self.TAG_list.append(self.DAG_list[0])		
 				self.TAG_list[-1].__class__ = TAG
-				if x <= 0.4:
+				if x <= 0.575:
 					chainlength_sn3 = self.acyl_coa_list_saturated[0].C
 					self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
 					del self.acyl_coa_list_saturated[0]
@@ -856,29 +868,52 @@ class model():
 			current_membrane_number.append(len(number_of_membrane)*(10**4))
 
 
-'''
-if __name__ == '__main__':
-	print 'meep'
-	model()
-	print 'fertsch'
-'''
+	def saturation_counter(self):
+		'''
+		composition of fatty acids that should be reached: C16:0 = 10%, C16:1 = 30%, C18:0 = 10%, C18:1 = 50%
+		these numbers are from Klug & Daum 2013 'Yeast lipid metabolism at a glance'
+		'''
+		self.c16_0_sn1 = 0
+		self.c16_1_sn1 = 0
+		self.c18_0_sn1 = 0
+		self.c18_1_sn1 = 0
+		self.wrong_fatty_acid = 0
+		for c in self.compartment_lists:
+			for i in range(len(c)):
+				if hasattr(c[i], 'sn1'):
+					if c[i].sn1 == 'C16:0':
+						self.c16_0_sn1 += 1
+					elif c[i].sn1 == 'C16:1':
+						self.c16_1_sn1 += 1
+					elif c[i].sn1 == 'C18:0':
+						self.c18_0_sn1 += 1
+					elif c[i].sn1 == 'C18:1':
+						self.c18_1_sn1 += 1
+					else:
+						self.wrong_fatty_acid += 1
+		self.saturation_composition_sn1 = {'C16:0': self.c16_0_sn1, 'C16:1': self.c16_1_sn1, 'C18:0': self.c18_0_sn1, 'C18_1': self.c18_1_sn1}
 
-'''
-				self.absolutes_list = [(sum(j.head == 'serine' for j in comp)),
-										(sum(j.head == 'inositol' for j in comp)),
-										(sum(j.head == 'choline' for j in comp)),
-										(sum(j.head == 'ethanolamine' for j in comp)),
-										(sum(j.head == 'neutral' for j in comp)),
-										(sum(j.head == 'p' for j in comp)),
-										(sum(j.head == 'sterol' for j in comp)),
-										(sum(j.comp == 'lipid_droplets' for j in comp))]
-'''
+		self.c16_0_sn2 = 0
+		self.c16_1_sn2 = 0
+		self.c18_0_sn2 = 0
+		self.c18_1_sn2 = 0
+		self.wrong_fatty_acid = 0
+		for c in self.compartment_lists:
+			for i in range(len(c)):
+				if hasattr(c[i], 'sn2'):
+					if c[i].sn2 == 'C16:0':
+						self.c16_0_sn2 += 1
+					elif c[i].sn2 == 'C16:1':
+						self.c16_1_sn2 += 1
+					elif c[i].sn2 == 'C18:0':
+						self.c18_0_sn2 += 1
+					elif c[i].sn2 == 'C18:1':
+						self.c18_1_sn2 += 1
+					else:
+						self.wrong_fatty_acid += 1
 
-'''
-		compartment_absolutes_sum = 0
-		for i in self.membrane_lipids:
-			compartment_absolutes_sum = 0
-			for j in self.compartment:
-				compartment_absolutes_sum += self.compartment_absolutes_dict[j][i]
-			self.compartment_absolutes.append(compartment_absolutes_sum)
-'''
+		self.saturation_composition_sn2 = {'C16:0': self.c16_0_sn2, 'C16:1': self.c16_1_sn2, 'C18:0': self.c18_0_sn2, 'C18_1': self.c18_1_sn2}
+		self.total_fatty_acids = self.c16_0_sn1 + self.c16_1_sn1 + self.c18_0_sn1 + self.c18_1_sn1 + self.c16_0_sn2 + self.c16_1_sn2 + self.c18_0_sn2 + self.c18_1_sn2
+		self.saturation_composition_total = {'C16:0': float(self.c16_0_sn2 + self.c16_0_sn1) / self.total_fatty_acids, 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1) / self.total_fatty_acids, \
+											'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids, 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
+
