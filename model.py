@@ -155,7 +155,7 @@ class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
 class sterol(object):
 
 	def __init__(self, head, comp):
-		self.head_options = ['sterol']
+		self.head_options = ['sterol', 'sterylester']
 		self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]	
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -200,6 +200,18 @@ class sterol(object):
 		if local not in self.compartment_options:
 			raise TypeError('This is no compartment.')
 		self.__comp = local
+
+
+class sterylester(object):
+	
+	def __init__(self, head, FA, comp):
+		self.head = head
+		self.FA = FA
+		self.comp = None
+
+
+	def comp_choice(self):
+		self.comp = 'lipid_droplets'
 
 
 class sphingolipid(object):
@@ -298,12 +310,13 @@ class model():
 		self.PC_list = []
 		self.CL_list = []
 		self.Ergosterol_list = []
+		self.Sterylester_list = []
 		self.Sphingolipid_list = []
 
 		self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
-								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sphingolipid_list]
+								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sterylester_list, self.Sphingolipid_list]
 
-		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.TAG_list, self.Sphingolipid_list]
+		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
 
 		#lists to collect the transported lipids
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
@@ -337,11 +350,12 @@ class model():
 		self.number_PC = [0]
 		self.number_CL = [0]
 		self.number_Ergosterol = [0]
+		self.number_Sterylester = [0]
 		self.number_Sphingolipid = [0]
 
 		self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,\
 									self.number_PS, self.number_PI, self.number_PE, self.number_PC,	self.number_CL,\
-									self.number_Ergosterol, self.number_Sphingolipid]
+									self.number_Ergosterol, self.number_Sterylester, self.number_Sphingolipid]
 
 		#counting the lipids in each membrane after every timestep
 		self.number_plasma_membrane = []
@@ -365,18 +379,18 @@ class model():
 		self.saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
 		
-		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'TAG', 'SL']
+		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'SE', 'TAG', 'SL']
 
-		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(9)])) for comp in self.compartment}
+		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
-		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 230, \
-						'CDP_DG_synthase': 200, 'TAG_synthese': 90, 'TAG_lipase': 20, 'PS_synthase': 120, 'PI_synthase': 50,\
-						'PE_synthase': 100, 'PC_synthase': 55, 'CL_synthase': 25, 'Ergosterol_synthase': 10, 'Sphingolipid_synthase': 2}
+		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 200, \
+						'CDP_DG_synthase': 180, 'TAG_synthese': 90, 'TAG_lipase': 50, 'PS_synthase': 100, 'PI_synthase': 40,\
+						'PE_synthase': 80, 'PC_synthase': 45, 'CL_synthase': 25, 'Ergosterol_synthase': 10, 'Sterylester_synthase': 5, 'Sphingolipid_synthase': 2}
 
 		self.probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.005, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'PS_synthase': 0.1,\
 								'PI_synthase': 0.6, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
-								'Ergosterol_synthase': 0.5, 'Sphingolipid_synthase': 0.5}
+								'Ergosterol_synthase': 0.5, 'Sterylester_synthase': 0.3, 'Sphingolipid_synthase': 0.5}
 
 		#functions to run the model
 		self.start()
@@ -397,6 +411,7 @@ class model():
 								self.CL_synthase,
 								self.TAG_lipase,
 								self.Ergosterol_synthase,
+								self.Sterylester_synthase,
 								self.Sphingolipid_synthase,
 								self.transport]
 
@@ -410,9 +425,9 @@ class model():
 		
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
-				'ES:' + str(self.number_Ergosterol[-1]), 'SL: ' + str(self.number_Sphingolipid[-1])
+				'ES: ' + str(self.number_Ergosterol[-1]), 'SE: ' + str(self.number_Sterylester[-1]), 'SL: ' + str(self.number_Sphingolipid[-1])
 		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
-				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1] + self.number_Sphingolipid[-1]
+				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1] + self.number_Sterylester[-1] + self.number_Sphingolipid[-1]
 		print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
 				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
 				len(self.outer_mit_membrane) + len(self.lipid_droplets)
@@ -434,6 +449,8 @@ class model():
 		ax.plot(self.t, self.number_PC[:-1], label = 'pc')
 		ax.plot(self.t, self.number_CL[:-1], label = 'cl')
 		ax.plot(self.t, self.number_Ergosterol[:-1], label = 'es')
+		ax.plot(self.t, self.number_Sterylester[:-1], label = 'se')
+		ax.plot(self.t, self.number_Sphingolipid[:-1], label = 'sl')
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
 
@@ -477,15 +494,15 @@ class model():
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
 
-		self.plasma_membrane_comp_start = [0.08062, 0.04373, 0.04164, 0.04976, 0.00313, 0.01172, 0.76800, 0.0, 0.1]
-		self.secretory_vesicles_comp_start = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0, 0.0]
-		self.vacuoles_comp_start = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0, 0.0]
-		self.nucleus_comp_start = [0.04038, 0.09650, 0.27645, 0.16848, 0.01049, 0.01781, 0.390, 0.0, 0.0]
-		self.peroxisomes_comp_start = [0.03235, 0.11360, 0.34656, 0.16465, 0.05033, 0.01150, 0.281, 0.0, 0.0]
-		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0, 0.0]
-		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0]
-		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0, 0.0]
-		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+		self.plasma_membrane_comp_start = [0.08062, 0.04373, 0.04164, 0.04976, 0.00313, 0.01172, 0.76800, 0.0, 0.0, 0.1]
+		self.secretory_vesicles_comp_start = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0, 0.0, 0.0]
+		self.vacuoles_comp_start = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0, 0.0, 0.0]
+		self.nucleus_comp_start = [0.04038, 0.09650, 0.27645, 0.16848, 0.01049, 0.01781, 0.390, 0.0, 0.0, 0.0]
+		self.peroxisomes_comp_start = [0.03235, 0.11360, 0.34656, 0.16465, 0.05033, 0.01150, 0.281, 0.0, 0.0, 0.0]
+		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0, 0.0, 0.0]
+		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0, 0.0]
+		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0, 0.0, 0.0]
+		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]
 		
 		self.membrane_compositions_start = [self.plasma_membrane_comp_start, self.secretory_vesicles_comp_start, self.vacuoles_comp_start, self.nucleus_comp_start,\
 									self.peroxisomes_comp_start, self.light_microsomes_comp_start, self.inner_mit_membrane_comp_start,\
@@ -504,12 +521,14 @@ class model():
 		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
 		for membrane in self.compartment_lists:
 			for i in range(self.membrane_start[self.compartment[x]]):
-				self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', None, 'ceramide']
+				self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', 'sterylester', None, 'ceramide']
 				weights_start = self.compositions_start[self.compartment[x]]
 				head = choice(self.head_groups_start, p = weights_start)
 				if head == 'sterol':
 					new_lipid = sterol(head, self.compartment[x])
-				if head == 'ceramide':
+				elif head == 'sterylester':
+					new_lipid = sterylester(head, choice(self.chainlength_unsaturated.values(), p = [0.67, 0.33]), self.compartment[x])
+				elif head == 'ceramide':
 					new_lipid = sphingolipid(head, self.compartment[x])
 				elif head == 'neutral':
 					new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
@@ -524,13 +543,15 @@ class model():
 			x += 1
 
 
-		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.TAG_list, self.Sphingolipid_list]
+		self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
 		z = 0
 		for lipid_list in self.lipid_lists:
 			for i in range(20):
 				head = self.head_groups_start[z]
 				if head == 'sterol':
 					new_lipid = sterol(head, None)
+				elif head == 'sterylester':
+					new_lipid = sterylester(head, choice(self.chainlength_unsaturated.values(), p = [0.70, 0.30]), None)
 				elif head == 'neutral':
 					new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
 											choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None)
@@ -596,7 +617,6 @@ class model():
 				del self.acyl_coa_list_C26[0]
 
 
-
 	def acetyl_coa_synthase(self):
 		'''
 		Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
@@ -657,7 +677,6 @@ class model():
 			del self.acyl_coa_list[:-1]
 
 
-
 	def PA_synthese(self):
 		'''
 		Synthesis of PA in two reaction steps.
@@ -694,7 +713,6 @@ class model():
 			else:
 				self.precursors_dict['glycerol-3-p'] -= 1
 			
-
 
 	def PA_synthase(self):	
 		'''
@@ -740,9 +758,9 @@ class model():
 		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
 		'''
 		if self.phase == 'G1':
-			DAG_prob = 0.8
+			DAG_prob = 0.9
 		else:
-			DAG_prob = 0.2
+			DAG_prob = 0.1
 		y = self.precursors_dict['ctp_number'] / 50000
 		x = random.random()*y
 		if x <= DAG_prob:
@@ -778,24 +796,28 @@ class model():
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
 		if self.phase != 'G1': 
-			self.probabilities['TAG_lipase'] = 0.2
+			self.probabilities['TAG_lipase'] = 0.1
+		l = 0
 		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
-				x = random.random() * len(self.lipid_droplets) / 5000
-				if x >= self.probabilities['TAG_lipase'] and hasattr(self.lipid_droplets[-2], 'sn3') == True:
-					self.PA_list.append(self.lipid_droplets[-2])
-					self.PA_list[-1].__class__ = lipids
-					self.PA_list[-1].head = 'p'
-					if ':0' in self.lipid_droplets[-2].sn3:
-						for key, value in self.chainlength_unsaturated.items():
-							if value == self.lipid_droplets[-2].sn3:
-								self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
-					elif ':1' in self.lipid_droplets[-2].sn3:
-						for key, value in self.chainlength_saturated.items():
-							if value == self.lipid_droplets[-2].sn3:
-								self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
-					del self.lipid_droplets[-2]
-					self.precursors_dict['ctp_number'] -= 1
+				x = random.random()# * len(self.lipid_droplets) / 5000
+				if x >= self.probabilities['TAG_lipase']:
+					if hasattr(self.lipid_droplets[-(2+l)], 'sn3') == True:
+						self.PA_list.append(self.lipid_droplets[-(2+l)])
+						self.PA_list[-1].__class__ = lipids
+						self.PA_list[-1].head = 'p'
+						if ':0' in self.lipid_droplets[-(2+l)].sn3:
+							for key, value in self.chainlength_unsaturated.items():
+								if value == self.lipid_droplets[-(2+l)].sn3:
+									self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+						elif ':1' in self.lipid_droplets[-(2+l)].sn3:
+							for key, value in self.chainlength_saturated.items():
+								if value == self.lipid_droplets[-(2+l)].sn3:
+									self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+						del self.lipid_droplets[-(2+l)]
+						self.precursors_dict['ctp_number'] -= 1
+					else:
+						l += 1
 
 
 	def PS_synthase(self):
@@ -877,6 +899,26 @@ class model():
 				self.acetyl_coa_number -= 18
 				self.p_counter += 2
 
+
+	def Sterylester_synthase(self):
+		'''
+		Synthesis of sterylesters that are found in lipid droplets out of ergosterol and an unsaturated fatty acid.
+		'''
+		for i in range(self.rates['Sterylester_synthase']):
+			x = random.random()
+			if x >= self.probabilities['Sterylester_synthase'] and len(self.acyl_coa_list_unsaturated) > 0 and len(self.Ergosterol_list) > 0:
+				if self.acyl_coa_list_unsaturated[0].C == 18 and random.random < 0.4:
+					self.Sterylester_list.append(sterylester('sterylester', 'C18:1', None))
+					del self.Ergosterol_list[0]
+					del self.acyl_coa_list_unsaturated[0]
+				elif self.acyl_coa_list_unsaturated[0].C == 16 and random.random() > 0.6:
+					self.Sterylester_list.append(sterylester('sterylester', 'C16:1', None))
+					del self.Ergosterol_list[0]
+					del self.acyl_coa_list_unsaturated[0]
+				
+				
+
+
 	def Sphingolipid_synthase(self):
 		'''
 		Synthesis of the most abundant Sphingolipid mannose-(inositol-phosphate)2-ceramide
@@ -895,7 +937,7 @@ class model():
 		General transport function for all produced lipids.
 		'''
 		for lipid in self.lipid_lists:
-			if lipid == self.TAG_list:
+			if lipid == self.TAG_list or lipid == self.Sterylester_list:
 				if len(lipid) > 10:
 					for j in range(10):
 						lipid[0].comp_choice()
@@ -927,7 +969,6 @@ class model():
 						del lipid[0]
 		
 
-
 	def membrane_compositions(self):
 		'''
 		Function to calculate the lipid composition of all membranes.
@@ -942,7 +983,8 @@ class model():
 										(float(sum(j.head == 'neutral' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'p' for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'sterol' for j in comp)) / len(comp)),\
-										(float(sum(j.comp == 'lipid_droplets' for j in comp)) / len(comp)),\
+										(float(sum(j.head == 'sterylester' for j in comp)) / len(comp)),\
+										(float(sum(j.head == None for j in comp)) / len(comp)),\
 										(float(sum(j.head == 'ceramide' for j in comp)) / len(comp))]
 				for i in range(len(self.relatives_list)):
 					self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
@@ -1010,3 +1052,22 @@ class model():
 		self.saturation_composition_total = {'C16:0': float(self.c16_0_sn2 + self.c16_0_sn1) / self.total_fatty_acids, 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1) / self.total_fatty_acids, \
 											'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids, 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
 
+		self.sterylester_C16 = 0
+		self.sterylester_C18 = 0
+		for c in self.lipid_droplets:
+			if c.head == 'sterylester':
+				if c.FA == 'C16:1':
+					self.sterylester_C16 += 1
+				elif c.FA == 'C18:1':
+					self.sterylester_C18 += 1
+
+		self.composition_sterylester = {'C16:1: ': float(self.sterylester_C16) / (self.sterylester_C16 + self.sterylester_C18),\
+										'C18:1: ': float(self.sterylester_C18) / (self.sterylester_C16 + self.sterylester_C18)}
+
+		self.lipid_droplet_sterylester = 0
+		self.lipid_droplet_tag = 0
+		for lipid in self.lipid_droplets:
+			if lipid.head == 'sterylester':
+				self.lipid_droplet_sterylester += 1
+			else:
+				self.lipid_droplet_tag += 1
