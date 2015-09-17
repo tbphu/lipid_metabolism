@@ -384,12 +384,12 @@ class model():
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
 		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 200, \
-						'CDP_DG_synthase': 180, 'TAG_synthese': 90, 'TAG_lipase': 50, 'PS_synthase': 100, 'PI_synthase': 40,\
+						'CDP_DG_synthase': 180, 'TAG_synthese': 110, 'TAG_lipase': 20, 'PS_synthase': 20, 'PI_synthase': 8,\
 						'PE_synthase': 80, 'PC_synthase': 45, 'CL_synthase': 25, 'Ergosterol_synthase': 10, 'Sterylester_synthase': 5, 'Sphingolipid_synthase': 2}
 
 		self.probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.005, 'lyso_PA_synthase': 0.1, 'PA_synthase': 0.05,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'PS_synthase': 0.1,\
-								'PI_synthase': 0.6, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
+								'PI_synthase': 0.7, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5, 'Sterylester_synthase': 0.3, 'Sphingolipid_synthase': 0.5}
 
 		#functions to run the model
@@ -796,28 +796,28 @@ class model():
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
 		if self.phase != 'G1': 
-			self.probabilities['TAG_lipase'] = 0.1
-		l = 0
+			self.probabilities['TAG_lipase'] = 0.3
 		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()# * len(self.lipid_droplets) / 5000
 				if x >= self.probabilities['TAG_lipase']:
-					if hasattr(self.lipid_droplets[-(2+l)], 'sn3') == True:
-						self.PA_list.append(self.lipid_droplets[-(2+l)])
-						self.PA_list[-1].__class__ = lipids
-						self.PA_list[-1].head = 'p'
-						if ':0' in self.lipid_droplets[-(2+l)].sn3:
-							for key, value in self.chainlength_unsaturated.items():
-								if value == self.lipid_droplets[-(2+l)].sn3:
-									self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
-						elif ':1' in self.lipid_droplets[-(2+l)].sn3:
-							for key, value in self.chainlength_saturated.items():
-								if value == self.lipid_droplets[-(2+l)].sn3:
-									self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
-						del self.lipid_droplets[-(2+l)]
-						self.precursors_dict['ctp_number'] -= 1
-					else:
-						l += 1
+					for neutral_lipid in self.lipid_droplets:
+						if hasattr(neutral_lipid, 'sn3') == True:
+							self.PA_list.append(neutral_lipid)
+							self.PA_list[-1].__class__ = lipids
+							self.PA_list[-1].head = 'p'
+							if ':0' in neutral_lipid.sn3:
+								for key, value in self.chainlength_unsaturated.items():
+									if value == neutral_lipid.sn3:
+										self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+							elif ':1' in neutral_lipid.sn3:
+								for key, value in self.chainlength_saturated.items():
+									if value == neutral_lipid.sn3:
+										self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+							del self.lipid_droplets[self.lipid_droplets.index(neutral_lipid)]
+							self.precursors_dict['ctp_number'] -= 1
+							break
+					
 
 
 	def PS_synthase(self):
@@ -939,14 +939,14 @@ class model():
 		for lipid in self.lipid_lists:
 			if lipid == self.TAG_list or lipid == self.Sterylester_list:
 				if len(lipid) > 10:
-					for j in range(10):
+					for j in range(len(lipid)/10):
 						lipid[0].comp_choice()
 						if lipid[0].comp == 'lipid_droplets':
 							self.lipid_droplets.append(lipid[0])
 						del lipid[0]
 			else:
 				if len(lipid) > 5:
-					for j in range(5):
+					for j in range(len(lipid)/10):
 						lipid[0].comp_choice()
 						if lipid[0].comp == 'plasma_membrane':
 							self.plasma_membrane.append(lipid[0])
