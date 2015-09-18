@@ -431,8 +431,7 @@ class model():
 		print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
 				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
 				len(self.outer_mit_membrane) + len(self.lipid_droplets)
-		
-#random die Funktionen hintereinander oder Pool vorher aufteilen und Anteile verteilen oder alle an Gesamtpool, aber Ausführen am Ende
+
 
 
 
@@ -801,23 +800,30 @@ class model():
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()# * len(self.lipid_droplets) / 5000
 				if x >= self.probabilities['TAG_lipase']:
-					for neutral_lipid in self.lipid_droplets:
-						if hasattr(neutral_lipid, 'sn3') == True:
-							self.PA_list.append(neutral_lipid)
-							self.PA_list[-1].__class__ = lipids
-							self.PA_list[-1].head = 'p'
-							if ':0' in neutral_lipid.sn3:
-								for key, value in self.chainlength_unsaturated.items():
-									if value == neutral_lipid.sn3:
-										self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
-							elif ':1' in neutral_lipid.sn3:
-								for key, value in self.chainlength_saturated.items():
-									if value == neutral_lipid.sn3:
-										self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
-							del self.lipid_droplets[self.lipid_droplets.index(neutral_lipid)]
-							self.precursors_dict['ctp_number'] -= 1
-							break
-					
+					if self.lipid_droplets[-1].head == None:
+						self.PA_list.append(self.lipid_droplets[-1])
+						self.PA_list[-1].__class__ = lipids
+						self.PA_list[-1].head = 'p'
+						if ':0' in self.lipid_droplets[-1].sn3:
+							for key, value in self.chainlength_unsaturated.items():
+								if value == self.lipid_droplets[-1].sn3:
+									self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+						elif ':1' in self.lipid_droplets[-1].sn3:
+							for key, value in self.chainlength_saturated.items():
+								if value == self.lipid_droplets[-1].sn3:
+									self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+						self.precursors_dict['ctp_number'] -= 1
+					if self.lipid_droplets[-1].head == 'sterylester':
+						self.Ergosterol_list.append(sterol('sterol', None))
+						if ':0' in self.lipid_droplets[-1].FA:
+							for key, value in self.chainlength_unsaturated.items():
+								if value == self.lipid_droplets[-1].FA:
+									self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+						elif ':1' in self.lipid_droplets[-1].FA:
+							for key, value in self.chainlength_saturated.items():
+								if value == self.lipid_droplets[-1].FA:
+									self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+					del self.lipid_droplets[-1]
 
 
 	def PS_synthase(self):
@@ -916,8 +922,6 @@ class model():
 					del self.Ergosterol_list[0]
 					del self.acyl_coa_list_unsaturated[0]
 				
-				
-
 
 	def Sphingolipid_synthase(self):
 		'''
@@ -1060,9 +1064,10 @@ class model():
 					self.sterylester_C16 += 1
 				elif c.FA == 'C18:1':
 					self.sterylester_C18 += 1
-
-		self.composition_sterylester = {'C16:1: ': float(self.sterylester_C16) / (self.sterylester_C16 + self.sterylester_C18),\
-										'C18:1: ': float(self.sterylester_C18) / (self.sterylester_C16 + self.sterylester_C18)}
+		
+		if self.sterylester_C16 > 0 or self.sterylester_C18 > 0:
+			self.composition_sterylester = {'C16:1: ': float(self.sterylester_C16) / (self.sterylester_C16 + self.sterylester_C18),\
+											'C18:1: ': float(self.sterylester_C18) / (self.sterylester_C16 + self.sterylester_C18)}
 
 		self.lipid_droplet_sterylester = 0
 		self.lipid_droplet_tag = 0
