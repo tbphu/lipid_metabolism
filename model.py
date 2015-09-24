@@ -26,15 +26,15 @@ class lipids(object):
 		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
 							'inner_mit_membrane', 'outer_mit_membrane']	
 		self.compartment_weights = [0.73, 0.02, 0.05, 0.13, 0.01, 0.01, 0.03, 0.02]		
-		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172, 'ES': 0.76800, 'TAG': 0.0, 'SL': 0.1}
-		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'TAG': 0.0, 'SL': 0.0}
-		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'TAG': 0.0, 'SL': 0.0}
-		self.nucleus_comp = {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'TAG': 0.0, 'SL': 0.0}
-		self.peroxisomes_comp = {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'TAG': 0.0, 'SL': 0.0}
-		self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'TAG': 0.0, 'SL': 0.0}
-		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'TAG': 0.0, 'SL': 0.0}
-		self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'TAG': 0.0, 'SL': 0.0}
-		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0, 'ES': 0.0, 'TAG': 1.0, 'SL': 0.0}
+		self.plasma_membrane_comp = {'PS': 0.08062, 'PI': 0.04373, 'PC': 0.04164, 'PE': 0.04976, 'CL': 0.00313, 'PA': 0.01172}
+		self.secretory_vesicles_comp = {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525}
+		self.vacuoles_comp = {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866}
+		self.nucleus_comp = {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781}
+		self.peroxisomes_comp = {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150}
+		self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222}
+		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137}
+		self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360}
+		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
 								self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
 								self.outer_mit_membrane_comp, self.lipid_droplets_comp]		
@@ -276,7 +276,7 @@ class model():
 		self.time = 0
 		self.t = [i for i in range(self.timesteps)]
 
-		# number of available precursors
+		# number of available precursors, arbitrary numbers (should come from WCM or backtracking)
 		self.precursors_dict_max = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
 									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 100, 'glycerol_3_p_mito_number': 5000.}
 		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
@@ -285,16 +285,14 @@ class model():
 		
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
-
 		self.co2_counter = 0
 		self.p_counter = 0
 		self.counter = 0
-
 	
 		#list of the 4 cell cycle phases
 		self.cell_cycle_phases = ['G1', 'S', 'G2', 'M']
 
-		#empty lists for the produced lipids
+		#empty lists for the produced fatty acids and lipids
 		self.acyl_coa_list = []
 		self.acyl_coa_list_C26 = []
 		self.acyl_coa_list_saturated = []
@@ -313,6 +311,7 @@ class model():
 		self.Sterylester_list = []
 		self.Sphingolipid_list = []
 
+		#lists to collect the lists of all produced species and membrane lipids (not transported yet) for plotting
 		self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
 								self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
 
@@ -332,27 +331,28 @@ class model():
 		self.outer_mit_membrane = []
 		self.lipid_droplets = []
 
-
-		self.relatives_list = []
 		self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
 									self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
 									self.outer_mit_membrane, self.lipid_droplets]
 
-		#collecting the products of every timestep
+		#relatives list for calculation of the relative parts of each lipid in a membrane for the compartment_relatives_dict
+		self.relatives_list = []		
+
+		#collecting the products of every timestep. Lipids that are produced in the start function don't need the 0 for plotting
 		self.number_acetyl_coa = [0]
 		self.number_acyl_coa = [0]
 		self.number_pa = [0]
 		self.number_cdp_dg = [0]
-		self.number_tag = [0]
-		self.number_PS = [0]
-		self.number_PI = [0]
-		self.number_PE = [0]
-		self.number_PC = [0]
-		self.number_CL = [0]
-		self.number_Ergosterol = [0]
-		self.number_Sterylester = [0]
+		self.number_tag = []
+		self.number_PS = []
+		self.number_PI = []
+		self.number_PE = []
+		self.number_PC = []
+		self.number_CL = []
+		self.number_Ergosterol = []
+		self.number_Sterylester = []
 		self.number_DAG = [0]
-		self.number_Sphingolipid = [0]
+		self.number_Sphingolipid = []
 
 		self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,\
 									self.number_PS, self.number_PI, self.number_PE, self.number_PC,	self.number_CL,\
@@ -373,31 +373,34 @@ class model():
 										self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,\
 										self.number_inner_mit_membrane,	self.number_outer_mit_membrane, self.number_lipid_droplets]
 
+		#the possible fatty acids and weights to reach the biological proportions
 		self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}		
 		self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
 		self.unsaturated_weights = [0.375, 0.625]
 		self.chainlength_saturated_unsaturated = ['C16:0', 'C18:0', 'C16:1', 'C18:1']
 		self.saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
-		
+		#names of the membrane lipids
 		self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'SE', 'TAG', 'SL']
 
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
+		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
 		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 200, \
 						'CDP_DG_synthase': 180, 'TAG_synthese': 110, 'TAG_lipase': 20, 'DAG_phosphatase': 20, 'PS_synthase': 20, 'PI_synthase': 8,\
 						'PE_synthase': 80, 'PC_synthase': 45, 'CL_synthase': 25, 'Ergosterol_synthase': 10, 'Sterylester_synthase': 5, 'Sphingolipid_synthase': 2}
 
+		#Does a reaction take place? Always when a random number >= this probability. Arbitrary numbers. 
 		self.probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.2, 'PA_synthase': 0.25,\
 								'CDP_DG_synthase': 0.3, 'TAG_synthase': 0.15, 'TAG_lipase': 0.9, 'DAG_phosphatase': 0.2, 'PS_synthase': 0.1,\
 								'PI_synthase': 0.7, 'PE_synthase': 0.1, 'PC_synthase': 0.6, 'CL_synthase': 0.6,\
 								'Ergosterol_synthase': 0.5, 'Sterylester_synthase': 0.3, 'Sphingolipid_synthase': 0.5}
 
 		#functions to run the model
-		self.start()
+		self.start()	#function that produces the lipids and membranes that are existing at the beginning of the cell cycle
 		for t in range(self.timesteps):
-			self.time += 1
-			self.cell_cycle()
+			self.time += 1 		#counting the seconds for knowing the cell cycle phase
+			self.cell_cycle()	#function that can change the cell cycle phase
 			self.function_list = [self.glycerol_3_p_synthesis,
 								self.inositol_synthesis,
 								self.acetyl_coa_synthase,
@@ -416,25 +419,26 @@ class model():
 								self.Sterylester_synthase,
 								self.Sphingolipid_synthase,
 								self.transport]
-
+			#all reactions that take place during one second in a random order
 			for i in self.function_list:
 				func = random.choice(self.function_list)
 				func()
 				self.function_list.remove(func)
-			self.numbers()
-		self.membrane_compositions()
-		self.saturation_counter()
+			self.numbers()				#calculating the produced lipids after each time step
+		self.membrane_compositions()	#calculation of the membrane compositions at the end of the run
+		self.saturation_counter()		#calculating the percentages of each fatty acid taht was used
 		
+		#printing the numbers of free lipids
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
 				'ES: ' + str(self.number_Ergosterol[-1]), 'SE: ' + str(self.number_Sterylester[-1]), 'DAG: ' + str(self.number_DAG[-1]), 'SL: ' + str(self.number_Sphingolipid[-1])
+		#all free lipids added
 		print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
 				self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1] + self.number_Sterylester[-1] + self.number_Sphingolipid[-1]
+		#all membrane lipids that are existing in the membranes together
 		print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
 				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
 				len(self.outer_mit_membrane) + len(self.lipid_droplets)
-
-
 
 
 	def plot_lipids(self):
@@ -443,20 +447,23 @@ class model():
 		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-		ax.plot(self.t, self.number_tag[:-1], label = 'tag')
-		ax.plot(self.t, self.number_PS[:-1], label = 'ps')
-		ax.plot(self.t, self.number_PI[:-1], label = 'pi')
-		ax.plot(self.t, self.number_PE[:-1], label = 'pe')
-		ax.plot(self.t, self.number_PC[:-1], label = 'pc')
-		ax.plot(self.t, self.number_CL[:-1], label = 'cl')
-		ax.plot(self.t, self.number_Ergosterol[:-1], label = 'es')
-		ax.plot(self.t, self.number_Sterylester[:-1], label = 'se')
-		ax.plot(self.t, self.number_Sphingolipid[:-1], label = 'sl')
+		ax.plot(self.t, self.number_tag, label = 'tag')
+		ax.plot(self.t, self.number_PS, label = 'ps')
+		ax.plot(self.t, self.number_PI, label = 'pi')
+		ax.plot(self.t, self.number_PE, label = 'pe')
+		ax.plot(self.t, self.number_PC, label = 'pc')
+		ax.plot(self.t, self.number_CL, label = 'cl')
+		ax.plot(self.t, self.number_Ergosterol, label = 'es')
+		ax.plot(self.t, self.number_Sterylester, label = 'se')
+		ax.plot(self.t, self.number_Sphingolipid, label = 'sl')
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
 
 
 	def plot_precursors(self):
+		'''
+		Plotting some free precursor molecules.
+		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
 		ax.plot(self.t, self.number_acetyl_coa[:-1], label = 'acetyl_coa')
@@ -469,7 +476,7 @@ class model():
 
 	def plot_membranes(self):
 		'''
-		Plotting the number of lipids in the membranes of different compartments
+		Plotting the number of lipids in the membranes of different compartments.
 		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
@@ -492,9 +499,6 @@ class model():
 		Number of starting lipids for each membrane are given in self.start_lipids.
 		'''
 
-		self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
-							'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
-
 		self.plasma_membrane_comp_start = [0.08062, 0.04373, 0.04164, 0.04976, 0.00313, 0.01172, 0.76800, 0.0, 0.0, 0.1]
 		self.secretory_vesicles_comp_start = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0, 0.0, 0.0]
 		self.vacuoles_comp_start = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0, 0.0, 0.0]
@@ -503,7 +507,7 @@ class model():
 		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0, 0.0, 0.0]
 		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0, 0.0]
 		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0, 0.0, 0.0]
-		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]
+		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0]
 		
 		self.membrane_compositions_start = [self.plasma_membrane_comp_start, self.secretory_vesicles_comp_start, self.vacuoles_comp_start, self.nucleus_comp_start,\
 									self.peroxisomes_comp_start, self.light_microsomes_comp_start, self.inner_mit_membrane_comp_start,\
@@ -511,6 +515,7 @@ class model():
 
 		self.membrane_compositions_start_relatives = []
 
+		#numbers of the comp_start lists should yield 1 when summed
 		for membrane_comp_start in self.membrane_compositions_start:
 			membrane_comp_start_relative = [z / sum(membrane_comp_start) for z in membrane_comp_start]
 			self.membrane_compositions_start_relatives.append(membrane_comp_start_relative)
@@ -518,10 +523,10 @@ class model():
 		self.compositions_start = dict(zip(self.compartment, self.membrane_compositions_start_relatives))
 		
 		x = 0
-		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1000, 750, 1000]
+		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1000, 750, 1000]		#number of lipids that are produced in the start function for every membrane
 		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
 		for membrane in self.compartment_lists:
-			for i in range(self.membrane_start[self.compartment[x]]):
+			for i in range(self.membrane_start[self.compartment[x]]):		#producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
 				self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', 'sterylester', None, 'ceramide']
 				weights_start = self.compositions_start[self.compartment[x]]
 				head = choice(self.head_groups_start, p = weights_start)
