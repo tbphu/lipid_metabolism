@@ -292,17 +292,30 @@ class model():
 	"""
 	def __init__(self):
 		#determining the timesteps, self.t for plotting, self.time for cell cycle
-		self.timesteps = 7200	
+		self.timesteps = 7200
 		self.time = 0
 		self.t = [i for i in range(self.timesteps)]
 
 		# number of available precursors, arbitrary numbers (should come from WCM or backtracking)
-		self.precursors_dict_max = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
-									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 100, 'glycerol_3_p_mito_number': 5000.}
-		self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 50000.,\
-									'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000., 'ceramide': 0,\
-									'GDP-mannose': 5000}
-		
+		#self.precursors_dict_max = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 10000.,\
+		#							'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 100, 'glycerol_3_p_mito_number': 5000.}
+		#self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 50000.,\
+		#							'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000., 'ceramide': 0,\
+		#							'GDP-mannose': 5000}
+		self.precursors_dict = {'pyruvate_number' : 1000., 'glycerol-3-p': 90., 'dhap_number': 400., 'ctp_number': 300., 'serine_number': 20.,\
+									'glucose_6_p_number': 800., 'SAM_number': 600., 'SAH_number': 0., 'glycerol_3_p_mito_number': 50., 'ceramide': 0,\
+									'GDP-mannose': 500}
+		self.precursors_production = {'pyruvate_number' : 150., 'glycerol-3-p': 5., 'dhap_number': 30., 'ctp_number': 10., 'serine_number': 10.,\
+									'glucose_6_p_number': 20., 'SAM_number': 10., 'SAH_number': 0., 'glycerol_3_p_mito_number': 2., 'ceramide': 0,\
+									'GDP-mannose': 10}
+		self.precursors = {'pyruvate_number' : [], 'glycerol-3-p': [], 'dhap_number': [], 'ctp_number': [], 'serine_number': [],\
+							'glucose_6_p_number': [], 'SAM_number': [], 'SAH_number': [], 'glycerol_3_p_mito_number': [], 'ceramide': [],\
+							'GDP-mannose': []}
+		self.precursor_keys = ['pyruvate_number', 'glycerol-3-p', 'dhap_number', 'ctp_number', 'serine_number',\
+							'glucose_6_p_number', 'SAM_number', 'SAH_number', 'glycerol_3_p_mito_number', 'ceramide',\
+							'GDP-mannose']
+
+
 		self.inositol_number = 0
 		self.acetyl_coa_number = 0
 		self.co2_counter = 0
@@ -406,21 +419,33 @@ class model():
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
 		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
-		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 5, 'acetyl_coa_synthase': 300, 'acyl_synthase': 280, 'PA_synthese': 60, \
-						'CDP_DG_synthase': 40, 'TAG_synthese': 40, 'TAG_lipase': 15, 'DAG_phosphatase': 20, 'PS_synthase': 10, 'PI_synthase': 4,\
-						'PE_synthase': 4, 'PC_synthase': 4, 'CL_synthase': 4, 'Ergosterol_synthase': 20, 'Sterylester_synthase': 20, 'Sphingolipid_synthase': 4}
+		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 1, 'acetyl_coa_synthase': 300, 'acyl_synthase': 200, 'PA_synthese': 20, \
+						'CDP_DG_synthase': 10, 'TAG_synthese': 20, 'TAG_lipase': 15, 'DAG_phosphatase': 25, 'PS_synthase': 10, 'PI_synthase': 4,\
+						'PE_synthase': 6, 'PC_synthase': 3, 'CL_synthase': 4, 'Ergosterol_synthase': 10, 'Sterylester_synthase': 20, 'Sphingolipid_synthase': 4}
 
 		#Does a reaction take place? Always when a random number >= this probability. Arbitrary numbers. 
-		self.probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.2, 'PA_synthase': 0.77,\
-								'CDP_DG_synthase': 0.5, 'TAG_synthase': 0.7, 'TAG_lipase': 0.95, 'DAG_phosphatase': 0.97, 'PS_synthase': 0.69,\
-								'PI_synthase': 0.7, 'PE_synthase': 0.41, 'PC_synthase': 0.64, 'CL_synthase': 0.98,\
-								'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.8, 'Sphingolipid_synthase': 0.94}
+		self.S_M_probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.2, 'PA_synthase': 0.77,\
+								'CDP_DG_synthase': 0.5, 'DAG_synthase': 0.99, 'TAG_synthase': 0.8, 'TAG_lipase': 0.3, 'DAG_phosphatase': 0.97, 'PS_synthase': 0.69,\
+								'PI_synthase': 0.7, 'PE_synthase': 0.41, 'PC_synthase': 0.64, 'CL_synthase': 0.99,\
+								'Ergosterol_synthase': 0.9, 'Sterylester_synthase': 0.99, 'Sphingolipid_synthase': 0.94}
+
+		self.G1_probabilities = {'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.2, 'PA_synthase': 0.77,\
+								'CDP_DG_synthase': 0.5, 'DAG_synthase': 0.7, 'TAG_synthase': 0.8, 'TAG_lipase': 0.95, 'DAG_phosphatase': 0.97, 'PS_synthase': 0.69,\
+								'PI_synthase': 0.7, 'PE_synthase': 0.41, 'PC_synthase': 0.64, 'CL_synthase': 0.99,\
+								'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.5, 'Sphingolipid_synthase': 0.94}
 
 		#functions to run the model
 		self.start()	#function that produces the lipids and membranes that are existing at the beginning of the cell cycle
 		for t in range(self.timesteps):
 			self.time += 1 		#counting the seconds for knowing the cell cycle phase
+			if self.time % 10 == 0:
+				for key in self.precursors_dict:
+					self.precursors_dict[key] += self.precursors_production[key]
 			self.cell_cycle()	#function that can change the cell cycle phase
+			if self.phase == 'G1':
+				self.probabilities = self.G1_probabilities
+			else:
+				self.probabilities = self.S_M_probabilities
 			self.function_list = [self.glycerol_3_p_synthesis,
 								self.inositol_synthesis,
 								self.ceramide_synthesis,
@@ -462,6 +487,18 @@ class model():
 				len(self.outer_mit_membrane) + len(self.lipid_droplets)
 
 
+	def plot_precursors(self):
+		'''
+		Plotting the precursor molecules from the precursors_dict.
+		'''
+		fig = mat.figure()
+		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+		for i in range(len(self.precursor_keys)):
+			ax.plot(self.t, self.precursors[self.precursor_keys[i]], label = self.precursor_keys[i])
+		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
+		mat.show()
+
+
 	def plot_lipids(self):
 		'''
 		Plotting the produced lipids before they are transported into the membranes
@@ -481,7 +518,7 @@ class model():
 		mat.show()
 
 
-	def plot_precursors(self):
+	def plot_precursor_lipids(self):
 		'''
 		Plotting some free precursor molecules.
 		'''
@@ -660,7 +697,7 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
-		choice_weights = [0.29, 0.71]
+		choice_weights = [0.2, 0.8]
 		for i in range(self.rates['acetyl_coa_synthase']):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.acetyl_coa_number >= 2:		#control if at least 2 Acetyl-CoA are available
@@ -721,7 +758,7 @@ class model():
 		weigths_fa = [0.4, 0.6]
 		weights_pa = [self.precursors_dict['dhap_number'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p']),\
 					self.precursors_dict['glycerol-3-p'] / (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'])]
-		x = random.random() * (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'] / (self.precursors_dict_max['dhap_number'] + self.precursors_dict_max['glycerol-3-p']))
+		x = random.random()# * (self.precursors_dict['dhap_number'] + self.precursors_dict['glycerol-3-p'] / (self.precursors_dict_max['dhap_number'] + self.precursors_dict_max['glycerol-3-p']))
 		if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 0 and len(self.acyl_coa_list_unsaturated) > 0 and (self.precursors_dict['dhap_number'] > 0 and self.precursors_dict['glycerol-3-p'] > 0): 	#at least 1 ffa has to be unsaturated 
 			if choice(choice_list, p = weigths_fa) == 0:
 				sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
@@ -783,13 +820,8 @@ class model():
 		'''
 		DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
 		'''
-		if self.phase == 'G1':
-			DAG_prob = 0.3
-		else:
-			DAG_prob = 0.01
-		#y = self.precursors_dict['ctp_number'] / 50000
-		x = random.random()#*y
-		if x <= DAG_prob:
+		x = random.random()
+		if x >= self.probabilities['DAG_synthase']:
 			if len(self.PA_list) > 0:
 				self.PA_list[0].head = None
 				self.DAG_list.append(self.PA_list[0])
@@ -821,8 +853,6 @@ class model():
 		'''
 		Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
 		''' 
-		if self.phase != 'G1': 
-			self.probabilities['TAG_lipase'] = 0.3
 		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()# * len(self.lipid_droplets) / 5000
@@ -948,8 +978,6 @@ class model():
 		'''
 		Synthesis of sterylesters that are found in lipid droplets out of ergosterol and an unsaturated fatty acid.
 		'''
-		if self.phase != 'G1':
-			self.probabilities['Sterylester_synthase'] = 0.99
 		for i in range(self.rates['Sterylester_synthase']):
 			x = random.random()
 			if x >= self.probabilities['Sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and(fa.C == 18 for fa in self.acyl_coa_list_unsaturated)  and len(self.Ergosterol_list) > 0:
@@ -1051,6 +1079,9 @@ class model():
 		for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
 			current_membrane_number.append(len(number_of_membrane))#*(10**4))
 
+		for z in range(len(self.precursor_keys)):
+			self.precursors[self.precursor_keys[z]].append(self.precursors_dict[self.precursor_keys[z]])
+
 
 	def saturation_counter(self):
 		'''
@@ -1120,9 +1151,11 @@ class model():
 												 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1 + self.sterylester_C16) / (self.total_fatty_acids + self.sterylester_C16 + self.sterylester_C18), \
 												 'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids,\
 												 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1 + self.sterylester_C18) / (self.total_fatty_acids + self.sterylester_C16 + self.sterylester_C18)}
+'''
 if __name__ == '__main__':
 	import time
 	st = time.time()
 	m = model()
 	et = time.time()
 	print "Laufzeit: " + str(et - st) + "s"
+'''
