@@ -302,11 +302,11 @@ class model():
 		#self.precursors_dict = {'pyruvate_number' : 1500000., 'glycerol-3-p': 5000., 'dhap_number': 45000., 'ctp_number': 70000., 'serine_number': 50000.,\
 		#							'glucose_6_p_number': 100000., 'SAM_number': 60000., 'SAH_number': 0., 'glycerol_3_p_mito_number': 5000., 'ceramide': 0,\
 		#							'GDP-mannose': 5000}
-		self.precursors_dict = {'pyruvate_number' : 1000., 'glycerol-3-p': 90., 'dhap_number': 400., 'ctp_number': 300., 'serine_number': 20.,\
-									'glucose_6_p_number': 800., 'SAM_number': 600., 'SAH_number': 0., 'glycerol_3_p_mito_number': 50., 'ceramide': 0,\
+		self.precursors_dict = {'pyruvate_number' : 10000., 'glycerol-3-p': 90., 'dhap_number': 400., 'ctp_number': 300., 'serine_number': 20.,\
+									'glucose_6_p_number': 400., 'SAM_number': 600., 'SAH_number': 0., 'glycerol_3_p_mito_number': 50., 'ceramide': 0,\
 									'GDP-mannose': 500}
-		self.precursors_production = {'pyruvate_number' : 150., 'glycerol-3-p': 5., 'dhap_number': 30., 'ctp_number': 10., 'serine_number': 10.,\
-									'glucose_6_p_number': 20., 'SAM_number': 10., 'SAH_number': 0., 'glycerol_3_p_mito_number': 2., 'ceramide': 0,\
+		self.precursors_production = {'pyruvate_number' : 2000., 'glycerol-3-p': 5., 'dhap_number': 30., 'ctp_number': 30., 'serine_number': 10.,\
+									'glucose_6_p_number': 40., 'SAM_number': 10., 'SAH_number': 0., 'glycerol_3_p_mito_number': 2., 'ceramide': 0,\
 									'GDP-mannose': 10}
 		self.precursors = {'pyruvate_number' : [], 'glycerol-3-p': [], 'dhap_number': [], 'ctp_number': [], 'serine_number': [],\
 							'glucose_6_p_number': [], 'SAM_number': [], 'SAH_number': [], 'glycerol_3_p_mito_number': [], 'ceramide': [],\
@@ -419,7 +419,7 @@ class model():
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
 		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
-		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 1, 'acetyl_coa_synthase': 300, 'acyl_synthase': 200, 'PA_synthese': 20, \
+		self.rates = {'glycerol_3_p_synthesis': 5, 'inositol_synthesis': 5, 'ceramide_synthesis': 1, 'acetyl_coa_synthase': 300, 'acyl_synthase': 500, 'PA_synthese': 20, \
 						'CDP_DG_synthase': 10, 'TAG_synthese': 20, 'TAG_lipase': 15, 'DAG_phosphatase': 25, 'PS_synthase': 10, 'PI_synthase': 4,\
 						'PE_synthase': 6, 'PC_synthase': 3, 'CL_synthase': 4, 'Ergosterol_synthase': 10, 'Sterylester_synthase': 20, 'Sphingolipid_synthase': 4}
 
@@ -493,8 +493,10 @@ class model():
 		'''
 		fig = mat.figure()
 		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-		for i in range(len(self.precursor_keys)):
+		i = 0
+		while i < 6:#in range(len(self.precursor_keys)):
 			ax.plot(self.t, self.precursors[self.precursor_keys[i]], label = self.precursor_keys[i])
+			i += 1
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
 
@@ -856,7 +858,7 @@ class model():
 		if len(self.lipid_droplets) > self.rates['TAG_lipase']:
 			for i in range(self.rates['TAG_lipase']):
 				x = random.random()# * len(self.lipid_droplets) / 5000
-				if x >= self.probabilities['TAG_lipase']:
+				if x >= self.probabilities['TAG_lipase'] and self.precursors_dict['ctp_number'] > 1:
 					if self.lipid_droplets[-1].head == None:
 						if ':0' in self.lipid_droplets[-1].sn3:
 							for key, value in self.chainlength_unsaturated.items():
