@@ -316,9 +316,9 @@ class model():
 								'CO2': 1000, 'Pi': 0, 'CTP': 3011, 'CMP': 0, 'inositol': 0}
 
 		#number of small molecules that is produced from anywhere in the cell
-		self.precursors_production = {'pyruvate' : 200., 'acetyl_coa': 1000, 'glycerol-3-p': 70., 'DHAP': 90., 'serine': 35., 'glucose_6_p': 40., 'SAM': 50., 'SAH': 0.,\
+		self.precursors_production = {'pyruvate' : 1500., 'acetyl_coa': 1000, 'glycerol-3-p': 40., 'DHAP': 70., 'serine': 25., 'glucose_6_p': 15., 'SAM': 40., 'SAH': 0.,\
 										'glycerol_3_p_mito': 10., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
-										'CO2': 0, 'Pi': 0, 'CTP': 100, 'CMP': 0, 'inositol': 0}
+										'CO2': 0, 'Pi': 0, 'CTP': 80, 'CMP': 0, 'inositol': 0}
 
 		#lists of all the precursors for plotting
 		self.precursors = {'pyruvate' : [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [], 'glucose_6_p': [], 'SAM': [], 'SAH': [],\
@@ -427,7 +427,7 @@ class model():
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
 		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
-		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 200, 'acyl_synthase': 500, 'PA_synthese': 32, \
+		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 3, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 350, 'acyl_synthase': 600, 'PA_synthese': 32, \
 						'CDP_DG_synthase': 25, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 14, 'PI_synthase': 8,\
 						'PE_synthase': 10, 'PC_synthase': 7, 'CL_synthase': 7, 'Ergosterol_synthase': 16, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 4}
 
@@ -714,7 +714,7 @@ class model():
 		The intermediate Malonyl-CoA is leaved out.
 		'''
 		choice_list = [0, 1]
-		choice_weights = [0.28, 0.72]
+		choice_weights = [0.2, 0.8]
 		for i in range(self.rates['acyl_synthase']):
 			x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
 			if self.precursors_dict['acetyl_coa'] >= 2:		#control if at least 2 Acetyl-CoA are available
