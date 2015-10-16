@@ -316,7 +316,7 @@ class model():
 								'CO2': 0, 'Pi': 0, 'CTP': 3011, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
 
 		#number of small molecules that is produced from anywhere in the cell
-		self.precursors_production = {'pyruvate' : 1500., 'acetyl_coa': 1000, 'glycerol-3-p': 40., 'DHAP': 80., 'serine': 30., 'glucose_6_p': 8., 'SAM': 40., 'SAH': 0.,\
+		self.precursors_production = {'pyruvate' : 1300., 'acetyl_coa': 1000, 'glycerol-3-p': 40., 'DHAP': 80., 'serine': 30., 'glucose_6_p': 8., 'SAM': 40., 'SAH': 0.,\
 										'glycerol_3_p_mito': 10., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
 										'CO2': 0, 'Pi': 0, 'CTP': 80, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
 
@@ -428,8 +428,8 @@ class model():
 
 		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 3, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 350, 'acyl_synthase': 600, 'PA_synthese': 32, \
-						'CDP_DG_synthase': 25, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 14, 'PI_synthase': 8,\
-						'PE_synthase': 10, 'PC_synthase': 7, 'CL_synthase': 7, 'Ergosterol_synthase': 16, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 4}
+						'CDP_DG_synthase': 25, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 14, 'PI_synthase': 12,\
+						'PE_synthase': 8, 'PC_synthase': 9, 'CL_synthase': 4, 'Ergosterol_synthase': 16, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 4}
 
 		
 
@@ -453,12 +453,26 @@ class model():
 					self.enzyme_km_absolut[key][substrate] = self.enzyme_km[key][substrate] / 1000 * 6.022 * 10**23 * self.volume * 10**-15 / 10**4
 
 			#Does a reaction take place? Always when a random number >= this probability. Arbitrary numbers. 
-			self.S_M_probabilities = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5,\
-									'acetyl_coa_synthase': 1.-((560./self.rates['acetyl_coa_synthase'])*(self.precursors_dict['pyruvate'] / (self.enzyme_km_absolut['acetyl_coa_synthase']['pyruvate']+self.precursors_dict['pyruvate']))), \
-									'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.2, 'PA_synthase': 0.7,\
-								'CDP_DG_synthase': 0.3, 'DAG_synthase': 0.99, 'TAG_synthase': 0.8, 'TAG_lipase': 0.2, 'DAG_phosphatase': 0.9, 'PS_synthase': 0.5,\
-								'PI_synthase': 0.4, 'PE_synthase': 0.3, 'PC_synthase': 0.45, 'CL_synthase': 0.8,\
-								'Ergosterol_synthase': 0.5, 'Sterylester_synthase': 0.6, 'Sphingolipid_synthase': 0.8}
+			self.S_M_probabilities = {'glycerol_3_p_synthesis': 1-((8./self.rates['glycerol_3_p_synthesis'])*(self.precursors_dict['DHAP'] / (self.enzyme_km_absolut['glycerol_3_p_synthesis']['DHAP']+self.precursors_dict['DHAP']))), \
+										'inositol_synthesis': 1-((3./self.rates['inositol_synthesis'])*(self.precursors_dict['glucose_6_p'] / (self.enzyme_km_absolut['inositol_synthesis']['glucose_6_p']+self.precursors_dict['glucose_6_p']))), \
+										'ceramide_synthesis': 0.5,\
+										'acetyl_coa_synthase': 1.-((560./self.rates['acetyl_coa_synthase'])*(self.precursors_dict['pyruvate'] / (self.enzyme_km_absolut['acetyl_coa_synthase']['pyruvate']+self.precursors_dict['pyruvate']))), \
+										'acyl_synthase_C16': 0.625,\
+										'acyl_synthase_C18': 0.002,\
+										'lyso_PA_synthase': 0.3, \
+										'PA_synthase': 0.8,\
+										'CDP_DG_synthase': 0.3,\
+										'DAG_synthase': 0.99, \
+										'TAG_synthase': 0.8, \
+										'TAG_lipase': 0.2, \
+										'DAG_phosphatase': 0.9, \
+										'PS_synthase': 0.4,\
+										'PI_synthase': 0.3, \
+										'PE_synthase': 0.7, \
+										'PC_synthase': 0.5, \
+										'CL_synthase': 0.9,\
+										'Ergosterol_synthase': 0.5, \
+										'Sterylester_synthase': 0.6, 'Sphingolipid_synthase': 0.8}
 
 			if self.phase == 'G1':
 				self.probabilities = self.G1_probabilities
@@ -516,6 +530,7 @@ class model():
 		while i < 6:#in range(len(self.precursor_keys)):
 			ax.plot(self.t, self.precursors[self.precursor_keys[i]], label = self.precursor_keys[i])
 			i += 1
+		ax.plot(self.t, self.precursors['inositol'], label = 'inositol')
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
 		mat.show()
 
