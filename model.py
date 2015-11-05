@@ -283,7 +283,7 @@ class sphingolipid(object):
 
 
 
-class model():
+class model:
 	"""
 	The model. 
 	At the beginning there are several lists defined which will contain the produced lipids. 
@@ -291,54 +291,26 @@ class model():
 	After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
 	"""
 	def __init__(self):
+		self.timesteps = 72
+		self.volume = 35
+
+		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 500, 'acyl_synthase': 500, 'PA_synthese': 12, \
+						'CDP_DG_synthase': 25, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
+						'PE_synthase': 12, 'PC_synthase': 7, 'CL_synthase': 4, 'Ergosterol_synthase': 25, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
+		self.probability = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 'acetyl_coa_synthase': 0.8, 'acyl_synthase': 0.5, \
+							'acyl_synthase_C16': 0.375, 'acyl_synthase_C18': 0.998, 'lyso_PA_synthase': 0.45, 'PA_synthase': 0.2, 'CDP_DG_synthase': 0.7, \
+							'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_phosphatase': 0.1, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
+							'PE_synthase': 0.5, 'PC_synthase': 0.5, 'CL_synthase': 0.1, 'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.4, 'Sphingolipid_synthase': 0.2}
+
+		self.manual_threshold = {reaction: 1-prob for reaction, prob in self.probability.iteritems()}
+
+	def run(self):
 		#determining the timesteps, self.t for plotting, self.time for cell cycle
-		self.timesteps = 7200
+		
 		self.time = 0
 		self.t = [i for i in range(self.timesteps)]
-		self.volume = 35
-		'''
-		# Km values of the enzymes, some from BRENDA, some manually fitted
-		self.enzyme_km = {'glycerol_3_p_synthesis': {'DHAP': 0.54},\
-						  'inositol_synthesis': {'glucose_6_p': 1.18},\
-						  'ceramide_synthesis': {'serine': 0.0},\
-						  'acetyl_coa_synthase': {'pyruvate': 0.65},\
-						  'acyl_synthase': {'acetyl_coa': 0.0},\
-						  'lyso_PA_synthase': {'DHAP': 0.73, 'acyl_coa': 0.0},\
-						  'PA_synthase': {'lyso-PA': 0.0, 'acyl_coa': 0.0},\
-						  'CDP_DG_synthase': {'PA': 0.05, 'CTP': 1.0},\
-						  'DAG_synthase': {'PA': 0.05},\
-						  'TAG_synthase': {'DAG': 0.0},\
-						  'TAG_lipase': {'TAG': 0.0,'sterylester': 0.143},\
-						  'DAG_phosphatase': {'DAG': 0.0},\
-						  'PS_synthase': {'serine': 0.0, 'CDP-DG': 0.0},\
-						  'PI_synthase': {'inositol': 0.21, 'CDP-DG': 0.07},\
-						  'PE_synthase': {'PS': 0.0},\
-						  'PC_synthase': {'PE': 0.057, 'SAM': 0.11},\
-						  'CL_synthase': {'CDP-DG': 0.033, 'glycerol-3-p': 0.027},\
-						  'Ergosterol_synthase': {'acetyl_coa': 0.0},\
-						  'Sterylester_synthase': {'ES': 0.06, 'C18_1': 0.069}}
+		
 
-		#empty dict that will be filled at the beginning of the model run: calculation of absolute numbers with (Km / 1000) * (6.022 * 10**23 * self.volume * 10**-15) / 10**4
-		self.enzyme_km_absolut = {'glycerol_3_p_synthesis': {'DHAP': 0.0},\
-						  'inositol_synthesis': {'glucose_6_p': 0.0},\
-						  'ceramide_synthesis': {'serine': 0.0},\
-						  'acetyl_coa_synthase': {'pyruvate': 0.0},\
-						  'acyl_synthase': {'acetyl_coa': 0.0},\
-						  'lyso_PA_synthase': {'DHAP': 0.0, 'acyl_coa': 0.0},\
-						  'PA_synthase': {'lyso-PA': 0.0, 'acyl_coa': 0.0},\
-						  'CDP_DG_synthase': {'PA': 0.0, 'CTP': 0.0},\
-						  'DAG_synthase': {'PA': 0.0},\
-						  'TAG_synthase': {'DAG': 0.0},\
-						  'TAG_lipase': {'TAG': 0.0,'sterylester': 0.0},\
-						  'DAG_phosphatase': {'DAG': 0.0},\
-						  'PS_synthase': {'serine': 0.0, 'CDP-DG': 0.0},\
-						  'PI_synthase': {'inositol': 0.0, 'CDP-DG': 0.0},\
-						  'PE_synthase': {'PS': 0.0},\
-						  'PC_synthase': {'PE': 0.0, 'SAM': 0.0},\
-						  'CL_synthase': {'CDP-DG': 0.0, 'glycerol-3-p': 0.0},\
-						  'Ergosterol_synthase': {'acetyl_coa': 0.0},\
-						  'Sterylester_synthase': {'ES': 0.0, 'C18_1': 0.0}}
-		'''
 		#number of small molecules in the cell
 		self.precursors_dict = {'pyruvate' : 2000., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000., 'serine': 250., 'glucose_6_p': 1000., 'SAM': 331., 'SAH': 0.,\
 								'glycerol_3_p_mito': 50., 'ceramide': 100, 'GDP-mannose': 0, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
@@ -463,20 +435,22 @@ class model():
 		self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
 		#How often does a reaction take place in one second? Arbitrary numbers that can achieve the compositions and numbers that are to be reached
-		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 500, 'acyl_synthase': 500, 'PA_synthese': 12, \
-						'CDP_DG_synthase': 25, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
-						'PE_synthase': 12, 'PC_synthase': 7, 'CL_synthase': 4, 'Ergosterol_synthase': 25, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
+		
 
+		'''
 		self.manual_threshold = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 'acetyl_coa_synthase': 0.2, 'acyl_synthase': 0.5, \
 								  'acyl_synthase_C16': 0.625, 'acyl_synthase_C18': 0.002, 'lyso_PA_synthase': 0.55, 'PA_synthase': 0.8, 'CDP_DG_synthase': 0.3, \
 								  'DAG_synthase': 0.99, 'TAG_synthase': 0.8, 'TAG_lipase': 0.2, 'DAG_phosphatase': 0.9, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
 								  'PE_synthase': 0.5, 'PC_synthase': 0.5, 'CL_synthase': 0.9, 'Ergosterol_synthase': 0.4, 'Sterylester_synthase': 0.6, 'Sphingolipid_synthase': 0.8}
-		
+		'''
 
-		self.probability = {reaction: 1-threshold for reaction, threshold in self.manual_threshold.iteritems()}
+		
+		
 		self.Km = {}
 
-		#functions to run the model
+
+	
+
 		self.start()	#function that produces the lipids and membranes that are existing at the beginning of the cell cycle
 		self.Km_calculation()
 		for t in range(self.timesteps):
@@ -494,7 +468,7 @@ class model():
 				for key in self.precursors_dict:
 					self.precursors_dict[key] += self.precursors_production[key]
 				
-			self.volume += (7./2400.)	
+			#self.volume += (7./2400.)	
 
 			self.thresholds = {'glycerol_3_p_synthesis': 1- (self.precursors_dict['DHAP'] / (self.Km['glycerol_3_p_synthesis']['DHAP'] + self.precursors_dict['DHAP'])), \
 
@@ -597,6 +571,14 @@ class model():
 		self.membrane_compositions()	#calculation of the membrane compositions at the end of the run
 		self.saturation_counter()		#calculating the percentages of each fatty acid taht was used
 		
+		self.result =  (len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
+				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
+				len(self.outer_mit_membrane) + len(self.lipid_droplets))
+		return self.result, self.saturation_composition_total
+		#return self.t
+		#return self.number_membranes_list
+		
+		'''
 		#printing the numbers of free lipids
 		print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
 				'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
@@ -608,7 +590,7 @@ class model():
 		print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
 				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
 				len(self.outer_mit_membrane) + len(self.lipid_droplets)
-
+		'''
 
 	def plot_precursors(self):
 		'''
