@@ -291,7 +291,7 @@ class model:
 	After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
 	"""
 	def __init__(self):
-		self.timesteps = 72
+		self.timesteps = 10
 		self.volume = 35
 
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 500, 'acyl_synthase': 500, 'PA_synthese': 12, \
@@ -388,10 +388,10 @@ class model:
 		self.relatives_list = []		
 
 		#collecting the products of every timestep. Lipids that are produced in the start function don't need the 0 for plotting
-		self.number_acetyl_coa = [0]
-		self.number_acyl_coa = [0]
-		self.number_pa = [0]
-		self.number_cdp_dg = [0]
+		self.number_acetyl_coa = []
+		self.number_acyl_coa = []
+		self.number_pa = []
+		self.number_cdp_dg = []
 		self.number_tag = []
 		self.number_PS = []
 		self.number_PI = []
@@ -400,7 +400,7 @@ class model:
 		self.number_CL = []
 		self.number_Ergosterol = []
 		self.number_Sterylester = []
-		self.number_DAG = [0]
+		self.number_DAG = []
 		self.number_Sphingolipid = []
 
 		self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,\
@@ -571,10 +571,8 @@ class model:
 		self.membrane_compositions()	#calculation of the membrane compositions at the end of the run
 		self.saturation_counter()		#calculating the percentages of each fatty acid taht was used
 		
-		self.result =  (len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
-				len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
-				len(self.outer_mit_membrane) + len(self.lipid_droplets))
-		return self.result, self.saturation_composition_total
+
+		return self.saturation_composition_total, self.number_membranes_list, self.compartment_relatives_dict
 		#return self.t
 		#return self.number_membranes_list
 		
