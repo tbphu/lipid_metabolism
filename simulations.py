@@ -57,12 +57,13 @@ class stoch_model:
 			self.calc_statistics()		
 
 		# plot results
-		#self.plot_results_fatty_acids()
-		#self.plot_results_membranes()
+			self.plot_results_fatty_acids()
+			self.plot_results_membranes()
 
 	def sensitivity_analysis(self, runs, change):
 		self.results['Wildtype'] = []
-		self.results['Wildtype'].append(self.vera_model.run())
+		for run in range(runs):
+			self.results['Wildtype'].append(self.vera_model.run())
 
 		for par in self.rates:
 			#old_rate = self.rates[par]
@@ -71,7 +72,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[par + ' rate + 10 %'].append(self.vera_model.run())
 			self.vera_model.rates[par] = self.rates[par]
-
+			
 		for par in self.rates:
 			#old_rate = self.rates[par]
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] - self.vera_model.rates[par] * change))
@@ -79,7 +80,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[par + ' rate - 10 %'].append(self.vera_model.run())
 			self.vera_model.rates[par] = self.rates[par]
-		
+		'''
 		for prob in self.probabilities:
 			self.vera_model.probabilities[prob] = int(round(self.vera_model.probabilities[prob] + self.vera_model.probabilities[prob] * change))
 			self.results[prob + ' probability + 10 %'] = []
@@ -93,7 +94,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[prob + ' probability - 10 %'].append(self.vera_model.run())
 			self.vera_model.probabilities[prob] = self.probabilities[prob]	
-
+		'''
 		self.time = self.vera_model.t	
 
 	def sensitivity_statistics(self):
@@ -156,18 +157,50 @@ class stoch_model:
 					self.membrane_comp_std[reaction][membrane][lipid] = std_lipid_relatives
 
 	def heatmap(self):
-		heatmap_z = []
-		i = 0
-		for reaction in self.fatty_acid_distribution:
-			heatmap_z[i] = []
-			for fa in self.fatty_acid_distribution[reaction]:
-				difference = []
-				diff = self.fatty_acid_distribution[reaction][fa] / self.fatty_acid_distribution['Wildtype']
-				difference.append(diff)
-			heatmap_z[i].append(difference)
-			i += 1
+		heatmaps_change = [' rate + 10 %', ' rate - 10 %']#, ' probability + 10 %', ' probability - 10 %']
+		for change in heatmaps_change:
 
-		np.histogram(self.fatty_acids, self.fatty_acid_distribution.keys(), heatmap_z)
+			column_labels = ['Wildtype']
+			for par in self.rates:
+				column_labels.append(par)
+			row_labels = self.fatty_acids
+			self.heatmap_fa = []
+
+			i = 0
+			for reaction in column_labels:
+				if reaction == 'Wildtype':
+					self.heatmap_fa.append(i)
+					difference = []
+					for fa in row_labels:
+						diff = self.fatty_acid_distribution[reaction][fa] / self.fatty_acid_distribution['Wildtype'][fa]
+						difference.append(diff)
+					self.heatmap_fa[i] = difference
+					i += 1
+
+				else:
+					self.heatmap_fa.append(i)
+					difference = []
+					for fa in row_labels:
+						diff = self.fatty_acid_distribution[reaction + change][fa] / self.fatty_acid_distribution['Wildtype'][fa]
+						difference.append(diff)
+					self.heatmap_fa[i] = difference
+					i += 1
+
+			self.heatmap_fa = np.asarray(self.heatmap_fa)
+			fig, ax = pyp.subplots()
+			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues)
+
+			ax.set_xticks(np.arange(self.heatmap_fa.shape[1])+0.5, minor = False)
+			ax.set_yticks(np.arange(self.heatmap_fa.shape[0])+0.5, minor = False)
+
+			ax.invert_yaxis()
+			ax.xaxis.tick_top()
+
+			ax.set_xticklabels(row_labels, minor = False)
+			ax.set_yticklabels(column_labels, minor = False)
+			ax.colorbar()
+
+			pyp.show()
 
 
 	def run_model(self, runs):
