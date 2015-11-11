@@ -291,7 +291,7 @@ class model:
 	After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
 	"""
 	def __init__(self):
-		self.timesteps = 10
+		self.timesteps = 7200
 		self.volume = 35
 
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 500, 'acyl_synthase': 500, 'PA_synthese': 12, \
@@ -1328,18 +1328,21 @@ class model:
 		self.c18_1_sn1 = 0
 		self.wrong_fatty_acid = 0
 		for c in self.compartment_lists:
-			for i in range(len(c)):
-				if hasattr(c[i], 'sn1'):
-					if c[i].sn1 == 'C16:0':
-						self.c16_0_sn1 += 1
-					elif c[i].sn1 == 'C16:1':
-						self.c16_1_sn1 += 1
-					elif c[i].sn1 == 'C18:0':
-						self.c18_0_sn1 += 1
-					elif c[i].sn1 == 'C18:1':
-						self.c18_1_sn1 += 1
-					else:
-						self.wrong_fatty_acid += 1
+			if c == self.lipid_droplets:
+				continue
+			else:
+				for i in range(len(c)):
+					if hasattr(c[i], 'sn1'):
+						if c[i].sn1 == 'C16:0':
+							self.c16_0_sn1 += 1
+						elif c[i].sn1 == 'C16:1':
+							self.c16_1_sn1 += 1
+						elif c[i].sn1 == 'C18:0':
+							self.c18_0_sn1 += 1
+						elif c[i].sn1 == 'C18:1':
+							self.c18_1_sn1 += 1
+						else:
+							self.wrong_fatty_acid += 1
 		self.saturation_composition_sn1 = {'C16:0': self.c16_0_sn1, 'C16:1': self.c16_1_sn1, 'C18:0': self.c18_0_sn1, 'C18_1': self.c18_1_sn1}
 
 		self.c16_0_sn2 = 0
@@ -1348,18 +1351,21 @@ class model:
 		self.c18_1_sn2 = 0
 		self.wrong_fatty_acid = 0
 		for c in self.compartment_lists:
-			for i in range(len(c)):
-				if hasattr(c[i], 'sn2'):
-					if c[i].sn2 == 'C16:0':
-						self.c16_0_sn2 += 1
-					elif c[i].sn2 == 'C16:1':
-						self.c16_1_sn2 += 1
-					elif c[i].sn2 == 'C18:0':
-						self.c18_0_sn2 += 1
-					elif c[i].sn2 == 'C18:1':
-						self.c18_1_sn2 += 1
-					else:
-						self.wrong_fatty_acid += 1
+			if c == self.lipid_droplets:
+				continue
+			else:	
+				for i in range(len(c)):
+					if hasattr(c[i], 'sn2'):
+						if c[i].sn2 == 'C16:0':
+							self.c16_0_sn2 += 1
+						elif c[i].sn2 == 'C16:1':
+							self.c16_1_sn2 += 1
+						elif c[i].sn2 == 'C18:0':
+							self.c18_0_sn2 += 1
+						elif c[i].sn2 == 'C18:1':
+							self.c18_1_sn2 += 1
+						else:
+							self.wrong_fatty_acid += 1
 
 		self.saturation_composition_sn2 = {'C16:0': self.c16_0_sn2, 'C16:1': self.c16_1_sn2, 'C18:0': self.c18_0_sn2, 'C18_1': self.c18_1_sn2}
 		self.total_fatty_acids = self.c16_0_sn1 + self.c16_1_sn1 + self.c18_0_sn1 + self.c18_1_sn1 + self.c16_0_sn2 + self.c16_1_sn2 + self.c18_0_sn2 + self.c18_1_sn2
