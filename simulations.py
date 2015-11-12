@@ -1,9 +1,11 @@
 import random
 import matplotlib.pyplot as pyp
 import numpy as np
+import math
 import model
 import copy
-
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 
 class stoch_model:
 	def __init__(self, runs=10, sensitivity=False, change=0.1):
@@ -79,7 +81,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[par + ' rate + 10 %'].append(self.vera_model.run())
 			self.vera_model.rates[par] = self.rates[par]
-		
+		'''
 		#sensitivits of rates (-10%)
 		for par in self.rates:
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] - self.vera_model.rates[par] * change))
@@ -103,7 +105,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[prob + ' probability - 10 %'].append(self.vera_model.run())
 			self.vera_model.probabilities[prob] = self.probabilities[prob]	
-		
+		'''
 		#time list imported from model
 		self.time = self.vera_model.t	
 
@@ -168,7 +170,7 @@ class stoch_model:
 
 	def heatmap_fatty_acids(self):
 		#heatmap of fatty acid distributions: x = fatty acids, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = [' rate + 10 %', ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
+		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
 		for change in heatmaps_change:
 			if 'rate' in change: 
 				column_labels = ['Wildtype']
@@ -189,7 +191,7 @@ class stoch_model:
 					self.heatmap_fa.append(i)
 					difference = []
 					for fa in row_labels:
-						diff = 1
+						diff = math.log(1, 2)
 						difference.append(diff)
 					self.heatmap_fa[i] = difference
 					i += 1
@@ -198,14 +200,17 @@ class stoch_model:
 					self.heatmap_fa.append(i)
 					difference = []
 					for fa in row_labels:
-						diff = self.fatty_acid_distribution[reaction + change][fa] / self.fatty_acid_distribution['Wildtype'][fa]
+						if self.fatty_acid_distribution[reaction + change][fa] > 0:
+							diff = math.log((self.fatty_acid_distribution[reaction + change][fa] / self.fatty_acid_distribution['Wildtype'][fa]), 2)
+						else:
+							diff = math.log(0.00001, 2)
 						difference.append(diff)
 					self.heatmap_fa[i] = difference
 					i += 1
 
 			self.heatmap_fa = np.asarray(self.heatmap_fa)
-			fig, ax = pyp.plot()
-			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues)
+			fig, ax = pyp.subplots()
+			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues, vmax = 0.4, vmin = -0.4)
 
 			ax.set_xticks(np.arange(self.heatmap_fa.shape[1])+0.5, minor = False)
 			ax.set_yticks(np.arange(self.heatmap_fa.shape[0])+0.5, minor = False)
@@ -217,54 +222,65 @@ class stoch_model:
 			ax.set_yticklabels(column_labels, minor = False)			
 
 			cbar = pyp.colorbar(general_heatmap)
-			cbar.ax.set_ylabel('change', rotation=270)
+			cbar.ax.set_ylabel('change', rotation = 270, x = 1.4)
 
-			ax.set_title('fatty acid distribution' + change, y = 1.05)
+			ax.set_title('Fatty acid distribution' + change, y = 1.07)
+			ax.axis('tight')
 			
 			pyp.show()
 
 	def heatmap_membrane_comp(self):
 		#heatmap of membrane compositions: x = lipids, y = reaction (4 heatmaps for each membrane, 4 x 9 heatmaps)
-		column_labels = self.membrane_comp_mean.keys()
+		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
+		column_labels = ['Wildtype']
+		for key in self.membrane_comp_mean.keys():
+			if key != 'Wildtype':
+				column_labels.append(key)
 
 		for membrane in self.membrane_lists.keys():
-			self.heatmap_membrane = []
-			i = 0
-			for reaction in column_labels:				
-				self.heatmap_membrane.append(i)
-				difference = []
-				for lipid in self.lipids:
-					if self.membrane_comp_mean['Wildtype'][membrane][lipid] == 0:
-						diff = 1
-					else:
-						diff = self.membrane_comp_mean[reaction][membrane][lipid] / self.membrane_comp_mean['Wildtype'][membrane][lipid]
-					difference.append(diff)
-				self.heatmap_membrane[i] = difference
-				i += 1
+			for change in heatmaps_change:
+				self.heatmap_membrane = []
+				i = 0
+				for reaction in column_labels:				
+					self.heatmap_membrane.append(i)
+					difference = []
+					for lipid in self.lipids:
+						if self.membrane_comp_mean['Wildtype'][membrane][lipid] == 0:
+							diff = math.log(1, 2)
+						else:
+							if self.membrane_comp_mean[reaction][membrane][lipid] > 0:
+								diff = math.log((self.membrane_comp_mean[reaction][membrane][lipid] / self.membrane_comp_mean['Wildtype'][membrane][lipid]), 2)
+							else:
+								diff = math.log(0.00001, 2)
+						difference.append(diff)
+					self.heatmap_membrane[i] = difference
+					i += 1
 
-			self.heatmap_membrane = np.asarray(self.heatmap_membrane)
-			fig, ax = pyp.plot()
-			general_heatmap = ax.pcolor(self.heatmap_membrane, cmap = pyp.cm.Blues)
+				self.heatmap_membrane = np.asarray(self.heatmap_membrane)
+				fig, ax = pyp.subplots()
+				general_heatmap = ax.pcolor(self.heatmap_membrane, cmap = pyp.cm.Blues, vmax = 1.6, vmin = -1.6)
 
-			ax.set_xticks(np.arange(self.heatmap_membrane.shape[1])+0.5, minor = False)
-			ax.set_yticks(np.arange(self.heatmap_membrane.shape[0])+0.5, minor = False)
+				ax.set_xticks(np.arange(self.heatmap_membrane.shape[1])+0.5, minor = False)
+				ax.set_yticks(np.arange(self.heatmap_membrane.shape[0])+0.5, minor = False)
 
-			ax.invert_yaxis()
-			ax.xaxis.tick_top()
-			ax.set_xticklabels(self.lipids, minor = False)
-			ax.set_yticklabels(column_labels, minor = False)
+				ax.invert_yaxis()
+				ax.xaxis.tick_top()
+				ax.set_xticklabels(self.lipids, minor = False)
+				column_labels_short = [label.split(' ', 1)[0] for label in column_labels]
+				ax.set_yticklabels(column_labels, minor = False)
 
-			cbar = pyp.colorbar(general_heatmap)
-			cbar.ax.set_ylabel('change', rotation=270)
+				cbar = pyp.colorbar(general_heatmap)
+				cbar.ax.set_ylabel('change', rotation = 270, x = 1.2)
 
-			ax.set_title(membrane + 'composition', y = 1.05)
-			
-			pyp.show()
+				ax.set_title(membrane + ' composition' + change, y = 1.4)
+				ax.axis('tight')
+				
+				pyp.show()
 
 
 	def heatmap_membrane_length(self):
 		#heatmap of membrane lengths: x = membrane, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = [' rate + 10 %', ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
+		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
 		row_labels = self.membrane_lists.keys()
 
 		for change in heatmaps_change:
@@ -285,7 +301,7 @@ class stoch_model:
 					self.heatmap_mem_length.append(i)
 					difference = []
 					for membrane in row_labels:
-						diff = 1
+						diff = math.log(1, 2)
 						difference.append(diff)
 					self.heatmap_mem_length[i] = difference
 					i += 1
@@ -294,14 +310,14 @@ class stoch_model:
 					self.heatmap_mem_length.append(i)
 					difference = []
 					for membrane in row_labels:
-						diff = self.mean_time_lists[reaction + change][membrane][-1] / self.mean_time_lists['Wildtype'][membrane][-1]
+						diff = math.log((self.mean_time_lists[reaction + change][membrane][-1] / self.mean_time_lists['Wildtype'][membrane][-1]), 2)
 						difference.append(diff)
 					self.heatmap_mem_length[i] = difference
 					i += 1
 
 			self.heatmap_mem_length = np.asarray(self.heatmap_mem_length)
-			fig, ax = pyp.plot()
-			general_heatmap = ax.pcolor(self.heatmap_mem_length, cmap = pyp.cm.Blues)
+			fig, ax = pyp.subplots()
+			general_heatmap = ax.pcolor(self.heatmap_mem_length, cmap = pyp.cm.Blues, vmax = 1.2, vmin = -1.2)
 
 			ax.set_xticks(np.arange(self.heatmap_mem_length.shape[1])+0.5, minor = False)
 			ax.set_yticks(np.arange(self.heatmap_mem_length.shape[0])+0.5, minor = False)
@@ -313,9 +329,12 @@ class stoch_model:
 			ax.set_yticklabels(column_labels, minor = False)			
 
 			cbar = pyp.colorbar(general_heatmap)
-			cbar.ax.set_ylabel('change', rotation=270)
+			cbar.ax.set_ylabel('change', rotation=270, x = 1.4)
 
-			ax.set_title('membrane lengths' + change, y = 1.05)
+			ax.set_title('membrane lengths' + change, y = 1.5)
+
+			pyp.xticks(rotation = 80)
+			ax.axis('tight')
 			
 			pyp.show()
 
@@ -383,39 +402,55 @@ class stoch_model:
 	def plot_results_fatty_acids(self):
 		#histogram of fatty acid distributions: x = fatty acids, y = mean value of all runs
 		y = []
+		y2 = [50, 10, 30, 10]
 		x_names = self.fatty_acid_distribution.keys()
-		x = [j-0.5 for j in range(len(self.x_names))]
+		ind = np.arange(len(x_names))
+		width = 0.35
 		yerrs = []
 		for i in x_names:
-			y.append(self.fatty_acid_distribution[i])
-			yerrs.append(self.fatty_acid_std[i])
+			y.append((self.fatty_acid_distribution[i])*100)
+			yerrs.append((self.fatty_acid_std[i])*100)
 		
-		fig = pyp.bar(x, y, width = 0.5, yerr = yerrs)
-		pyp.xticks(x, x_names)
-		pyp.setp(fig, color='red', edgecolor = 'k')
+		fig, ax = pyp.subplots()
+		fig_fa_distr = ax.bar(ind, y, width, color = 'r', yerr = yerrs)
+		fig_fa_distr2 = ax.bar(ind + width, y2, width, color = 'g')
+		ax.set_ylabel('%')
+		ax.set_title('Fatty acid distribution')
+		ax.set_xticks(ind + width)
+		ax.set_xticklabels(x_names)
+
+		ax.legend((fig_fa_distr[0], fig_fa_distr2[0]), ('Model', 'Klug (2001)'))
+		
+
 		pyp.show()
 
 
 	def plot_results_membranes(self):
 		#graph of membrane growth: x = time, y = membrane length
-		fig = pyp.figure()
-		ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+		fig, ax = pyp.subplots()
 		for membrane in self.membrane_lists.keys():
 			ax.plot(self.time, self.mean_time_lists[membrane], label = membrane)
 		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
+		ax.set_title('Membranes growth')
+		ax.set_ylabel('# of lipids')
+		ax.set_xlabel('time in s')
 		pyp.show()
 
 		#histogram of the membrane lengths after the run: x = membrane, y = mean value membrane lengths
 		x_names = self.membrane_lists.keys()
-		x = [j-0.5 for j in range(len(x_names))]
+		ind = np.arange(len(x_names))
+		width = 0.35
 		y = []
 		std = []
 		for membrane in x_names:
 			y.append(self.membranes_length[membrane])
 			std.append(self.membranes_length_std[membrane])
-		fig_membrane_bars = pyp.bar(x, y, width = 0.5, yerr = std)
-		pyp.xticks(x, x_names)
-		pyp.setp(fig_membrane_bars, color='blue', edgecolor='k')
+		fig, ax = pyp.subplots()
+		fig_membrane_bars = pyp.bar(ind, y, width, color = 'b', yerr = std)
+		ax.set_xticks(ind + (width/2))
+		ax.set_xticklabels(x_names)
+		ax.set_title('Membrane lengths after 7200 s', y = 1.03)
+		pyp.xticks(rotation = 60)
 		pyp.show()
 
 	
@@ -437,17 +472,24 @@ class stoch_model:
 			y2 = []
 			std = []
 			x_names = self.lipids
-			x = [j-0.5 for j in range(len(x_names))]
+			ind = np.arange(len(x_names))
+			width = 0.3
 
 			for lipid in x_names:
-				y.append(self.membrane_comp_mean[membrane][lipid])
-				std.append(self.membrane_comp_std[membrane][lipid])
-				y2.append(zinser[membrane][lipid])
+				y.append((self.membrane_comp_mean[membrane][lipid])*100)
+				std.append((self.membrane_comp_std[membrane][lipid])*100)
+				y2.append((zinser[membrane][lipid])*100)
 
-			fig_membrane_comp = pyp.bar(x, y, width = 0.5, yerr = std)
-			fig_membrane_comp2 = pyp.bar(x, y2, width = 0.5, yerr = std)
-			pyp.xticks(x, x_names)
-			pyp.setp(fig_membrane_comp, color='green', edgecolor = 'k')
-			pyp.title(membrane + ' lipid composition')
+			fig, ax = pyp.subplots()
+			fig_membrane_comp = ax.bar(ind, y, width, color = 'b', yerr = std)
+			fig_membrane_comp2 = ax.bar(ind + width, y2, width, color = 'y')
+
+			ax.set_ylabel('%')
+			ax.set_title(membrane + ' lipid composition', y = 1.03)
+			ax.set_xticks(ind + width)
+			ax.set_xticklabels(x_names)
+
+			ax.legend((fig_membrane_comp[0], fig_membrane_comp2[0]), ('Model', 'Experimental'))
+		
 			pyp.show()
 

@@ -291,7 +291,7 @@ class model:
 	After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
 	"""
 	def __init__(self):
-		self.timesteps = 7200
+		self.timesteps = 20
 		self.volume = 35
 
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 4, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 500, 'acyl_synthase': 500, 'PA_synthese': 12, \
@@ -689,7 +689,7 @@ class model:
 		self.compositions_start = dict(zip(self.compartment, self.membrane_compositions_start_relatives))
 		
 		x = 0
-		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 1750, 750, 1000]		#number of lipids that are produced in the start function for every membrane
+		self.start_lipids = [32950, 300, 2500, 6000, 200, 200, 5000, 2500, 1000]		#number of lipids that are produced in the start function for every membrane
 		self.membrane_start = dict(zip(self.compartment, self.start_lipids))
 		for membrane in self.compartment_lists:
 			for i in range(self.membrane_start[self.compartment[x]]):		#producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
@@ -1388,9 +1388,9 @@ class model:
 
 		if self.total_fatty_acids > 0:
 			self.saturation_composition_total = {'C16:0': float(self.c16_0_sn2 + self.c16_0_sn1) / self.total_fatty_acids,\
-												 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1 + self.sterylester_C16) / (self.total_fatty_acids + self.sterylester_C16 + self.sterylester_C18), \
+												 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1) / self.total_fatty_acids,\
 												 'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids,\
-												 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1 + self.sterylester_C18) / (self.total_fatty_acids + self.sterylester_C16 + self.sterylester_C18)}
+												 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
 '''
 if __name__ == '__main__':
 	import time
