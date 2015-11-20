@@ -4,6 +4,7 @@ import numpy as np
 import math
 import model
 import copy
+import pickle
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
@@ -13,11 +14,16 @@ class stoch_model:
 		self.vera_model = model.model()
 		self.rates = copy.deepcopy(self.vera_model.rates)
 		self.probabilities = copy.deepcopy(self.vera_model.probability)
+		self.probabilities_G1 = copy.deepcopy(self.vera_model.probability_G1)
+		self.probabilities_S_M = copy.deepcopy(self.vera_model.probability_S_M)
+		self.comp_weights = copy.deepcopy(self.vera_model.compartment_weights)
+		self.fa_weights = copy.deepcopy(self.vera_model.weights_fa)
 
 		#calculation fatty acids
 		self.fatty_acid_distribution = {}
 		self.fatty_acid_std = {}
 		self.fatty_acids = ['C16:0', 'C16:1', 'C18:0', 'C18:1']
+		self.fa = ['saturated', 'unsaturated']
 
 		#membrane compositions
 		self.membrane_comp_mean = {}
@@ -41,7 +47,8 @@ class stoch_model:
 		self.membrane_lists = {'plasma_membrane': self.plasma_membrane, 'secretory_vesicles': self.secretory_vesicles, 'vacuoles': self.vacuoles, \
 								'nucleus': self.nucleus, 'peroxisomes': self.peroxisomes, 'light_microsomes': self.light_microsomes,\
 								'inner_mit_membrane': self.inner_mit_membrane, 'outer_mit_membrane': self.outer_mit_membrane, 'lipid_droplets': self.lipid_droplets}
-		# results
+		
+		self.membranes_list = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes', 'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
 		
 		self.time = []
 
@@ -73,41 +80,118 @@ class stoch_model:
 		self.results['Wildtype'] = []
 		for run in range(runs):
 			self.results['Wildtype'].append(self.vera_model.run())
-
+		
 		#sensitivity of rates (+10%)
 		for par in self.rates:
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] + self.vera_model.rates[par] * change))
 			self.results[par + ' rate + 10 %'] = []
 			for run in range(runs):
 				self.results[par + ' rate + 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[par + ' rate + 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_r+10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
-		'''
+		
 		#sensitivits of rates (-10%)
 		for par in self.rates:
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] - self.vera_model.rates[par] * change))
 			self.results[par + ' rate - 10 %'] = []
 			for run in range(runs):
 				self.results[par + ' rate - 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[par + ' rate - 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_r-10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
-
+		
 		#sensitivity of probabilities (+10%)
 		for prob in self.probabilities:
-			self.vera_model.probabilities[prob] = int(round(self.vera_model.probabilities[prob] + self.vera_model.probabilities[prob] * change))
+			self.vera_model.probability[prob] = self.vera_model.probability[prob] + self.vera_model.probability[prob] * change
+			if prob in self.vera_model.probability_G1.keys():
+				self.vera_model.probability_G1[prob] = self.vera_model.probability_G1[prob] + self.vera_model.probability_G1[prob] * change
+			if prob in self.vera_model.probability_S_M.keys():
+				self.vera_model.probability_S_M[prob] = self.vera_model.probability_S_M[prob] + self.vera_model.probability_S_M[prob] * change
 			self.results[prob + ' probability + 10 %'] = []
 			for run in range(runs):
 				self.results[prob + ' probability + 10 %'].append(self.vera_model.run())
-			self.vera_model.probabilities[prob] = self.probabilities[prob]
-
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[prob + ' probability + 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_p+10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.probability[prob] = self.probabilities[prob]
+			if prob in self.vera_model.probability_G1.keys():
+				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
+			if prob in self.vera_model.probability_S_M.keys():
+				self.vera_model.probability_S_M[prob] = self.probabilities_S_M[prob]
+		
 		#sensitivity of probabilities (-10%)
 		for prob in self.probabilities:
-			self.vera_model.probabilities[prob] = int(round(self.vera_model.probabilities[prob] - self.vera_model.probabilities[prob] * change))
+			self.vera_model.probability[prob] = self.vera_model.probability[prob] - self.vera_model.probability[prob] * change
+			if prob in self.vera_model.probability_G1.keys():
+				self.vera_model.probability_G1[prob] = self.vera_model.probability_G1[prob] - self.vera_model.probability_G1[prob] * change
+			if prob in self.vera_model.probability_S_M.keys():
+				self.vera_model.probability_S_M[prob] = self.vera_model.probability_S_M[prob] - self.vera_model.probability_S_M[prob] * change
 			self.results[prob + ' probability - 10 %'] = []
 			for run in range(runs):
 				self.results[prob + ' probability - 10 %'].append(self.vera_model.run())
-			self.vera_model.probabilities[prob] = self.probabilities[prob]	
-		'''
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[prob + ' probability - 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_p-10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.probability[prob] = self.probabilities[prob]	
+			if prob in self.vera_model.probability_G1.keys():
+				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
+			if prob in self.vera_model.probability_S_M.keys():
+				self.vera_model.probability_S_M[prob] = self.probabilities_S_M[prob]
+		
+		#sensitivity of comp weights (+10%)
+		for weight in range(len(self.comp_weights)):
+			self.vera_model.compartment_weights[weight] = self.vera_model.compartment_weights[weight] + self.vera_model.compartment_weights[weight] * change
+			self.results[self.membranes_list[weight] + ' compartment weights + 10 %'] = []
+			for run in range(runs):
+				self.results[self.membranes_list[weight] + ' compartment weights + 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights + 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_comp+10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
+		
+		#sensitivity of comp weights (-10%)
+		for weight in range(len(self.comp_weights)):
+			self.vera_model.compartment_weights[weight] = self.vera_model.compartment_weights[weight] - self.vera_model.compartment_weights[weight] * change
+			self.results[self.membranes_list[weight] + ' compartment weights - 10 %'] = []
+			for run in range(runs):
+				self.results[self.membranes_list[weight] + ' compartment weights - 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights - 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_comp-10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
+		
+		#sensitivity of fa weights (+10%)
+		for weight in range(len(self.fa_weights)):
+			if weight == 0:
+				weight2 = 1
+			else:
+				weight2 = 0
+			self.vera_model.weights_fa[weight2] = self.vera_model.weights_fa[weight2] - self.vera_model.weights_fa[weight] * change
+			self.vera_model.weights_fa[weight] = self.vera_model.weights_fa[weight] + self.vera_model.weights_fa[weight] * change
+			self.results[self.fa[weight] + ' fatty acid weights + 10 %'] = []
+			for run in range(runs):
+				self.results[self.fa[weight] + ' fatty acid weights + 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights + 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_fa+10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
+			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
+		
+		#sensitivity of fa weights (-10%)
+		for weight in range(len(self.fa_weights)):
+			if weight == 0:
+				weight2 = 1
+			else:
+				weight2 = 0
+			self.vera_model.weights_fa[weight2] = self.vera_model.weights_fa[weight2] + self.vera_model.weights_fa[weight] * change
+			self.vera_model.fa_weights[weight] = self.vera_model.weights_fa[weight] - self.vera_model.weights_fa[weight] * change
+			self.results[self.fa[weight] + ' fatty acid weights - 10 %'] = []
+			for run in range(runs):
+				self.results[self.fa[weight] + ' fatty acid weights - 10 %'].append(self.vera_model.run())
+				if run > 0 and run % 10 == 0:
+					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights - 10 %'][run-10:run], open("./sens_analysis_start_20-11-15/results_sens_fa-10 run-"+str(run)+".pkl", "wb"))
+			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
+			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
+		
 		#time list imported from model
-		self.time = self.vera_model.t	
+		self.time = self.vera_model.t
+			
 
 	def sensitivity_statistics(self):
 		#fatty acids distribution (mean and std for each change)
@@ -170,17 +254,23 @@ class stoch_model:
 
 	def heatmap_fatty_acids(self):
 		#heatmap of fatty acid distributions: x = fatty acids, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
+		heatmaps_change = [' rate + 10 %', ' rate - 10 %', ' probability + 10 %', ' probability - 10 %', ' compartment weights + 10 %', ' compartment weights - 10 %', ' fatty acid weights + 10 %', ' fatty acid weights - 10 %']
 		for change in heatmaps_change:
 			if 'rate' in change: 
 				column_labels = ['Wildtype']
 				for par in self.rates:
 					column_labels.append(par)
 
-			else: 
+			elif 'probability' in change: 
 				column_labels = ['Wildtype']
 				for par in self.probabilities:
 					column_labels.append(par)
+
+			elif 'compartment' in change:
+				column_labels = self.membranes_list[:-1]
+
+			elif 'fatty acid' in change:
+				column_labels = self.fa
 
 			row_labels = self.fatty_acids
 			self.heatmap_fa = []
@@ -210,7 +300,7 @@ class stoch_model:
 
 			self.heatmap_fa = np.asarray(self.heatmap_fa)
 			fig, ax = pyp.subplots()
-			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues, vmax = 0.4, vmin = -0.4)
+			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues, vmax = 0.2, vmin = -0.2)
 
 			ax.set_xticks(np.arange(self.heatmap_fa.shape[1])+0.5, minor = False)
 			ax.set_yticks(np.arange(self.heatmap_fa.shape[0])+0.5, minor = False)
@@ -222,23 +312,32 @@ class stoch_model:
 			ax.set_yticklabels(column_labels, minor = False)			
 
 			cbar = pyp.colorbar(general_heatmap)
-			cbar.ax.set_ylabel('change', rotation = 270, x = 1.4)
+			cbar.ax.set_ylabel('log2 change', rotation = 270, labelpad = 22)
 
-			ax.set_title('Fatty acid distribution' + change, y = 1.07)
+			ax.set_title('Fatty acids distribution:' + change, y = 1.07)
 			ax.axis('tight')
 			
 			pyp.show()
 
 	def heatmap_membrane_comp(self):
 		#heatmap of membrane compositions: x = lipids, y = reaction (4 heatmaps for each membrane, 4 x 9 heatmaps)
-		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
-		column_labels = ['Wildtype']
-		for key in self.membrane_comp_mean.keys():
-			if key != 'Wildtype':
-				column_labels.append(key)
+		heatmaps_change = [' rate + 10 %', ' rate - 10 %', ' probability + 10 %', ' probability - 10 %', ' compartment weights + 10 %', ' compartment weights - 10 %', ' fatty acid weights + 10 %', ' fatty acid weights - 10 %']
 
-		for membrane in self.membrane_lists.keys():
+		for membrane in self.membranes_list:
 			for change in heatmaps_change:
+
+				column_labels = ['Wildtype']
+				if 'rate' in change:
+					for par in self.rates:
+						column_labels.append(par)
+				elif 'probability' in change:
+					for par in self.probabilities:
+						column_labels.append(par)
+				elif 'compartment' in change:
+					column_labels = self.membranes_list[:-1]
+				elif 'fatty acid' in change:
+					column_labels = self.fa
+
 				self.heatmap_membrane = []
 				i = 0
 				for reaction in column_labels:				
@@ -248,8 +347,10 @@ class stoch_model:
 						if self.membrane_comp_mean['Wildtype'][membrane][lipid] == 0:
 							diff = math.log(1, 2)
 						else:
-							if self.membrane_comp_mean[reaction][membrane][lipid] > 0:
-								diff = math.log((self.membrane_comp_mean[reaction][membrane][lipid] / self.membrane_comp_mean['Wildtype'][membrane][lipid]), 2)
+							if reaction == 'Wildtype':
+								diff = math.log(1, 2)
+							elif self.membrane_comp_mean[reaction + change][membrane][lipid] > 0:
+								diff = math.log((self.membrane_comp_mean[reaction + change][membrane][lipid] / self.membrane_comp_mean['Wildtype'][membrane][lipid]), 2)
 							else:
 								diff = math.log(0.00001, 2)
 						difference.append(diff)
@@ -267,12 +368,12 @@ class stoch_model:
 				ax.xaxis.tick_top()
 				ax.set_xticklabels(self.lipids, minor = False)
 				column_labels_short = [label.split(' ', 1)[0] for label in column_labels]
-				ax.set_yticklabels(column_labels, minor = False)
+				ax.set_yticklabels(column_labels_short, minor = False)
 
 				cbar = pyp.colorbar(general_heatmap)
-				cbar.ax.set_ylabel('change', rotation = 270, x = 1.2)
+				cbar.ax.set_ylabel('log2 change', rotation = 270, labelpad = 22)
 
-				ax.set_title(membrane + ' composition' + change, y = 1.4)
+				ax.set_title(membrane.replace('_', ' ').title() + ' composition:' + change, y = 1.1)
 				ax.axis('tight')
 				
 				pyp.show()
@@ -280,7 +381,7 @@ class stoch_model:
 
 	def heatmap_membrane_length(self):
 		#heatmap of membrane lengths: x = membrane, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = [' rate + 10 %']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %']
+		heatmaps_change = [' rate + 10 %', ' rate - 10 %', ' probability + 10 %', ' probability - 10 %', ' compartment weights + 10 %', ' compartment weights - 10 %', ' fatty acid weights + 10 %', ' fatty acid weights - 10 %']
 		row_labels = self.membrane_lists.keys()
 
 		for change in heatmaps_change:
@@ -288,36 +389,35 @@ class stoch_model:
 				column_labels = ['Wildtype']
 				for par in self.rates:
 					column_labels.append(par)
-			else:
+			elif 'probability' in change:
 				column_labels = ['Wildtype']
 				for par in self.probabilities:
 					column_labels.append(par)
+			elif 'compartment' in change:
+				column_labels = self.membranes_list[:-1]
+			elif 'fatty acid' in change:
+				column_labels = self.fa
 
 			self.heatmap_mem_length = []
 
 			i = 0
 			for reaction in column_labels:
-				if reaction == 'Wildtype':
-					self.heatmap_mem_length.append(i)
-					difference = []
-					for membrane in row_labels:
+				self.heatmap_mem_length.append(i)
+				difference = []
+				for membrane in row_labels:
+					if reaction == 'Wildtype':
 						diff = math.log(1, 2)
-						difference.append(diff)
-					self.heatmap_mem_length[i] = difference
-					i += 1
-
-				else:
-					self.heatmap_mem_length.append(i)
-					difference = []
-					for membrane in row_labels:
+					elif self.mean_time_lists[reaction + change][membrane][-1] > 0:
 						diff = math.log((self.mean_time_lists[reaction + change][membrane][-1] / self.mean_time_lists['Wildtype'][membrane][-1]), 2)
-						difference.append(diff)
-					self.heatmap_mem_length[i] = difference
-					i += 1
+					else:
+						diff = math.log(0.00001, 2)
+					difference.append(diff)
+				self.heatmap_mem_length[i] = difference
+				i += 1
 
 			self.heatmap_mem_length = np.asarray(self.heatmap_mem_length)
 			fig, ax = pyp.subplots()
-			general_heatmap = ax.pcolor(self.heatmap_mem_length, cmap = pyp.cm.Blues, vmax = 1.2, vmin = -1.2)
+			general_heatmap = ax.pcolor(self.heatmap_mem_length, cmap = pyp.cm.Blues, vmax = 0.1, vmin = -0.1)
 
 			ax.set_xticks(np.arange(self.heatmap_mem_length.shape[1])+0.5, minor = False)
 			ax.set_yticks(np.arange(self.heatmap_mem_length.shape[0])+0.5, minor = False)
@@ -329,11 +429,11 @@ class stoch_model:
 			ax.set_yticklabels(column_labels, minor = False)			
 
 			cbar = pyp.colorbar(general_heatmap)
-			cbar.ax.set_ylabel('change', rotation=270, x = 1.4)
+			cbar.ax.set_ylabel('log2 change', rotation=270, labelpad = 22)
 
-			ax.set_title('membrane lengths' + change, y = 1.5)
+			ax.set_title('Membrane lengths:' + change, y = 1.4)
 
-			pyp.xticks(rotation = 80)
+			pyp.xticks(rotation = 70)
 			ax.axis('tight')
 			
 			pyp.show()
@@ -342,6 +442,7 @@ class stoch_model:
 		self.results = []
 		for run in range(runs):
 			self.results.append(self.vera_model.run())
+		#pickle.dump(self.results, open("results_1000runs.pkl", "wb"))
 		self.time = self.vera_model.t
 
 	def calc_statistics(self):		
@@ -412,11 +513,11 @@ class stoch_model:
 			yerrs.append((self.fatty_acid_std[i])*100)
 		
 		fig, ax = pyp.subplots()
-		fig_fa_distr = ax.bar(ind, y, width, color = 'r', yerr = yerrs)
-		fig_fa_distr2 = ax.bar(ind + width, y2, width, color = 'g')
+		fig_fa_distr = ax.bar(ind + 0.1, y, width, color = 'b', yerr = yerrs)
+		fig_fa_distr2 = ax.bar(ind + width + 0.1, y2, width, color = 'y')
 		ax.set_ylabel('%')
-		ax.set_title('Fatty acid distribution')
-		ax.set_xticks(ind + width)
+		ax.set_title('Fatty acids distribution')
+		ax.set_xticks(ind + width + 0.1)
 		ax.set_xticklabels(x_names)
 
 		ax.legend((fig_fa_distr[0], fig_fa_distr2[0]), ('Model', 'Klug (2001)'))
@@ -430,19 +531,20 @@ class stoch_model:
 		fig, ax = pyp.subplots()
 		for membrane in self.membrane_lists.keys():
 			ax.plot(self.time, self.mean_time_lists[membrane], label = membrane)
-		ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
+		ax.legend([membrane.replace('_', ' ') for membrane in self.membrane_lists.keys()], loc = 'center right', prop = {'size': 11})
 		ax.set_title('Membranes growth')
 		ax.set_ylabel('# of lipids')
 		ax.set_xlabel('time in s')
 		pyp.show()
 
 		#histogram of the membrane lengths after the run: x = membrane, y = mean value membrane lengths
-		x_names = self.membrane_lists.keys()
+		x_names_long = self.membrane_lists.keys()
+		x_names = [x_names_long[i].replace('_', ' ') for i in range(len(x_names_long))]
 		ind = np.arange(len(x_names))
 		width = 0.35
 		y = []
 		std = []
-		for membrane in x_names:
+		for membrane in x_names_long:
 			y.append(self.membranes_length[membrane])
 			std.append(self.membranes_length_std[membrane])
 		fig, ax = pyp.subplots()
@@ -457,14 +559,14 @@ class stoch_model:
 	def plot_membrane_comp(self):
 		#histogram of the membrane compositions: x = lipids, y = percentages (a histogram for each membrane)
 		zinser = {'plasma_membrane': {'PS': 0.17320, 'PI': 0.09124, 'PC': 0.08660, 'PE': 0.10464, 'CL': 0.00103, 'PA': 0.02010, 'ES': 0.48454, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.03557},\
-		'secretory_vesicles': {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.05029},\
-		'vacuoles': {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.06525},\
-		'nucleus': {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.02622},\
-		'peroxisomes': {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
-		'light_microsomes': {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.00397},\
-		'inner_mit_membrane': {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
-		'outer_mit_membrane': {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
-		'lipid_droplets': {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA': 0.0, 'ES': 0.0, 'SE': 0.5, 'TAG': 0.5, 'SL': 0.0}}
+				'secretory_vesicles': {'PS': 0.08205, 'PI': 0.11745, 'PC': 0.20824, 'PE': 0.13573, 'CL': 0.01239, 'PA': 0.01525, 'ES': 0.42900, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.05029},\
+				'vacuoles': {'PS': 0.04817, 'PI': 0.16604, 'PC': 0.40517, 'PE': 0.17537, 'CL': 0.02442, 'PA': 0.02866, 'ES': 0.15200, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.06525},\
+				'nucleus': {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.02622},\
+				'peroxisomes': {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
+				'light_microsomes': {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.00397},\
+				'inner_mit_membrane': {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
+				'outer_mit_membrane': {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
+				'lipid_droplets': {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA': 0.0, 'ES': 0.0, 'SE': 0.5, 'TAG': 0.5, 'SL': 0.0}}
 
 		membranes = self.membrane_lists.keys()
 		for membrane in membranes:
@@ -485,7 +587,7 @@ class stoch_model:
 			fig_membrane_comp2 = ax.bar(ind + width, y2, width, color = 'y')
 
 			ax.set_ylabel('%')
-			ax.set_title(membrane + ' lipid composition', y = 1.03)
+			ax.set_title(membrane.replace('_', ' ').title() + ' lipid composition', y = 1.03)
 			ax.set_xticks(ind + width)
 			ax.set_xticklabels(x_names)
 
