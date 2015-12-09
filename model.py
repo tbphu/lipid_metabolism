@@ -32,7 +32,7 @@ class lipids(object):
 		self.nucleus_comp = {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781}
 		self.peroxisomes_comp = {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150}
 		self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222}
-		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137}
+		self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.12273, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137}
 		self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360}
 		self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0}
 		self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
@@ -299,16 +299,16 @@ class model:
 		self.volume = 35
 
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 'acyl_synthase': 450, 'PA_synthese': 17, \
-						'CDP_DG_synthase': 20, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_phosphatase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
+						'CDP_DG_synthase': 20, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_kinase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
 						'PE_synthase': 12, 'PC_synthase': 5, 'CL_synthase': 2, 'Ergosterol_synthase': 0, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
 		self.probability = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 'acetyl_coa_synthase': 0.8, 'acyl_synthase': 0.5, \
 							'acyl_synthase_C16': 0.375, 'acyl_synthase_C18': 0.998, 'lyso_PA_synthase': 0.45, 'PA_synthase': 0.2, 'CDP_DG_synthase': 0.8, \
-							'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_phosphatase': 0.1, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
+							'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_kinase': 0.1, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
 							'PE_synthase': 0.5, 'PC_synthase': 0.5, 'CL_synthase': 0.05, 'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.4, 'Sphingolipid_synthase': 0.2}
 
-		self.probability_G1 = {'DAG_synthase': 0.3, 'TAG_synthase': 0.2, 'TAG_lipase': 0.05, 'DAG_phosphatase': 0.03}
+		self.probability_G1 = {'DAG_synthase': 0.3, 'TAG_synthase': 0.2, 'TAG_lipase': 0.05, 'DAG_kinase': 0.03}
 
-		self.probability_S_M = {'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.6, 'DAG_phosphatase': 0.1, 'Sterylester_synthase': 0.2}
+		self.probability_S_M = {'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.6, 'DAG_kinase': 0.1, 'Sterylester_synthase': 0.2}
 
 		self.manual_threshold = {reaction: 1-prob for reaction, prob in self.probability.iteritems()}
 
@@ -498,7 +498,7 @@ class model:
 						
 								'TAG_lipase': 1- (float(len(self.lipid_droplets)) / (self.Km['TAG_lipase']['lipid_droplets'] + float(len(self.lipid_droplets)))), \
 						
-								'DAG_phosphatase': 1- (float(len(self.DAG_list)) / (self.Km['DAG_phosphatase']['DAG'] + float(len(self.DAG_list)))), \
+								'DAG_kinase': 1- (float(len(self.DAG_list)) / (self.Km['DAG_kinase']['DAG'] + float(len(self.DAG_list)))), \
 						
 								'PS_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
 												* (self.precursors_dict['serine'] / (self.Km['PS_synthase']['serine'] + self.precursors_dict['serine']))),\
@@ -524,18 +524,18 @@ class model:
 														* (self.precursors_dict['ceramide'] / (self.Km['Sphingolipid_synthase']['ceramide'] + self.precursors_dict['ceramide'])))}
 
 		
-			self.probabilities = self.thresholds 						#manual_threshold 			
+			self.probabilities = self.thresholds 						#manual_threshold 	
 			
 			if self.phase == 'G1':
 				self.probabilities['DAG_synthase'] = 1- self.probability_G1['DAG_synthase']
 				self.probabilities['TAG_synthase'] = 1- self.probability_G1['TAG_synthase']
 				self.probabilities['TAG_lipase'] = 1- self.probability_G1['TAG_lipase']
-				self.probabilities['DAG_phosphatase'] = 1- self.probability_G1['DAG_phosphatase']
+				self.probabilities['DAG_kinase'] = 1- self.probability_G1['DAG_kinase']
 			else:
 				self.probabilities['DAG_synthase'] = 1- self.probability_S_M['DAG_synthase']
 				self.probabilities['TAG_synthase'] = 1- self.probability_S_M['TAG_synthase']
 				self.probabilities['TAG_lipase'] = 1- self.probability_S_M['TAG_lipase']
-				self.probabilities['DAG_phosphatase'] = 1- self.probability_S_M['DAG_phosphatase']
+				self.probabilities['DAG_kinase'] = 1- self.probability_S_M['DAG_kinase']
 				self.probabilities['Sterylester_synthase'] = 1- self.probability_S_M['Sterylester_synthase']
 						
 
@@ -553,7 +553,7 @@ class model:
 								self.PC_synthase,
 								self.CL_synthase,
 								self.TAG_lipase,
-								self.DAG_phosphatase,
+								self.DAG_kinase,
 								self.Ergosterol_synthase,
 								self.Sterylester_synthase,
 								self.Sphingolipid_synthase,
@@ -669,7 +669,7 @@ class model:
 		self.nucleus_comp_start = [0.04038, 0.09650, 0.27645, 0.16848, 0.01049, 0.01781, 0.390, 0.0, 0.0, 0.02622]
 		self.peroxisomes_comp_start = [0.03235, 0.11360, 0.34656, 0.16465, 0.05033, 0.01150, 0.281, 0.0, 0.0, 0.0]
 		self.light_microsomes_comp_start = [0.05304, 0.06019, 0.40796, 0.26583, 0.00381, 0.00222, 0.206, 0.0, 0.0, 0.00397]
-		self.inner_mit_membrane_comp_start = [0.02880, 0.06019, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0, 0.0]
+		self.inner_mit_membrane_comp_start = [0.02880, 0.12273, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0, 0.0]
 		self.outer_mit_membrane_comp_start = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0, 0.0, 0.0]
 		self.lipid_droplets_comp_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0]
 		
@@ -768,7 +768,7 @@ class model:
 						'DAG_synthase': {'PA': 5.}, \
 						'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
 						'TAG_lipase': {'lipid_droplets': 0.}, \
-						'DAG_phosphatase': {'DAG': 5.}, \
+						'DAG_kinase': {'DAG': 5.}, \
 						'PS_synthase': {'CDP_DG': 5., 'serine': 0.},\
 						'PI_synthase': {'CDP_DG': 5., 'inositol': 0.}, \
 						'PE_synthase': {'PS': 5.}, \
@@ -792,7 +792,7 @@ class model:
 						'DAG_synthase': {'PA': 5.}, \
 						'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
 						'TAG_lipase': {'lipid_droplets': float(len(self.lipid_droplets)) / self.probability['TAG_lipase'] - float(len(self.lipid_droplets))}, \
-						'DAG_phosphatase': {'DAG': 5.}, \
+						'DAG_kinase': {'DAG': 5.}, \
 						'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_dict['serine'] / self.probability['PS_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) - self.precursors_dict['serine']},\
 						'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_dict['inositol'] / self.probability['PI_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) - self.precursors_dict['inositol']}, \
 						'PE_synthase': {'PS': 5.}, \
@@ -1094,11 +1094,11 @@ class model:
 					del self.lipid_droplets[z]
 
 
-	def DAG_phosphatase(self):
-		if len(self.DAG_list) > self.rates['DAG_phosphatase']:
-			for i in range(self.rates['DAG_phosphatase']):
+	def DAG_kinase(self):
+		if len(self.DAG_list) > self.rates['DAG_kinase']:
+			for i in range(self.rates['DAG_kinase']):
 				x = random.random()
-				if x >= self.probabilities['DAG_phosphatase']:
+				if x >= self.probabilities['DAG_kinase']:
 					z = random.randint(0, len(self.DAG_list)-1)
 					self.PA_list.append(self.DAG_list[z])
 					self.PA_list[-1].head = 'p'

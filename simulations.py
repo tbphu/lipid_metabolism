@@ -88,7 +88,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[par + ' rate + 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[par + ' rate + 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_r+10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[par + ' rate + 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_r+10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
 		
 		#sensitivits of rates (-10%)
@@ -98,7 +98,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[par + ' rate - 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[par + ' rate - 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_r-10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[par + ' rate - 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_r-10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
 		
 		#sensitivity of probabilities (+10%)
@@ -112,7 +112,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[prob + ' probability + 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[prob + ' probability + 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_p+10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[prob + ' probability + 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_p+10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.probability[prob] = self.probabilities[prob]
 			if prob in self.vera_model.probability_G1.keys():
 				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
@@ -130,7 +130,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[prob + ' probability - 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[prob + ' probability - 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_p-10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[prob + ' probability - 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_p-10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.probability[prob] = self.probabilities[prob]	
 			if prob in self.vera_model.probability_G1.keys():
 				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
@@ -144,7 +144,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[self.membranes_list[weight] + ' compartment weights + 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights + 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_comp+10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights + 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_comp+10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
 		
 		#sensitivity of comp weights (-10%)
@@ -154,7 +154,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[self.membranes_list[weight] + ' compartment weights - 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights - 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_comp-10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights - 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_comp-10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
 		
 		#sensitivity of fa weights (+10%)
@@ -169,7 +169,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[self.fa[weight] + ' fatty acid weights + 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights + 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_fa+10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights + 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_fa+10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
 			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
 		
@@ -185,7 +185,7 @@ class stoch_model:
 			for run in range(runs):
 				self.results[self.fa[weight] + ' fatty acid weights - 10 %'].append(self.vera_model.run())
 				if run > 0 and run % 10 == 0:
-					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights - 10 %'][run-10:run], open("./sens_analysis_start_26-11-15/results_sens_fa-10 run-"+str(run)+".pkl", "wb"))
+					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights - 10 %'][run-10:run], open("./sens_analysis_start_03-12-15/results_sens_fa-10 run-"+str(run)+".pkl", "wb"))
 			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
 			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
 		
@@ -442,7 +442,7 @@ class stoch_model:
 		self.results = []
 		for run in range(runs):
 			self.results.append(self.vera_model.run())
-		#pickle.dump(self.results, open("results_1000runs.pkl", "wb"))
+		pickle.dump(self.results, open("ergosterol_final_1000runs.pkl", "wb"))
 		self.time = self.vera_model.t
 
 	def calc_statistics(self):		
@@ -506,7 +506,7 @@ class stoch_model:
 		y2 = [50, 10, 30, 10]
 		x_names = self.fatty_acid_distribution.keys()
 		ind = np.arange(len(x_names))
-		width = 0.35
+		width = 0.25
 		yerrs = []
 		for i in x_names:
 			y.append((self.fatty_acid_distribution[i])*100)
@@ -530,9 +530,9 @@ class stoch_model:
 		#graph of membrane growth: x = time, y = membrane length
 		fig, ax = pyp.subplots()
 		for membrane in self.membrane_lists.keys():
-			ax.plot(self.time, self.mean_time_lists[membrane], label = membrane)
+			ax.plot(self.time, self.mean_time_lists[membrane], label = membrane, linewidth = 2.0)
 		ax.legend([membrane.replace('_', ' ') for membrane in self.membrane_lists.keys()], loc = 'center right', prop = {'size': 11})
-		ax.set_title('Membranes growth')
+		ax.set_title("Membrane growth")
 		ax.set_ylabel('# of lipids')
 		ax.set_xlabel('time in s')
 		pyp.show()
@@ -551,7 +551,7 @@ class stoch_model:
 		fig_membrane_bars = pyp.bar(ind, y, width, color = 'b', yerr = std)
 		ax.set_xticks(ind + (width/2))
 		ax.set_xticklabels(x_names)
-		ax.set_title('Membrane lengths after 7200 s', y = 1.03)
+		ax.set_title("Membrane length after 7200 s", y = 1.03)
 		pyp.xticks(rotation = 60)
 		pyp.show()
 
@@ -564,7 +564,7 @@ class stoch_model:
 				'nucleus': {'PS': 0.04038, 'PI': 0.09650, 'PC': 0.27645, 'PE': 0.16848, 'CL': 0.01049, 'PA': 0.01781, 'ES': 0.390, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.02622},\
 				'peroxisomes': {'PS': 0.03235, 'PI': 0.11360, 'PC': 0.34656, 'PE': 0.16465, 'CL': 0.05033, 'PA': 0.01150, 'ES': 0.281, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
 				'light_microsomes': {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222, 'ES': 0.206, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.00397},\
-				'inner_mit_membrane': {'PS': 0.02880, 'PI': 0.06019, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
+				'inner_mit_membrane': {'PS': 0.02880, 'PI': 0.12273, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137, 'ES': 0.242, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
 				'outer_mit_membrane': {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360, 'ES': 0.009, 'SE': 0.0, 'TAG': 0.0, 'SL': 0.0},\
 				'lipid_droplets': {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA': 0.0, 'ES': 0.0, 'SE': 0.5, 'TAG': 0.5, 'SL': 0.0}}
 
