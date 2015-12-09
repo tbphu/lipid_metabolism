@@ -300,7 +300,7 @@ class model:
 
 		self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 'acyl_synthase': 450, 'PA_synthese': 17, \
 						'CDP_DG_synthase': 20, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_kinase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
-						'PE_synthase': 12, 'PC_synthase': 5, 'CL_synthase': 2, 'Ergosterol_synthase': 0, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
+						'PE_synthase': 12, 'PC_synthase': 5, 'CL_synthase': 2, 'Ergosterol_synthase': 25, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
 		self.probability = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 'acetyl_coa_synthase': 0.8, 'acyl_synthase': 0.5, \
 							'acyl_synthase_C16': 0.375, 'acyl_synthase_C18': 0.998, 'lyso_PA_synthase': 0.45, 'PA_synthase': 0.2, 'CDP_DG_synthase': 0.8, \
 							'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_kinase': 0.1, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
