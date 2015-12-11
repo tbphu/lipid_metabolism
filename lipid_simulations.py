@@ -58,11 +58,11 @@ class stoch_model:
 		if sensitivity:
 			self.results = {}
 			self.sensitivity_analysis(runs, change)
-			self.sensitivity_statistics()
+			#self.sensitivity_statistics()
 		#plot heatmaps of sesitivity analysis	
-			self.heatmap_fatty_acids()
-			self.heatmap_membrane_comp()
-			self.heatmap_membrane_length()
+			#self.heatmap_fatty_acids()
+			#self.heatmap_membrane_comp()
+			#self.heatmap_membrane_length()
 
 		#no sensitivity analysis
 		else:
@@ -80,27 +80,27 @@ class stoch_model:
 		self.results['Wildtype'] = []
 		for run in range(runs):
 			self.results['Wildtype'].append(self.vera_model.run())
-			if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results['Wildtype'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_wildtype_run-"+str(run+1)+".pkl", "wb"))
+			#if run > 0 and (run+1) % 10 == 0:
+		pickle.dump(self.results['Wildtype'], open("./sens_analysis_start_10-12-15/Wildtype.pkl", "wb"))
 		
 		#sensitivity of rates (+10%)
 		for par in self.rates:
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] + self.vera_model.rates[par] * change))
-			self.results[par + ' rate + 10 %'] = []
+			self.results[par + 'rate+10'] = []
 			for run in range(runs):
-				self.results[par + ' rate + 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[par + ' rate + 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_r+10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[par + 'rate+10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[par + 'rate+10'], open("./sens_analysis_start_10-12-15/"+par+"rate+10.pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
-		
+		'''
 		#sensitivits of rates (-10%)
 		for par in self.rates:
 			self.vera_model.rates[par] = int(round(self.vera_model.rates[par] - self.vera_model.rates[par] * change))
-			self.results[par + ' rate - 10 %'] = []
+			self.results[par + 'rate-10'] = []
 			for run in range(runs):
-				self.results[par + ' rate - 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[par + ' rate - 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_r-10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[par + 'rate-10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[par + 'rate-10'], open("./sens_analysis_start_10-12-15/"+par+"rate-10.pkl", "wb"))
 			self.vera_model.rates[par] = self.rates[par]
 		
 		#sensitivity of probabilities (+10%)
@@ -110,11 +110,11 @@ class stoch_model:
 				self.vera_model.probability_G1[prob] = self.vera_model.probability_G1[prob] + self.vera_model.probability_G1[prob] * change
 			if prob in self.vera_model.probability_S_M.keys():
 				self.vera_model.probability_S_M[prob] = self.vera_model.probability_S_M[prob] + self.vera_model.probability_S_M[prob] * change
-			self.results[prob + ' probability + 10 %'] = []
+			self.results[prob + 'probability+10'] = []
 			for run in range(runs):
-				self.results[prob + ' probability + 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[prob + ' probability + 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_p+10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[prob + 'probability+10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[prob + 'probability+10'], open("./sens_analysis_start_10-12-15/"+prob+"probability+10.pkl", "wb"))
 			self.vera_model.probability[prob] = self.probabilities[prob]
 			if prob in self.vera_model.probability_G1.keys():
 				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
@@ -128,11 +128,11 @@ class stoch_model:
 				self.vera_model.probability_G1[prob] = self.vera_model.probability_G1[prob] - self.vera_model.probability_G1[prob] * change
 			if prob in self.vera_model.probability_S_M.keys():
 				self.vera_model.probability_S_M[prob] = self.vera_model.probability_S_M[prob] - self.vera_model.probability_S_M[prob] * change
-			self.results[prob + ' probability - 10 %'] = []
+			self.results[prob + 'probability-10'] = []
 			for run in range(runs):
-				self.results[prob + ' probability - 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[prob + ' probability - 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_p-10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[prob + 'probability-10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[prob + 'probability-10'], open("./sens_analysis_start_10-12-15/"+prob+"probability-10.pkl", "wb"))
 			self.vera_model.probability[prob] = self.probabilities[prob]	
 			if prob in self.vera_model.probability_G1.keys():
 				self.vera_model.probability_G1[prob] = self.probabilities_G1[prob]
@@ -142,21 +142,21 @@ class stoch_model:
 		#sensitivity of comp weights (+10%)
 		for weight in range(len(self.comp_weights)):
 			self.vera_model.compartment_weights[weight] = self.vera_model.compartment_weights[weight] + self.vera_model.compartment_weights[weight] * change
-			self.results[self.membranes_list[weight] + ' compartment weights + 10 %'] = []
+			self.results[self.membranes_list[weight] + 'compartment_weights+10'] = []
 			for run in range(runs):
-				self.results[self.membranes_list[weight] + ' compartment weights + 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights + 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_comp+10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[self.membranes_list[weight] + 'compartment_weights+10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[self.membranes_list[weight] + 'compartment_weights+10'], open("./sens_analysis_start_10-12-15/"+self.membranes_list[weight]+"compartment_weights+10.pkl", "wb"))
 			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
 		
 		#sensitivity of comp weights (-10%)
 		for weight in range(len(self.comp_weights)):
 			self.vera_model.compartment_weights[weight] = self.vera_model.compartment_weights[weight] - self.vera_model.compartment_weights[weight] * change
-			self.results[self.membranes_list[weight] + ' compartment weights - 10 %'] = []
+			self.results[self.membranes_list[weight] + 'compartment_weights-10'] = []
 			for run in range(runs):
-				self.results[self.membranes_list[weight] + ' compartment weights - 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[self.membranes_list[weight] + ' compartment weights - 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_comp-10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[self.membranes_list[weight] + 'compartment_weights-10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+				pickle.dump(self.results[self.membranes_list[weight] + 'compartment_weights-10'], open("./sens_analysis_start_10-12-15/"+self.membranes_list[weight]+"compartment_weights-10.pkl", "wb"))
 			self.vera_model.compartment_weights[weight] = self.comp_weights[weight]	
 		
 		#sensitivity of fa weights (+10%)
@@ -167,11 +167,11 @@ class stoch_model:
 				weight2 = 0
 			self.vera_model.weights_fa[weight2] = self.vera_model.weights_fa[weight2] - self.vera_model.weights_fa[weight] * change
 			self.vera_model.weights_fa[weight] = self.vera_model.weights_fa[weight] + self.vera_model.weights_fa[weight] * change
-			self.results[self.fa[weight] + ' fatty acid weights + 10 %'] = []
+			self.results[self.fa[weight] + 'fatty_acid_weights+10'] = []
 			for run in range(runs):
-				self.results[self.fa[weight] + ' fatty acid weights + 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights + 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_fa+10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[self.fa[weight] + 'fatty_acid_weights+10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[self.fa[weight] + 'fatty_acid_weights+10'], open("./sens_analysis_start_10-12-15/"+self.fa[weight]+"fatty_acid_weights+10.pkl", "wb"))
 			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
 			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
 		
@@ -183,16 +183,17 @@ class stoch_model:
 				weight2 = 0
 			self.vera_model.weights_fa[weight2] = self.vera_model.weights_fa[weight2] + self.vera_model.weights_fa[weight] * change
 			self.vera_model.weights_fa[weight] = self.vera_model.weights_fa[weight] - self.vera_model.weights_fa[weight] * change
-			self.results[self.fa[weight] + ' fatty acid weights - 10 %'] = []
+			self.results[self.fa[weight] + 'fatty_acid_weights-10'] = []
 			for run in range(runs):
-				self.results[self.fa[weight] + ' fatty acid weights - 10 %'].append(self.vera_model.run())
-				if run > 0 and (run+1) % 10 == 0:
-					pickle.dump(self.results[self.fa[weight] + ' fatty acid weights - 10 %'][(run-9):(run+1)], open("./sens_analysis_start_10-12-15/results_sens_fa-10_run-"+str(run+1)+".pkl", "wb"))
+				self.results[self.fa[weight] + 'fatty_acid_weights-10'].append(self.vera_model.run())
+				#if run > 0 and (run+1) % 10 == 0:
+			pickle.dump(self.results[self.fa[weight] + 'fatty_acid_weights-10'], open("./sens_analysis_start_10-12-15/"+self.fa[weight]+"fatty_acid_weights-10.pkl", "wb"))
 			self.vera_model.weights_fa[weight] = self.fa_weights[weight]
 			self.vera_model.weights_fa[weight2]	= self.fa_weights[weight2]
-		
+		'''
 		#time list imported from model
 		self.time = self.vera_model.t
+		pickle.dump(self.results.keys(), open("./sens_analysis_start_10-12-15/results_sens_keys.pkl", "wb"))
 			
 
 	def sensitivity_statistics(self):
