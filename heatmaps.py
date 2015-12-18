@@ -56,37 +56,45 @@ class stoch_model:
 		
 		self.time = [i for i in range(7200)]
 
-		self.fatty_acid_distribution = pickle.load(open("./sens_analysis_start_10-12-15/fa_distr_mean.pkl", "rb"))
-		self.fatty_acid_std = pickle.load(open("./sens_analysis_start_10-12-15/fa_distr_std.pkl", "rb"))
-		self.mean_time_lists = pickle.load(open("./sens_analysis_start_10-12-15/membranes_length_mean.pkl", "rb"))
-		self.std_time_lists = pickle.load(open("./sens_analysis_start_10-12-15/membranes_length_std.pkl", "rb"))
-		self.membrane_comp_mean = pickle.load(open("./sens_analysis_start_10-12-15/membrane_comp_mean.pkl", "rb"))
-		self.membrane_comp_std = pickle.load(open("./sens_analysis_start_10-12-15/membrane_comp_std.pkl", "rb"))
+		self.fatty_acid_distribution = pickle.load(open("./sens_analysis_start_11-12-15/fa_distr_mean.pkl", "rb"))
+		self.fatty_acid_std = pickle.load(open("./sens_analysis_start_11-12-15/fa_distr_std.pkl", "rb"))
+		self.mean_time_lists = pickle.load(open("./sens_analysis_start_11-12-15/membranes_length_mean.pkl", "rb"))
+		self.std_time_lists = pickle.load(open("./sens_analysis_start_11-12-15/membranes_length_std.pkl", "rb"))
+		self.membrane_comp_mean = pickle.load(open("./sens_analysis_start_11-12-15/membrane_comp_mean.pkl", "rb"))
+		self.membrane_comp_std = pickle.load(open("./sens_analysis_start_11-12-15/membrane_comp_std.pkl", "rb"))
 		#plot heatmaps of sesitivity analysis	
 		self.heatmap_fatty_acids()
-		self.heatmap_membrane_comp()
+		#self.heatmap_membrane_comp()
 		self.heatmap_membrane_length()
 
 
 	def heatmap_fatty_acids(self):
 		#heatmap of fatty acid distributions: x = fatty acids, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = ['rate+10']#, 'rate-10', 'probability+10', 'probability-10', 'compartment_weights+10', 'compartment_weights-10', 'fatty_acid_weights+10', 'fatty_acid_weights-10']
+		heatmaps_change = ['rate+10', 'rate-10', 'probability+10', 'probability-10', 'compartment_weights+10', 'compartment_weights-10', 'fatty_acid_weights+10', 'fatty_acid_weights-10']
 		for change in heatmaps_change:
 			if 'rate' in change: 
 				column_labels = ['Wildtype']
 				for par in self.rates:
 					column_labels.append(par)
+					v_max = 0.015
+					v_min = -0.015
 
 			elif 'probability' in change: 
 				column_labels = ['Wildtype']
 				for par in self.probabilities:
 					column_labels.append(par)
+					v_max = 0.01
+					v_min = -0.01
 
 			elif 'compartment' in change:
 				column_labels = self.membranes_list[:-1]
+				v_max = 0.0015
+				v_min = -0.0015
 
-			elif 'fatty acid' in change:
+			elif 'fatty' in change:
 				column_labels = self.fa
+				v_max = 0.1
+				v_min = -0.1
 
 			row_labels = self.fatty_acids
 			self.heatmap_fa = []
@@ -116,7 +124,7 @@ class stoch_model:
 
 			self.heatmap_fa = np.asarray(self.heatmap_fa)
 			fig, ax = pyp.subplots()
-			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.Blues)#, vmax = 0.2, vmin = -0.2)
+			general_heatmap = ax.pcolor(self.heatmap_fa, cmap = pyp.cm.seismic, vmax = v_max, vmin = v_min)
 
 			ax.set_xticks(np.arange(self.heatmap_fa.shape[1])+0.5, minor = False)
 			ax.set_yticks(np.arange(self.heatmap_fa.shape[0])+0.5, minor = False)
@@ -130,14 +138,14 @@ class stoch_model:
 			cbar = pyp.colorbar(general_heatmap)
 			cbar.ax.set_ylabel('log2 change', rotation = 270, labelpad = 22)
 
-			ax.set_title('Fatty acids distribution:' + change, y = 1.07)
+			ax.set_title('Fatty acids distribution: ' + change, y = 1.07)
 			ax.axis('tight')
 			
 			pyp.show()
 
 	def heatmap_membrane_comp(self):
 		#heatmap of membrane compositions: x = lipids, y = reaction (4 heatmaps for each membrane, 4 x 9 heatmaps)
-		heatmaps_change = ['rate+10']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %', ' compartment weights + 10 %', ' compartment weights - 10 %', ' fatty acid weights + 10 %', ' fatty acid weights - 10 %']
+		heatmaps_change = ['rate+10', 'rate-10', 'probability+10', 'probability-10', 'compartment_weights+10', 'compartment_weights-10', 'fatty_acid_weights+10', 'fatty_acid_weights-10']
 
 		for membrane in self.membranes_list:
 			for change in heatmaps_change:
@@ -150,8 +158,8 @@ class stoch_model:
 					for par in self.probabilities:
 						column_labels.append(par)
 				elif 'compartment' in change:
-					column_labels = self.membranes_list
-				elif 'fatty acid' in change:
+					column_labels = self.membranes_list[:-1]
+				elif 'fatty' in change:
 					column_labels = self.fa
 
 				self.heatmap_membrane = []
@@ -189,7 +197,7 @@ class stoch_model:
 				cbar = pyp.colorbar(general_heatmap)
 				cbar.ax.set_ylabel('log2 change', rotation = 270, labelpad = 22)
 
-				ax.set_title(membrane.replace('_', ' ').title() + ' composition:' + change, y = 1.1)
+				ax.set_title(membrane.replace('_', ' ').title() + ' composition: ' + change, y = 1.1)
 				ax.axis('tight')
 				
 				pyp.show()
@@ -197,7 +205,7 @@ class stoch_model:
 
 	def heatmap_membrane_length(self):
 		#heatmap of membrane lengths: x = membrane, y = reaction (4 heatmaps: rates +/- 10%, probabilities +/- 10%)
-		heatmaps_change = ['rate+10']#, ' rate - 10 %', ' probability + 10 %', ' probability - 10 %', ' compartment weights + 10 %', ' compartment weights - 10 %', ' fatty acid weights + 10 %', ' fatty acid weights - 10 %']
+		heatmaps_change = ['rate+10', 'rate-10', 'probability+10', 'probability-10', 'compartment_weights+10', 'compartment_weights-10', 'fatty_acid_weights+10', 'fatty_acid_weights-10']
 		row_labels = self.membranes_list[:-1]
 
 		for change in heatmaps_change:
@@ -210,8 +218,8 @@ class stoch_model:
 				for par in self.probabilities:
 					column_labels.append(par)
 			elif 'compartment' in change:
-				column_labels = self.membranes_list
-			elif 'fatty acid' in change:
+				column_labels = self.membranes_list[:-1]
+			elif 'fatty' in change:
 				column_labels = self.fa
 
 			self.heatmap_mem_length = []
@@ -247,7 +255,7 @@ class stoch_model:
 			cbar = pyp.colorbar(general_heatmap)
 			cbar.ax.set_ylabel('log2 change', rotation=270, labelpad = 22)
 
-			ax.set_title('Membrane lengths:' + change, y = 1.4)
+			ax.set_title('Membrane lengths: ' + change, y = 1.4)
 
 			pyp.xticks(rotation = 70)
 			ax.axis('tight')
