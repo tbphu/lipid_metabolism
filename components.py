@@ -172,6 +172,14 @@ class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
     Attribute saturation: 0 = saturated, 1 = unsaturated
     """
     def __init__(self, C, saturation):
+        """
+        Parameters
+        ----------
+        C: int
+            number of C-Atoms
+        saturation: 0,1
+            FA saturated
+        """
         self.C = C
         self.saturation = saturation
 
@@ -203,6 +211,14 @@ class sterol(object):
     Head options: sterol, sterylester
     """
     def __init__(self, head, comp, comp_weights):
+        """
+        head: str
+            head group
+        comp: str
+            compartment
+        comp_weights: list
+            list of compartment weights (probability)
+        """
         # possible head groups
         self.head_options = ['sterol', 'sterylester']
         # possible first compartments
@@ -270,6 +286,16 @@ class sterylester(object):
     Head options: sterylester
     """
     def __init__(self, head, FA, comp, comp_weights):
+        """
+        head: str
+            head group
+        FA: str
+            FA type
+        comp: str
+            compartment
+        comp_weights: list
+            compartment weights (probability)
+        """
         # possible head groups
         self.head_options = ['sterylester']
         # possible first compartments
@@ -315,6 +341,16 @@ class sphingolipid(object):
     Head options: ceramide
     """
     def __init__(self, head, comp, comp_weights):
+        """
+        Parameters
+        ----------
+        head: str
+            head group
+        comp: str
+            compartment
+        comp_weights: list
+            compartment weights (probability)
+        """
         # possible head groups
         self.head_options = ['ceramide']
         # possible first compartments
