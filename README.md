@@ -2,9 +2,9 @@
 Model of the lipid metabolism in the yeast *Saccharomyces cerevisiae*    
 Written by Vera Schützhold - 2015    
 
-## Model files 
+## Files 
 ### Model files
-* components: Holds component classes for
+* components: component classes for
 	* lipids (phospholipids, TAG, CL)
 	* fatty acids
 	* sterol
