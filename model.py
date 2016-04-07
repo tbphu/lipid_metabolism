@@ -1,7 +1,7 @@
 """
 Simulation class for the lipid metabolism model.
 
-Created/Started on Wed June 03 2015
+@date: 03/06/2015
 @author: Vera Schuetzhold - vera.schue@gmail.com
 """
 import matplotlib.pyplot as mat
