@@ -4,10 +4,10 @@ Component classes for the lipid metabolism model.
 @date: 03/06/2015
 @author: Vera Schuetzhold - vera.schue@gmail.com
 """
-from numpy.random import choice
+import numpy as np
 
 
-class lipids(object):
+class Lipids(object):
     """
     Lipid class
     ===========
@@ -126,10 +126,10 @@ class lipids(object):
             weights = [self.comp_weights[i] * self.membranes_comp[i]['PA'] for i in range(len(self.comp_weights))]
             weights_normal = [weight / sum(weights) for weight in weights]
         # take the actual decision
-        self.comp = choice(self.compartment, p=weights_normal)
+        self.comp = np.random.choice(self.compartment, p=weights_normal)
 
 
-class TAG(lipids):
+class TAG(Lipids):
     """
     TAG class
     """
@@ -144,7 +144,7 @@ class TAG(lipids):
         self.comp = 'lipid_droplets'
 
 
-class CL(lipids):
+class CL(Lipids):
     """
     CL class
     """
@@ -160,10 +160,10 @@ class CL(lipids):
         weights = [self.comp_weights[i] * self.membranes_comp[i]['CL'] for i in range(len(self.comp_weights))]
         weights_normal = [weight / sum(weights) for weight in weights]
         # take the actual decision
-        self.comp = choice(self.compartment, p=weights_normal)
+        self.comp = np.random.choice(self.compartment, p=weights_normal)
 
 
-class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
+class FattyAcids(object):	#name als attribut statt der einzelnen unterklassen
     """
     Fatty acid class
     ================
@@ -204,7 +204,7 @@ class fatty_acids(object):	#name als attribut statt der einzelnen unterklassen
         self.__saturation = number
 
 
-class sterol(object):
+class Sterol(object):
     """
     Sterol class
     ============
@@ -256,7 +256,7 @@ class sterol(object):
         if sum(weights) != 0:
             weights_normal = [weight / sum(weights) for weight in weights]
             # take the actual decision
-            self.comp = choice(self.compartment, p=weights_normal)
+            self.comp = np.random.choice(self.compartment, p=weights_normal)
 
     @property
     def head(self):
@@ -279,7 +279,7 @@ class sterol(object):
         self.__comp = local
 
 
-class sterylester(object):
+class Sterylester(object):
     """
     Sterylester class
     =================
@@ -334,7 +334,7 @@ class sterylester(object):
         self.__comp = local
 
 
-class sphingolipid(object):
+class Sphingolipid(object):
     """
     Sphingolipid class
     ==================
@@ -388,7 +388,7 @@ class sphingolipid(object):
         if sum(weights) != 0:
             weights_normal = [weight / sum(weights) for weight in weights]
             # take the actual decision
-            self.comp = choice(self.compartment, p=weights_normal)
+            self.comp = np.random.choice(self.compartment, p=weights_normal)
 
     @property
     def head(self):

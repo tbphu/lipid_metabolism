@@ -5,10 +5,10 @@ Simulation class for the lipid metabolism model.
 @author: Vera Schuetzhold - vera.schue@gmail.com
 """
 import matplotlib.pyplot as mat
-import random
-from components import *
+import numpy as np
+import components
 
-class model:
+class Model:
     """
     Model class
     ===========
@@ -293,7 +293,7 @@ class model:
                                   self.transport]
             # all reactions that take place during one second in a random order
             for i in self.function_list:
-                func = random.choice(self.function_list)
+                func = np.random.choice(self.function_list)
                 func()
                 self.function_list.remove(func)
             self.numbers()  # calculating the produced lipids after each time step
@@ -420,22 +420,22 @@ class model:
             for i in range(self.membrane_start[self.compartment[x]]):  # producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
                 self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', 'sterylester', None, 'ceramide']
                 weights_start = self.compositions_start[self.compartment[x]]
-                head = choice(self.head_groups_start, p = weights_start)
+                head = np.random.choice(self.head_groups_start, p = weights_start)
                 if head == 'sterol':
-                    new_lipid = sterol(head, self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Sterol(head, self.compartment[x], self.compartment_weights)
                 elif head == 'sterylester':
-                    new_lipid = sterylester(head, choice(self.chainlength_unsaturated.values(), p = [0.67, 0.33]), self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Sterylester(head, np.random.choice(self.chainlength_unsaturated.values(), p = [0.67, 0.33]), self.compartment[x], self.compartment_weights)
                 elif head == 'ceramide':
-                    new_lipid = sphingolipid(head, self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Sphingolipid(head, self.compartment[x], self.compartment_weights)
                 elif head == 'neutral':
-                    new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
-                                    choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
+                    new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
+                                    np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
                 elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
-                    new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
                 else:
-                    new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
-                    new_lipid.__class__ = TAG
-                    new_lipid.sn3 = choice(self.chainlength_saturated_unsaturated, p=self.saturation_weights_total)
+                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
+                    new_lipid.__class__ = components.TAG
+                    new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated, p=self.saturation_weights_total)
                 membrane.append(new_lipid)
             x += 1
 
@@ -446,26 +446,26 @@ class model:
                 self.head_groups_start_lipids = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'lyso', 'p', 'cdp', 'sterol', 'sterylester', 'dag', None, 'ceramide']
                 head = self.head_groups_start_lipids[z]
                 if head == 'sterol':
-                    new_lipid = sterol(head, None, self.compartment_weights)
+                    new_lipid = components.Sterol(head, None, self.compartment_weights)
                 elif head == 'sterylester':
-                    new_lipid = sterylester(head, choice(self.chainlength_unsaturated.values(), p = [0.67, 0.33]), None, self.compartment_weights)
+                    new_lipid = components.Sterylester(head, np.random.choice(self.chainlength_unsaturated.values(), p = [0.67, 0.33]), None, self.compartment_weights)
                 elif head == 'neutral':
-                    new_lipid = CL(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
-                                            choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
+                                            np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == None:
-                    new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
-                    new_lipid.__class__ = TAG
-                    new_lipid.sn3 = choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total)
+                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid.__class__ = components.TAG
+                    new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total)
                 elif head == 'ceramide':
-                    new_lipid = sphingolipid(head, None, self.compartment_weights)
+                    new_lipid = components.Sphingolipid(head, None, self.compartment_weights)
                 elif head == 'cdp':
-                    new_lipid = lipids('p', choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipids('p', np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == 'lyso':
-                    new_lipid = lipids('p', None, choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipids('p', None, np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == 'dag':
-                    new_lipid = lipids(None, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipids(None, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 else:
-                    new_lipid = lipids(head, choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 lipid_list.append(new_lipid)
             z += 1
 
@@ -473,7 +473,7 @@ class model:
         choice_weights_acyl_start = [0.13, 0.87]
         choice_C_acyl_start = [16, 18]
         for i in range(60):
-            new_acyl = fatty_acids(choice(choice_C_acyl_start), choice(choice_list_acyl_start, p = choice_weights_acyl_start))
+            new_acyl = components.FattyAcids(np.random.choice(choice_C_acyl_start), np.random.choice(choice_list_acyl_start, p = choice_weights_acyl_start))
             if new_acyl.saturation == 0:
                 self.acyl_coa_list_saturated.append(new_acyl)
             else:
@@ -548,7 +548,7 @@ class model:
         Synthesis of glycerol-3-p out of DHAP.
         '''
         for i in range(self.rates['glycerol_3_p_synthesis']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['glycerol_3_p_synthesis']:
                 if self.precursors_dict['DHAP'] > 1:
                     self.precursors_dict['glycerol-3-p'] += 1
@@ -563,7 +563,7 @@ class model:
         phosphatase.
         '''
         for i in range(self.rates['inositol_synthesis']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['inositol_synthesis']:
                 if self.precursors_dict['glucose_6_p'] > 1:
                     self.precursors_dict['inositol'] += 1
@@ -577,7 +577,7 @@ class model:
         Synthesis of ceramide out of serine and a C16:0 fatty acid
         '''
         for i in range(self.rates['ceramide_synthesis']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['ceramide_synthesis']:
                 if len(self.acyl_coa_list_C26) > 1 and self.precursors_dict['serine'] > 1 and len(self.acyl_coa_list_saturated) > 1 and any(fa.C == 16 for fa in self.acyl_coa_list_saturated):
                     self.precursors_dict['ceramide'] += 1
@@ -598,7 +598,7 @@ class model:
         Synthesis of Acetyl-CoA: pyruvate dehydrogenase drives the reaction pyruvate to Acetyl-CoA, CO2 is released
         '''
         for i in range(self.rates['acetyl_coa_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['acetyl_coa_synthase']:
                 if self.precursors_dict['pyruvate'] > 1:			# transformation from pyruvate to acetyl_coa
                     self.precursors_dict['acetyl_coa'] += 1
@@ -616,16 +616,16 @@ class model:
         choice_list = [0, 1]
         choice_weights = [0.12, 0.88]
         for i in range(self.rates['acyl_synthase']):
-            x = random.random()						#5 reactions in 1 timestep but only with a probability of 90%
+            x = np.random.random()						#5 reactions in 1 timestep but only with a probability of 90%
             if self.precursors_dict['acetyl_coa'] > 2:		#control if at least 2 Acetyl-CoA are available
                 if len(self.acyl_coa_list) == 0:		#starting the first reaction
-                    new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
 
                 elif self.acyl_coa_list[-1].C == 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
-                    new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -635,7 +635,7 @@ class model:
                     #CO2 production is not mentioned here as onyl acetyl-CoA is used and not malonyl-CoA, so we need all C-atoms we give in the reaction
 
                 elif self.acyl_coa_list[-1].C == 18 and x >= self.probabilities['acyl_synthase_C18']:	#stop the reaction cycle and starting a new one
-                    new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -645,7 +645,7 @@ class model:
 
                 elif self.acyl_coa_list[-1].C == 26:
                     self.acyl_coa_list[-1].saturation = 0
-                    new_acyl = fatty_acids(2, choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -687,20 +687,20 @@ class model:
 
         weights_pa = [self.precursors_dict['DHAP'] / (self.precursors_dict['DHAP'] + self.precursors_dict['glycerol-3-p']),\
                     self.precursors_dict['glycerol-3-p'] / (self.precursors_dict['DHAP'] + self.precursors_dict['glycerol-3-p'])]
-        x = random.random()
+        x = np.random.random()
         if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 1 and len(self.acyl_coa_list_unsaturated) > 1 and (self.precursors_dict['DHAP'] > 1 and self.precursors_dict['glycerol-3-p'] > 1): 	#at least 1 ffa has to be unsaturated
-            if choice(choice_list, p = self.weights_fa) == 0:
-                sn1_chain = random.randint(0, (len(self.acyl_coa_list_saturated)-1))
+            if np.random.choice(choice_list, p = self.weights_fa) == 0:
+                sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_saturated)-1))
                 chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
-                lyso_pa = lipids('p', None, self.chainlength_saturated[chainlength_sn1], None, self.compartment_weights)
+                lyso_pa = components.Lipids('p', None, self.chainlength_saturated[chainlength_sn1], None, self.compartment_weights)
                 del self.acyl_coa_list_saturated[sn1_chain]
             else:
-                sn1_chain = random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
+                sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
                 chainlength_sn1 = self.acyl_coa_list_unsaturated[sn1_chain].C
-                lyso_pa = lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None, self.compartment_weights)
+                lyso_pa = components.Lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None, self.compartment_weights)
                 del self.acyl_coa_list_unsaturated[sn1_chain]
             self.lyso_pa_list.append(lyso_pa)
-            i = choice(choice_list, p = weights_pa)
+            i = np.random.choice(choice_list, p = weights_pa)
             if i == 0:
                 self.precursors_dict['DHAP'] -= 1
                 self.precursors_dict['NADPH'] += 1
@@ -713,10 +713,10 @@ class model:
         '''
         Synthesis of PA by adding the second fatty acid to lyso_PA (sn2: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
         '''
-        x = random.random()
+        x = np.random.random()
         if x >= self.probabilities['PA_synthase'] and len(self.acyl_coa_list_unsaturated) > 1 and len(self.lyso_pa_list) > 1:
-            z = random.randint(0, (len(self.lyso_pa_list)-1))
-            sn2_chain = random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
+            z = np.random.randint(0, (len(self.lyso_pa_list)-1))
+            sn2_chain = np.random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
             chainlength_sn2 = self.acyl_coa_list_unsaturated[sn2_chain].C
             self.lyso_pa_list[z].sn2 = self.chainlength_unsaturated[chainlength_sn2]
             self.PA_list.append(self.lyso_pa_list[z])
@@ -729,9 +729,9 @@ class model:
         PA is processed to CDP-DG (CDP-diacylglycerol synthase), that further reacts to the phospholipids
         '''
         for i in range(self.rates['CDP_DG_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['CDP_DG_synthase'] and self.precursors_dict['CTP'] > 1 and len(self.PA_list) > 1:
-                z = random.randint(0, len(self.PA_list)-1)
+                z = np.random.randint(0, len(self.PA_list)-1)
                 self.PA_list[z].head = 'cdp'
                 self.CDP_DG_list.append(self.PA_list[z])		#CDP-DG production from PA
                 del self.PA_list[z]
@@ -752,9 +752,9 @@ class model:
         '''
         DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
         '''
-        x = random.random()
+        x = np.random.random()
         if x >= self.probabilities['DAG_synthase'] and len(self.PA_list) > 1:
-            z = random.randint(0, len(self.PA_list)-1)
+            z = np.random.randint(0, len(self.PA_list)-1)
             self.PA_list[z].head = None
             self.DAG_list.append(self.PA_list[z])
             self.precursors_dict['H2O'] -= 1
@@ -766,18 +766,18 @@ class model:
         '''
         DAG is processed to TAG by adding a third acyl-chain at position sn3.
         '''
-        x = random.random()
+        x = np.random.random()
         if x >= self.probabilities['TAG_synthase'] and len(self.DAG_list) > 1 and len(self.acyl_coa_list_saturated) > 1 and len(self.acyl_coa_list_unsaturated) > 1:
-            z = random.randint(0, len(self.DAG_list)-1)
+            z = np.random.randint(0, len(self.DAG_list)-1)
             self.TAG_list.append(self.DAG_list[z])
-            self.TAG_list[-1].__class__ = TAG
+            self.TAG_list[-1].__class__ = components.TAG
             if x <= 0.575:
-                sn3 = random.randint(0, len(self.acyl_coa_list_saturated)-1)
+                sn3 = np.random.randint(0, len(self.acyl_coa_list_saturated)-1)
                 chainlength_sn3 = self.acyl_coa_list_saturated[sn3].C
                 self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
                 del self.acyl_coa_list_saturated[sn3]
             else:
-                sn3 = random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
+                sn3 = np.random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
                 chainlength_sn3 = self.acyl_coa_list_unsaturated[sn3].C
                 self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
                 del self.acyl_coa_list_unsaturated[sn3]
@@ -790,9 +790,9 @@ class model:
         '''
         if len(self.lipid_droplets) > self.rates['TAG_lipase']:
             for i in range(self.rates['TAG_lipase']):
-                x = random.random()
+                x = np.random.random()
                 if x >= self.probabilities['TAG_lipase']:
-                    z = random.randint(0, len(self.lipid_droplets)-1)
+                    z = np.random.randint(0, len(self.lipid_droplets)-1)
                     if self.lipid_droplets[z].head == None:
                         if ':0' in self.lipid_droplets[z].sn3:
                             for key, value in self.chainlength_unsaturated.items():
@@ -803,11 +803,11 @@ class model:
                                 if value == self.lipid_droplets[z].sn3:
                                     self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
                         self.DAG_list.append(self.lipid_droplets[z])
-                        self.DAG_list[-1].__class__ = lipids
+                        self.DAG_list[-1].__class__ = components.Lipids
                         delattr(self.DAG_list[-1], 'sn3')
                         self.precursors_dict['H2O'] -= 1
                     elif self.lipid_droplets[z].head == 'sterylester':
-                        self.Ergosterol_list.append(sterol('sterol', None, self.compartment_weights))
+                        self.Ergosterol_list.append(components.Sterol('sterol', None, self.compartment_weights))
                         self.precursors_dict['H2O'] -= 1
                         if ':0' in self.lipid_droplets[z].FA:
                             for key, value in self.chainlength_unsaturated.items():
@@ -823,9 +823,9 @@ class model:
     def DAG_kinase(self):
         if len(self.DAG_list) > self.rates['DAG_kinase']:
             for i in range(self.rates['DAG_kinase']):
-                x = random.random()
+                x = np.random.random()
                 if x >= self.probabilities['DAG_kinase']:
-                    z = random.randint(0, len(self.DAG_list)-1)
+                    z = np.random.randint(0, len(self.DAG_list)-1)
                     self.PA_list.append(self.DAG_list[z])
                     self.PA_list[-1].head = 'p'
                     self.PA_list[-1].comp = None
@@ -837,9 +837,9 @@ class model:
         CDP-DG is processed to PS (PS synthase).
         '''
         for i in range(self.rates['PS_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['PS_synthase'] and len(self.CDP_DG_list) > 1 and self.precursors_dict['serine'] > 1:
-                z = random.randint(0, len(self.CDP_DG_list)-1)
+                z = np.random.randint(0, len(self.CDP_DG_list)-1)
                 self.CDP_DG_list[z].head = 'serine'				#PS synthesis from CDP-DG
                 self.PS_list.append(self.CDP_DG_list[z])
                 del self.CDP_DG_list[z]
@@ -852,9 +852,9 @@ class model:
         CDP-DG is processed to PI (PI synthase)
         '''
         for i in range(self.rates['PI_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['PI_synthase'] and len(self.CDP_DG_list) > 1 and self.precursors_dict['inositol'] > 1:
-                z = random.randint(0, len(self.CDP_DG_list)-1)
+                z = np.random.randint(0, len(self.CDP_DG_list)-1)
                 self.CDP_DG_list[z].head = 'inositol'
                 self.PI_list.append(self.CDP_DG_list[z])
                 del self.CDP_DG_list[z]
@@ -867,9 +867,9 @@ class model:
         PE is derived from PS by releasing 1 CO2 --> PS decarboxylase.
         '''
         for i in range(self.rates['PE_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['PE_synthase'] and len(self.PS_list) >= 10:
-                z = random.randint(0, len(self.PS_list)-1)
+                z = np.random.randint(0, len(self.PS_list)-1)
                 self.PS_list[z].head = 'ethanolamine'
                 self.PE_list.append(self.PS_list[z])
                 self.precursors_dict['CO2'] += 1
@@ -881,9 +881,9 @@ class model:
         PC is derived from PE. As enzymes serve 3 methyltransferases which need SAM and produce SAH as a side product.
         '''
         for i in range(self.rates['PC_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['PC_synthase'] and len(self.PE_list) >= 5 and self.precursors_dict['SAM'] >= 4:
-                z = random.randint(0, len(self.PE_list)-1)
+                z = np.random.randint(0, len(self.PE_list)-1)
                 self.PE_list[z].head = 'choline'
                 self.PC_list.append(self.PE_list[z])
                 del self.PE_list[z]
@@ -896,9 +896,9 @@ class model:
         Synthesis of cardiolipin, for which 2 CDP-DG are needed. Different enzymes are needed.
         '''
         for i in range(self.rates['CL_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['CL_synthase'] and self.precursors_dict['glycerol_3_p_mito'] > 1 and len(self.CDP_DG_list) > 2:
-                z = random.randint(0, len(self.CDP_DG_list)-2)
+                z = np.random.randint(0, len(self.CDP_DG_list)-2)
                 self.CDP_DG_list[z].head = 'neutral'
                 self.CL_list.append(self.CDP_DG_list[z])
                 self.CL_list[-1].__class__ = CL
@@ -915,9 +915,9 @@ class model:
         Synthesis of the most existing sterol in yeast: ergosterol
         '''
         for i in range(self.rates['Ergosterol_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['Ergosterol_synthase'] and self.precursors_dict['acetyl_coa'] > 18:
-                self.Ergosterol_list.append(sterol('sterol', None, self.compartment_weights))
+                self.Ergosterol_list.append(components.Sterol('sterol', None, self.compartment_weights))
                 self.precursors_dict['acetyl_coa'] -= 18
                 self.precursors_dict['ATP'] -= 3
                 self.precursors_dict['ADP'] += 3
@@ -935,19 +935,19 @@ class model:
         Synthesis of sterylesters that are found in lipid droplets out of ergosterol and an unsaturated fatty acid.
         '''
         for i in range(self.rates['Sterylester_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['Sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and any(fa.C == 18 for fa in self.acyl_coa_list_unsaturated) and len(self.Ergosterol_list) > 1:
-                z = random.randint(0, len(self.Ergosterol_list)-1)
+                z = np.random.randint(0, len(self.Ergosterol_list)-1)
                 j = 0
                 while j < 5:
-                    fa_index = random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
-                    if self.acyl_coa_list_unsaturated[fa_index].C == 18 and random.random() < 0.33:
-                        self.Sterylester_list.append(sterylester('sterylester', 'C18:1', None, self.compartment_weights))
+                    fa_index = np.random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
+                    if self.acyl_coa_list_unsaturated[fa_index].C == 18 and np.random.random() < 0.33:
+                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C18:1', None, self.compartment_weights))
                         del self.Ergosterol_list[z]
                         del self.acyl_coa_list_unsaturated[fa_index]
                         break
                     elif self.acyl_coa_list_unsaturated[fa_index].C == 16:
-                        self.Sterylester_list.append(sterylester('sterylester', 'C16:1', None, self.compartment_weights))
+                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C16:1', None, self.compartment_weights))
                         del self.Ergosterol_list[z]
                         del self.acyl_coa_list_unsaturated[fa_index]
                         break
@@ -960,10 +960,10 @@ class model:
         Synthesis of the most abundant Sphingolipid mannose-(inositol-phosphate)2-ceramide
         '''
         for i in range(self.rates['Sphingolipid_synthase']):
-            x = random.random()
+            x = np.random.random()
             if x >= self.probabilities['Sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and self.precursors_dict['GDP-mannose'] > 1:
                 self.Sphingolipid_list.append(sphingolipid('ceramide', None, self.compartment_weights))
-                z= random.randint(0, len(self.PI_list)-2)
+                z= np.random.randint(0, len(self.PI_list)-2)
                 del self.PI_list[z:z+1]
                 self.precursors_dict['ceramide'] -= 1
                 self.precursors_dict['GDP-mannose'] -= 1
@@ -977,7 +977,7 @@ class model:
             if lipid == self.TAG_list or lipid == self.Sterylester_list:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
-                        z = random.randint(0, len(lipid)-1)
+                        z = np.random.randint(0, len(lipid)-1)
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'lipid_droplets':
                             self.lipid_droplets.append(lipid[z])
@@ -985,7 +985,7 @@ class model:
             else:
                 if len(lipid) > 5:
                     for j in range(len(lipid)/10):
-                        z = random.randint(0, len(lipid)-1)
+                        z = np.random.randint(0, len(lipid)-1)
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'plasma_membrane':
                             self.plasma_membrane.append(lipid[z])
@@ -1120,7 +1120,7 @@ if __name__ == '__main__':
     # Test run, with runtime tracker
     import time
     st = time.time()
-    m = model()
+    m = Model()
     # test run: 5 sec, volume 35 fL
     m.run(5, 35)
     et = time.time()

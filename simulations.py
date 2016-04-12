@@ -8,10 +8,10 @@ import pickle
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
-class stoch_model:
+class StochModel:
 	def __init__(self, runs=10, sensitivity=False, change=0.1):
 		# load model and parameters
-		self.vera_model = model.model()
+		self.vera_model = model.Model()
 		self.rates = copy.deepcopy(self.vera_model.rates)
 		self.probabilities = copy.deepcopy(self.vera_model.probability)
 		self.probabilities_G1 = copy.deepcopy(self.vera_model.probability_G1)
