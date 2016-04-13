@@ -54,7 +54,7 @@ class Model:
                        'PC_synthase':            5, 
                        'CL_synthase':            2, 
                        'ergosterol_synthase':    25,
-                       'Sterylester_synthase':   25, 
+                       'sterylester_synthase':   25,
                        'Sphingolipid_synthase':  2}
 
         # probabilities of reaction to take place
@@ -79,7 +79,7 @@ class Model:
                              'PC_synthase':            0.5, 
                              'CL_synthase':            0.05, 
                              'ergosterol_synthase':    0.6,
-                             'Sterylester_synthase':   0.4, 
+                             'sterylester_synthase':   0.4,
                              'Sphingolipid_synthase':  0.2}
 
         # probabilities in CC phase G1
@@ -94,7 +94,7 @@ class Model:
                                  'TAG_synthase':  0.2,
                                  'TAG_lipase':    0.6,
                                  'DAG_kinase':    0.1,
-                                 'Sterylester_synthase': 0.2}
+                                 'sterylester_synthase': 0.2}
 
         # thresholds calculated from probabilities: (1-probability)
         self._manual_threshold = {reaction: 1-prob for reaction, prob in self._probability.iteritems()}
@@ -235,7 +235,7 @@ class Model:
                               self.TAG_lipase,
                               self.DAG_kinase,
                               self.ergosterol_synthase,
-                              self.Sterylester_synthase,
+                              self.sterylester_synthase,
                               self.Sphingolipid_synthase,
                               self.transport]
 
@@ -333,7 +333,7 @@ class Model:
                 self.probabilities['TAG_synthase'] = 1 - self._probability_S_M['TAG_synthase']
                 self.probabilities['TAG_lipase'] = 1 - self._probability_S_M['TAG_lipase']
                 self.probabilities['DAG_kinase'] = 1 - self._probability_S_M['DAG_kinase']
-                self.probabilities['Sterylester_synthase'] = 1 - self._probability_S_M['Sterylester_synthase']
+                self.probabilities['sterylester_synthase'] = 1 - self._probability_S_M['sterylester_synthase']
 
             # all reactions that take place during one second in a random order
             for i in range(len(self.function_list)):
@@ -420,12 +420,12 @@ class Model:
                      'ergosterol_synthase': 1 - (self.precursors_dict['acetyl_coa'] /
                                                  (self.Km['ergosterol_synthase']['acetyl_coa'] +
                                                   self.precursors_dict['acetyl_coa'])),
-                     'Sterylester_synthase': 1 - ((float(len(self.Ergosterol_list)) /
-                                                  (self.Km['Sterylester_synthase']['ergosterol'] +
+                     'sterylester_synthase': 1 - ((float(len(self.Ergosterol_list)) /
+                                                  (self.Km['sterylester_synthase']['ergosterol'] +
                                                    float(len(self.Ergosterol_list)))) *
                                                   ((float(len(self.acyl_coa_list_saturated)) +
                                                    float(len(self.acyl_coa_list_unsaturated))) /
-                                                  (self.Km['Sterylester_synthase']['acyl_coa'] +
+                                                  (self.Km['sterylester_synthase']['acyl_coa'] +
                                                    (float(len(self.acyl_coa_list_saturated)) +
                                                     float(len(self.acyl_coa_list_unsaturated)))))),
                      'Sphingolipid_synthase': 1 - ((float(len(self.PI_list)) /
@@ -622,7 +622,7 @@ class Model:
                                         self.precursors_dict['glycerol_3_p_mito']},
                         'ergosterol_synthase': {'acetyl_coa': self.precursors_dict['acetyl_coa'] / self._probability['ergosterol_synthase'] -
                                                 self.precursors_dict['acetyl_coa']},
-                        'Sterylester_synthase': {'ergosterol': 5., 
+                        'sterylester_synthase': {'ergosterol': 5.,
                                                  'acyl_coa': 30.}, 
                         'Sphingolipid_synthase': {'PI': 5, 
                                                   'ceramide': (self.precursors_dict['ceramide'] / self._probability['Sphingolipid_synthase']) *
@@ -1019,13 +1019,13 @@ class Model:
                 self.precursors_dict['H2O'] += 9
                 self.precursors_dict['CO2'] += 2
 
-    def Sterylester_synthase(self):
+    def sterylester_synthase(self):
         """
         Synthesis of sterylesters that are found in lipid droplets out of ergosterol and an unsaturated fatty acid.
         """
-        for i in range(self._rates['Sterylester_synthase']):
+        for i in range(self._rates['sterylester_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['Sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and \
+            if x >= self.probabilities['sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and \
                     any(fa.C == 18 for fa in self.acyl_coa_list_unsaturated) and len(self.Ergosterol_list) > 1:
                 z = np.random.randint(0, len(self.Ergosterol_list)-1)
                 j = 0
