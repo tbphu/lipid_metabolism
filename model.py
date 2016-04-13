@@ -117,7 +117,7 @@ class Model:
                                 self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
 
     def _init_lists(self):
-        # lists of all precursors
+        # lists of all precursors, mainly needed for plotting
         self.precursors = {'pyruvate': [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [],
                            'glucose_6_p': [], 'SAM': [], 'SAH': [], 'glycerol_3_p_mito': [], 'ceramide': [],
                            'GDP-mannose': [], 'NAD': [], 'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [],
