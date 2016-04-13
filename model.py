@@ -171,7 +171,29 @@ class Model:
 
         self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
+        # dict for Km values
         self.Km = {}
+
+        # create list of functions
+        self.function_list = [self.glycerol_3_p_synthesis,
+                                  self.inositol_synthesis,
+                                  self.ceramide_synthesis,
+                                  self.acetyl_coa_synthase,
+                                  self.acyl_synthase,
+                                  self.PA_synthese,
+                                  self.CDP_DG_synthase,
+                                  self.TAG_synthese,
+                                  self.PS_synthase,
+                                  self.PI_synthase,
+                                  self.PE_synthase,
+                                  self.PC_synthase,
+                                  self.CL_synthase,
+                                  self.TAG_lipase,
+                                  self.DAG_kinase,
+                                  self.Ergosterol_synthase,
+                                  self.Sterylester_synthase,
+                                  self.Sphingolipid_synthase,
+                                  self.transport]
 
     def _initialise_precursor_production(self):
 
@@ -206,6 +228,12 @@ class Model:
             number of simulation steps in sec
         volume: int
             volume of the cell in fL
+
+        Returns
+        -------
+        self.saturation_composition_total: 
+        self.number_membranes_list:
+        self.compartment_relatives_dict: 
         """
         # initialise simulation time (s)
         self.timesteps = timesteps
@@ -222,75 +250,23 @@ class Model:
             #function that can change the cell cycle phase
             self.cell_cycle()
 
+            # cell cycle phase dependent precurosor production
             if self.phase == 'G1':
                 self.precursors_production = self.precursors_production_G1
             else:
                 self.precursors_production = self.precursors_production_S_M
 
+            # produce precursor every 10 time steps 
             if self.time % 10 == 0:
                 for key in self.precursors_dict:
                     self.precursors_dict[key] += self.precursors_production[key]
 
-            self.thresholds = {'glycerol_3_p_synthesis': 1- (self.precursors_dict['DHAP'] / (self.Km['glycerol_3_p_synthesis']['DHAP'] + self.precursors_dict['DHAP'])), \
+            # calculate new thresholds
+            self.thresholds = self._calculate_threshold()
+            # manual_threshold
+            self.probabilities = self.thresholds  
 
-                                'inositol_synthesis': 1- (self.precursors_dict['glucose_6_p'] / (self.Km['inositol_synthesis']['glucose_6_p'] + self.precursors_dict['glucose_6_p'])), \
-
-                                'ceramide_synthesis': 1- (self.precursors_dict['serine'] / (self.Km['ceramide_synthesis']['serine'] + self.precursors_dict['serine'])),\
-
-                                'acetyl_coa_synthase': 1- (self.precursors_dict['pyruvate'] / (self.Km['acetyl_coa_synthase']['pyruvate'] + self.precursors_dict['pyruvate'])), \
-
-                                'acyl_synthase': 1- (self.precursors_dict['acetyl_coa'] / (self.Km['acyl_synthase']['acetyl_coa'] + self.precursors_dict['acetyl_coa'])),\
-
-                                'acyl_synthase_C16': 0.625,\
-
-                                'acyl_synthase_C18': 0.002,\
-
-                                'lyso_PA_synthase': 1- (((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) / (self.Km['lyso_PA_synthase']['acyl_coa'] \
-                                                + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))))) \
-                                                * (self.precursors_dict['DHAP'] / (self.Km['lyso_PA_synthase']['DHAP'] + self.precursors_dict['DHAP']))),\
-
-                                'PA_synthase': 1- ((float(len(self.lyso_pa_list)) / (self.Km['PA_synthase']['lyso-PA'] + float(len(self.lyso_pa_list)))) \
-                                                * ((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) / (self.Km['PA_synthase']['acyl_coa'] \
-                                                + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated)))))),\
-
-                                'CDP_DG_synthase': 1- ((float(len(self.PA_list)) / (self.Km['CDP_DG_synthase']['PA'] + float(len(self.PA_list)))) \
-                                                    * (self.precursors_dict['CTP'] / (self.Km['CDP_DG_synthase']['CTP'] + self.precursors_dict['CTP']))),\
-
-                                'DAG_synthase': 1- (float(len(self.PA_list)) / (self.Km['DAG_synthase']['PA'] + float(len(self.PA_list)))), \
-
-                                'TAG_synthase': 1- (((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) / (self.Km['TAG_synthase']['acyl_coa'] \
-                                                + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))))) * (float(len(self.DAG_list)) / \
-                                                (self.Km['TAG_synthase']['DAG'] + float(len(self.DAG_list))))), \
-
-                                'TAG_lipase': 1- (float(len(self.lipid_droplets)) / (self.Km['TAG_lipase']['lipid_droplets'] + float(len(self.lipid_droplets)))), \
-
-                                'DAG_kinase': 1- (float(len(self.DAG_list)) / (self.Km['DAG_kinase']['DAG'] + float(len(self.DAG_list)))), \
-
-                                'PS_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
-                                                * (self.precursors_dict['serine'] / (self.Km['PS_synthase']['serine'] + self.precursors_dict['serine']))),\
-
-                                'PI_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
-                                                * (self.precursors_dict['inositol'] / (self.Km['PI_synthase']['inositol'] + self.precursors_dict['inositol']))), \
-
-                                'PE_synthase': 1- (float(len(self.PS_list)) / (self.Km['PE_synthase']['PS'] + float(len(self.PS_list)))), \
-
-                                'PC_synthase': 1- ((float(len(self.PE_list)) / (self.Km['PC_synthase']['PE'] + float(len(self.PE_list)))) \
-                                                * (self.precursors_dict['SAM'] / (self.Km['PC_synthase']['SAM'] + self.precursors_dict['SAM']))), \
-
-                                'CL_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['CL_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
-                                                * (self.precursors_dict['glycerol_3_p_mito'] / (self.Km['CL_synthase']['glycerol_3_p_mito'] + self.precursors_dict['glycerol_3_p_mito']))),\
-
-                                'Ergosterol_synthase': 1- (self.precursors_dict['acetyl_coa'] / (self.Km['Ergosterol_synthase']['acetyl_coa'] + self.precursors_dict['acetyl_coa'])), \
-
-                                'Sterylester_synthase': 1- ((float(len(self.Ergosterol_list)) / (self.Km['Sterylester_synthase']['ergosterol'] + float(len(self.Ergosterol_list)))) \
-                                                        * ((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) / (self.Km['Sterylester_synthase']['acyl_coa'] \
-                                                        + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated)))))), \
-
-                                'Sphingolipid_synthase': 1- ((float(len(self.PI_list)) / (self.Km['Sphingolipid_synthase']['PI'] + float(len(self.PI_list))))\
-                                                        * (self.precursors_dict['ceramide'] / (self.Km['Sphingolipid_synthase']['ceramide'] + self.precursors_dict['ceramide'])))}
-
-            self.probabilities = self.thresholds  # manual_threshold
-
+            # change rates dependent on cell cycle phase
             if self.phase == 'G1':
                 self.probabilities['DAG_synthase'] = 1- self.probability_G1['DAG_synthase']
                 self.probabilities['TAG_synthase'] = 1- self.probability_G1['TAG_synthase']
@@ -303,25 +279,6 @@ class Model:
                 self.probabilities['DAG_kinase'] = 1- self.probability_S_M['DAG_kinase']
                 self.probabilities['Sterylester_synthase'] = 1- self.probability_S_M['Sterylester_synthase']
 
-            self.function_list = [self.glycerol_3_p_synthesis,
-                                  self.inositol_synthesis,
-                                  self.ceramide_synthesis,
-                                  self.acetyl_coa_synthase,
-                                  self.acyl_synthase,
-                                  self.PA_synthese,
-                                  self.CDP_DG_synthase,
-                                  self.TAG_synthese,
-                                  self.PS_synthase,
-                                  self.PI_synthase,
-                                  self.PE_synthase,
-                                  self.PC_synthase,
-                                  self.CL_synthase,
-                                  self.TAG_lipase,
-                                  self.DAG_kinase,
-                                  self.Ergosterol_synthase,
-                                  self.Sterylester_synthase,
-                                  self.Sphingolipid_synthase,
-                                  self.transport]
             # all reactions that take place during one second in a random order
             for i in self.function_list:
                 func = np.random.choice(self.function_list)
@@ -333,88 +290,60 @@ class Model:
 
         return self.saturation_composition_total, self.number_membranes_list, self.compartment_relatives_dict
 
-        '''
-        #printing the numbers of free lipids
-        print 'CL: ' + str(self.number_CL[-1]), 'PS: ' + str(self.number_PS[-1]), 'PI: ' + str(self.number_PI[-1]), 'PE: ' + str(self.number_PE[-1]), \
-                'PC: ' + str(self.number_PC[-1]), 'PA: ' + str(self.number_pa[-1]), 'TAG: ' + str(self.number_tag[-1]), 'CDP-DG: ' + str(self.number_cdp_dg[-1]),\
-                'ES: ' + str(self.number_Ergosterol[-1]), 'SE: ' + str(self.number_Sterylester[-1]), 'DAG: ' + str(self.number_DAG[-1]), 'SL: ' + str(self.number_Sphingolipid[-1])
-        #all free lipids added
-        print self.number_CL[-1] + self.number_PS[-1] + self.number_PI[-1] + self.number_PE[-1] + self.number_PC[-1] +\
-                self.number_pa[-1] + self.number_tag[-1] + self.number_cdp_dg[-1] + self.number_Ergosterol[-1] + self.number_Sterylester[-1] + self.number_Sphingolipid[-1]
-        #all membrane lipids that are existing in the membranes together
-        print len(self.plasma_membrane) + len(self.secretory_vesicles) + len(self.vacuoles) + len(self.nucleus)+\
-                len(self.peroxisomes) + len(self.light_microsomes) + len(self.inner_mit_membrane) + \
-                len(self.outer_mit_membrane) + len(self.lipid_droplets)
-
-        print len(self.plasma_membrane), len(self.secretory_vesicles), len(self.vacuoles), len(self.nucleus), \
-                len(self.peroxisomes), len(self.light_microsomes), len(self.inner_mit_membrane), \
-                len(self.outer_mit_membrane), len(self.lipid_droplets)
-        '''
-
-    def plot_precursors(self):
+    def _calculate_threshold(self):
         """
-        Plotting the precursor molecules from the precursors_dict.
+        Calculate current thresholds based on amount of available precursors.
         """
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        i = 0
-        while i < 6:  # in range(len(self.precursor_keys)):
-            ax.plot(self.t, self.precursors[self.precursor_keys[i]], label=self.precursor_keys[i])
-            i += 1
-        ax.plot(self.t, self.precursors['inositol'], label='inositol')
-        ax.plot(self.t, self.precursors['serine'], label='serine')
-        ax.plot(self.t, self.precursors['CTP'], label='CTP')
-        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        mat.show()
-
-    def plot_lipids(self):
-        """
-        Plotting the produced lipids before they are transported into the membranes
-        """
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_tag, label='tag')
-        ax.plot(self.t, self.number_PS, label='ps')
-        ax.plot(self.t, self.number_PI, label='pi')
-        ax.plot(self.t, self.number_PE, label='pe')
-        ax.plot(self.t, self.number_PC, label='pc')
-        ax.plot(self.t, self.number_CL, label='cl')
-        ax.plot(self.t, self.number_Ergosterol, label='es')
-        ax.plot(self.t, self.number_Sterylester, label='se')
-        ax.plot(self.t, self.number_Sphingolipid, label='sl')
-        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        mat.show()
-
-    def plot_precursor_lipids(self):
-        """
-        Plotting some free precursor molecules.
-        """
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_acetyl_coa[:-1], label='acetyl_coa')
-        ax.plot(self.t, self.number_acyl_coa[:-1], label='acyl_coa')
-        ax.plot(self.t, self.number_pa[:-1], label='pa')
-        ax.plot(self.t, self.number_cdp_dg[:-1], label='cdp-dg')
-        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        mat.show()
-
-    def plot_membranes(self):
-        """
-        Plotting the number of lipids in the membranes of different compartments.
-        """
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_plasma_membrane, label='plasma membrane')
-        ax.plot(self.t, self.number_secretory_vesicles, label='secretory vesicles')
-        ax.plot(self.t, self.number_vacuoles, label='vacuoles')
-        ax.plot(self.t, self.number_nucleus, label='nucleus')
-        ax.plot(self.t, self.number_peroxisomes, label='peroxisomes')
-        ax.plot(self.t, self.number_light_microsomes, label='light_microsomes')
-        ax.plot(self.t, self.number_inner_mit_membrane, label='inner_mit_membrane')
-        ax.plot(self.t, self.number_outer_mit_membrane, label='outer_mit_membrane')
-        ax.plot(self.t, self.number_lipid_droplets, label='lipid_droplets')
-        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        mat.show()
+        threshold = {'glycerol_3_p_synthesis': 1- (self.precursors_dict['DHAP'] / (self.Km['glycerol_3_p_synthesis']['DHAP'] \
+                                               + self.precursors_dict['DHAP'])),
+                     'inositol_synthesis': 1- (self.precursors_dict['glucose_6_p'] / (self.Km['inositol_synthesis']['glucose_6_p'] \
+                                           + self.precursors_dict['glucose_6_p'])), 
+                     'ceramide_synthesis': 1- (self.precursors_dict['serine'] / (self.Km['ceramide_synthesis']['serine'] \
+                                           + self.precursors_dict['serine'])),
+                     'acetyl_coa_synthase': 1- (self.precursors_dict['pyruvate'] / (self.Km['acetyl_coa_synthase']['pyruvate'] \
+                                            + self.precursors_dict['pyruvate'])), \
+                     'acyl_synthase': 1- (self.precursors_dict['acetyl_coa'] / (self.Km['acyl_synthase']['acetyl_coa'] \
+                                      + self.precursors_dict['acetyl_coa'])),
+                     'acyl_synthase_C16': 0.625,
+                     'acyl_synthase_C18': 0.002,
+                     'lyso_PA_synthase': 1- (((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) \
+                                         / (self.Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated)) \
+                                         + float(len(self.acyl_coa_list_unsaturated))))) * (self.precursors_dict['DHAP'] \
+                                         / (self.Km['lyso_PA_synthase']['DHAP'] + self.precursors_dict['DHAP']))),
+                     'PA_synthase': 1- ((float(len(self.lyso_pa_list)) / (self.Km['PA_synthase']['lyso-PA'] + float(len(self.lyso_pa_list)))) \
+                                    * ((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) \
+                                    / (self.Km['PA_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated))\
+                                    + float(len(self.acyl_coa_list_unsaturated)))))),
+                     'CDP_DG_synthase': 1- ((float(len(self.PA_list)) / (self.Km['CDP_DG_synthase']['PA'] + float(len(self.PA_list)))) \
+                                        * (self.precursors_dict['CTP'] / (self.Km['CDP_DG_synthase']['CTP'] + self.precursors_dict['CTP']))),
+                     'DAG_synthase': 1- (float(len(self.PA_list)) / (self.Km['DAG_synthase']['PA'] + float(len(self.PA_list)))), 
+                     'TAG_synthase': 1- (((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))) \
+                                     / (self.Km['TAG_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated)) \
+                                     + float(len(self.acyl_coa_list_unsaturated))))) * (float(len(self.DAG_list)) \
+                                     / (self.Km['TAG_synthase']['DAG'] + float(len(self.DAG_list))))),
+                    'TAG_lipase': 1- (float(len(self.lipid_droplets)) / (self.Km['TAG_lipase']['lipid_droplets'] \
+                                  + float(len(self.lipid_droplets)))), 
+                    'DAG_kinase': 1- (float(len(self.DAG_list)) / (self.Km['DAG_kinase']['DAG'] + float(len(self.DAG_list)))), 
+                    'PS_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
+                                    * (self.precursors_dict['serine'] / (self.Km['PS_synthase']['serine'] + self.precursors_dict['serine']))),
+                    'PI_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
+                                   * (self.precursors_dict['inositol'] / (self.Km['PI_synthase']['inositol'] + self.precursors_dict['inositol']))),
+                    'PE_synthase': 1- (float(len(self.PS_list)) / (self.Km['PE_synthase']['PS'] + float(len(self.PS_list)))),
+                    'PC_synthase': 1- ((float(len(self.PE_list)) / (self.Km['PC_synthase']['PE'] + float(len(self.PE_list)))) \
+                                   * (self.precursors_dict['SAM'] / (self.Km['PC_synthase']['SAM'] + self.precursors_dict['SAM']))),
+                    'CL_synthase': 1- ((float(len(self.CDP_DG_list)) / (self.Km['CL_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
+                                   * (self.precursors_dict['glycerol_3_p_mito'] / (self.Km['CL_synthase']['glycerol_3_p_mito'] \
+                                   + self.precursors_dict['glycerol_3_p_mito']))),
+                    'Ergosterol_synthase': 1- (self.precursors_dict['acetyl_coa'] / (self.Km['Ergosterol_synthase']['acetyl_coa'] \
+                                   + self.precursors_dict['acetyl_coa'])), 
+                    'Sterylester_synthase': 1- ((float(len(self.Ergosterol_list)) / (self.Km['Sterylester_synthase']['ergosterol'] \
+                                            + float(len(self.Ergosterol_list)))) * ((float(len(self.acyl_coa_list_saturated)) \
+                                            + float(len(self.acyl_coa_list_unsaturated))) / (self.Km['Sterylester_synthase']['acyl_coa'] \
+                                            + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated)))))),
+                    'Sphingolipid_synthase': 1- ((float(len(self.PI_list)) / (self.Km['Sphingolipid_synthase']['PI'] + float(len(self.PI_list))))\
+                                            * (self.precursors_dict['ceramide'] / (self.Km['Sphingolipid_synthase']['ceramide'] 
+                                            + self.precursors_dict['ceramide'])))}
+        return threshold
 
     def start(self):
         """
@@ -792,7 +721,6 @@ class Model:
             self.precursors_dict['Pi'] += 1
             del self.PA_list[z]
 
-
     def TAG_synthase(self):
         '''
         DAG is processed to TAG by adding a third acyl-chain at position sn3.
@@ -813,7 +741,6 @@ class Model:
                 self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
                 del self.acyl_coa_list_unsaturated[sn3]
             del self.DAG_list[z]
-
 
     def TAG_lipase(self):
         '''
@@ -1146,6 +1073,72 @@ class Model:
                                                  'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1) / self.total_fatty_acids,\
                                                  'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids,\
                                                  'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
+
+    def plot_precursors(self):
+        """
+        Plotting the precursor molecules from the precursors_dict.
+        """
+        fig = mat.figure()
+        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+        i = 0
+        while i < 6:  # in range(len(self.precursor_keys)):
+            ax.plot(self.t, self.precursors[self.precursor_keys[i]], label=self.precursor_keys[i])
+            i += 1
+        ax.plot(self.t, self.precursors['inositol'], label='inositol')
+        ax.plot(self.t, self.precursors['serine'], label='serine')
+        ax.plot(self.t, self.precursors['CTP'], label='CTP')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        mat.show()
+
+    def plot_lipids(self):
+        """
+        Plotting the produced lipids before they are transported into the membranes
+        """
+        fig = mat.figure()
+        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+        ax.plot(self.t, self.number_tag, label='tag')
+        ax.plot(self.t, self.number_PS, label='ps')
+        ax.plot(self.t, self.number_PI, label='pi')
+        ax.plot(self.t, self.number_PE, label='pe')
+        ax.plot(self.t, self.number_PC, label='pc')
+        ax.plot(self.t, self.number_CL, label='cl')
+        ax.plot(self.t, self.number_Ergosterol, label='es')
+        ax.plot(self.t, self.number_Sterylester, label='se')
+        ax.plot(self.t, self.number_Sphingolipid, label='sl')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        mat.show()
+
+    def plot_precursor_lipids(self):
+        """
+        Plotting some free precursor molecules.
+        """
+        fig = mat.figure()
+        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+        ax.plot(self.t, self.number_acetyl_coa[:-1], label='acetyl_coa')
+        ax.plot(self.t, self.number_acyl_coa[:-1], label='acyl_coa')
+        ax.plot(self.t, self.number_pa[:-1], label='pa')
+        ax.plot(self.t, self.number_cdp_dg[:-1], label='cdp-dg')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        mat.show()
+
+    def plot_membranes(self):
+        """
+        Plotting the number of lipids in the membranes of different compartments.
+        """
+        fig = mat.figure()
+        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+        ax.plot(self.t, self.number_plasma_membrane, label='plasma membrane')
+        ax.plot(self.t, self.number_secretory_vesicles, label='secretory vesicles')
+        ax.plot(self.t, self.number_vacuoles, label='vacuoles')
+        ax.plot(self.t, self.number_nucleus, label='nucleus')
+        ax.plot(self.t, self.number_peroxisomes, label='peroxisomes')
+        ax.plot(self.t, self.number_light_microsomes, label='light_microsomes')
+        ax.plot(self.t, self.number_inner_mit_membrane, label='inner_mit_membrane')
+        ax.plot(self.t, self.number_outer_mit_membrane, label='outer_mit_membrane')
+        ax.plot(self.t, self.number_lipid_droplets, label='lipid_droplets')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        mat.show()
+
 
 if __name__ == '__main__':
     # Test run, with runtime tracker
