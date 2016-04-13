@@ -43,9 +43,9 @@ class Model:
                        'ceramide_synthesis':     2, 
                        'acetyl_coa_synthase':    650, 
                        'acyl_synthase':          450, 
-                       'PA_synthase':            17,
+                       'PA_synthesis':            17,
                        'CDP_DG_synthase':        20, 
-                       'TAG_synthase':           30,
+                       'TAG_synthesis':           30,
                        'TAG_lipase':             23, 
                        'DAG_kinase':             40, 
                        'PS_synthase':            18, 
@@ -67,7 +67,7 @@ class Model:
                              'acyl_synthase_C16':      0.375, 
                              'acyl_synthase_C18':      0.998, 
                              'lyso_PA_synthase':       0.45, 
-                             'PA_synthase':            0.2, 
+                             'PA_synthase':            0.2,
                              'CDP_DG_synthase':        0.8,
                              'DAG_synthase':           0.01, 
                              'TAG_synthase':           0.2, 
@@ -189,7 +189,7 @@ class Model:
                                    self.number_PS, self.number_PI, self.number_PE, self.number_PC, self.number_CL,
                                    self.number_Ergosterol, self.number_Sterylester, self.number_DAG,
                                    self.number_Sphingolipid]
-        # counting the lipids in each membrane after every timestep
+        # counting the lipids in each membrane after every time step
         self.number_plasma_membrane = []
         self.number_secretory_vesicles = []
         self.number_vacuoles = []
@@ -226,7 +226,7 @@ class Model:
                               self.acyl_synthase,
                               self.PA_synthase,
                               self.CDP_DG_synthase,
-                              self.TAG_synthase,
+                              self.TAG_synthesis,
                               self.PS_synthase,
                               self.PI_synthase,
                               self.PE_synthase,
@@ -702,7 +702,7 @@ class Model:
     def acyl_synthase(self):
         """
         Simplified synthesis of acyl_coa: several Acetyl-CoA are building a fatty acid (C16:0, C16:1, C18:0 or C18:1)
-        The intermediate Malonyl-CoA is leaved out.
+        The intermediate malonyl-CoA is leaved out.
         """
         choice_list = [0, 1]
         choice_weights = [0.12, 0.88]
@@ -764,11 +764,11 @@ class Model:
                     self.precursors_dict['H2O'] += 2
             del self.acyl_coa_list[:-1]
 
-    def PA_synthase(self):
+    def PA_synthesis(self):
         """
         Synthesis of PA in two reaction steps.
         """
-        for i in range(self._rates['PA_synthase']):
+        for i in range(self._rates['PA_synthesis']):
             self.lyso_PA_synthase()
             self.PA_synthase()
 
@@ -835,11 +835,11 @@ class Model:
                 self.precursors_dict['CTP'] -= 1
                 self.precursors_dict['Pi'] += 2
 
-    def TAG_synthase(self):
+    def TAG_synthesis(self):
         """
         Function for TAG synthesis divided in production of DAG and TAG afterwards
         """
-        for i in range(self._rates['TAG_synthase']):
+        for i in range(self._rates['TAG_synthesis']):
             self.DAG_synthase()
             self.TAG_synthase()
 
@@ -861,7 +861,8 @@ class Model:
         DAG is processed to TAG by adding a third acyl-chain at position sn3.
         """
         x = np.random.random()
-        if x >= self.probabilities['TAG_synthase'] and len(self.DAG_list) > 1 and len(self.acyl_coa_list_saturated) > 1 and len(self.acyl_coa_list_unsaturated) > 1:
+        if x >= self.probabilities['TAG_synthase'] and len(self.DAG_list) > 1 and len(self.acyl_coa_list_saturated) > 1 and \
+                len(self.acyl_coa_list_unsaturated) > 1:
             z = np.random.randint(0, len(self.DAG_list)-1)
             self.TAG_list.append(self.DAG_list[z])
             self.TAG_list[-1].__class__ = components.TAG

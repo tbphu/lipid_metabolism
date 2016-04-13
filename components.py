@@ -39,10 +39,10 @@ class Lipid(object):
         # possible sn1 residues
         self.sn1_options = ['C16:0', 'C16:1', 'C18:0', 'C18:1', None]
         # possible first compartments
-        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                                     'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]
         # possible final compartments
-        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane']
 
         # experimental data: membrane compositions
@@ -54,9 +54,9 @@ class Lipid(object):
         self.light_microsomes_comp = {'PS': 0.05304, 'PI': 0.06019, 'PC': 0.40796, 'PE': 0.26583, 'CL': 0.00381, 'PA': 0.00222}
         self.inner_mit_membrane_comp = {'PS': 0.02880, 'PI': 0.12273, 'PC': 0.29107, 'PE': 0.18192, 'CL': 0.12204, 'PA': 0.01137}
         self.outer_mit_membrane_comp = {'PS': 0.01189, 'PI': 0.10108, 'PC': 0.45190, 'PE': 0.32307, 'CL': 0.05847, 'PA': 0.04360}
-        self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA':0.0}
-        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
-                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
+        self.lipid_droplets_comp = {'PS': 0.0, 'PI': 0.0, 'PC': 0.0, 'PE': 0.0, 'CL': 0.0, 'PA': 0.0}
+        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,
+                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,
                                self.outer_mit_membrane_comp, self.lipid_droplets_comp]
 
         # initialise variables
@@ -163,7 +163,7 @@ class CL(Lipid):
         self.comp = np.random.choice(self.compartment, p=weights_normal)
 
 
-class FattyAcid(object):	#name als attribut statt der einzelnen unterklassen
+class FattyAcid(object):  # name as attribute instead of particular subclasses
     """
     Fatty acid class
     ================
@@ -222,10 +222,10 @@ class Sterol(object):
         # possible head groups
         self.head_options = ['sterol', 'sterylester']
         # possible first compartments
-        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                                     'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]
         # possible final compartments
-        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane']
         # compartment weights (probabilities)
         self.compartment_weights = [0.665, 0.01, 0.155, 0.10, 0.005, 0.01, 0.04, 0.015]
@@ -239,8 +239,8 @@ class Sterol(object):
         self.inner_mit_membrane_comp = {'ES': 0.242}
         self.outer_mit_membrane_comp = {'ES': 0.009}
         self.lipid_droplets_comp = {'ES': 0.0}
-        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
-                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
+        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,
+                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,
                                self.outer_mit_membrane_comp, self.lipid_droplets_comp]
 
         # initialise variables
@@ -354,10 +354,10 @@ class Sphingolipid(object):
         # possible head groups
         self.head_options = ['ceramide']
         # possible first compartments
-        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane', None]
         # possible final compartments
-        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
+        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane']
         # compartment weights (probabilities)
         self.compartment_weights = [0.665, 0.01, 0.155, 0.10, 0.005, 0.01, 0.04, 0.015]
@@ -371,8 +371,8 @@ class Sphingolipid(object):
         self.inner_mit_membrane_comp = {'SL': 0.0}
         self.outer_mit_membrane_comp = {'SL': 0.0}
         self.lipid_droplets_comp = {'SL': 0.0}
-        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,\
-                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,\
+        self.membranes_comp = [self.plasma_membrane_comp, self.secretory_vesicles_comp, self.vacuoles_comp, self.nucleus_comp,
+                               self.peroxisomes_comp, self.light_microsomes_comp, self.inner_mit_membrane_comp,
                                self.outer_mit_membrane_comp, self.lipid_droplets_comp]
 
         # initialise variables
