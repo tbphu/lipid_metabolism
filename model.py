@@ -20,15 +20,17 @@ class Model:
     def __init__(self):
         # initialise parameters and lists
         # model parameters
-        self._initialise_parameters()
+        self._init_parameters()
         # output lists
-        self._initialise_lists()
+        self._init_lists()
         # initialise precursor production
-        self._initialise_precursor_production()
+        self._init_precursor_production()
         # initial state
-        self._initialise_molecules()
+        self._init_molecules()
+        # lists for plotting
+        self._init_plot_lists()
 
-    def _initialise_parameters(self):
+    def _init_parameters(self):
         """
         Initialise model parameters, all values were adjusted manually to the data of Uchida et al. (2011, PMID:21360734) 
         and Zinser et al. (1991, PMID:2002005).
@@ -107,8 +109,14 @@ class Model:
         ### C16:0, C18:0, C16:1, C18:1
         self._saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
-    def _initialise_lists(self):
-        # lists of all precursors (for plotting)
+    def _init_plot_lists(self):
+        ## component list
+        self.components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, 
+                                self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, 
+                                self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
+
+    def _init_lists(self):
+        # lists of all precursors
         self.precursors = {'pyruvate' : [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [], 'glucose_6_p': [], 
                            'SAM': [], 'SAH': [], 'glycerol_3_p_mito': [], 'ceramide': [], 'GDP-mannose': [], 'NAD': [], 
                            'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [], 'CO2': [], 'Pi': [], 'CTP': [], 'CMP': [], 
@@ -132,13 +140,10 @@ class Model:
         self.Ergosterol_list = []
         self.Sterylester_list = []
         self.Sphingolipid_list = []
-        ## precursors
-        self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,
-                               self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, 
-                               self.Sphingolipid_list]
-        ## lipids
-        self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, 
-                            self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
+        
+        ## lipids to transport
+        self.transport_list = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, 
+                            self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
 
         # lists to collect the transported lipids
         ## compartment names
@@ -227,7 +232,7 @@ class Model:
                                   self.Sphingolipid_synthase,
                                   self.transport]
 
-    def _initialise_precursor_production(self):
+    def _init_precursor_production(self):
 
         # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
         ## G1 phase
@@ -241,7 +246,7 @@ class Model:
                                           'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,
                                           'CO2': 0, 'Pi': 0, 'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
 
-    def _initialise_molecules(self):
+    def _init_molecules(self):
 
         # initialise number of small molecules in the cell
         self.precursors_dict = {'pyruvate' : 2200., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000., 'serine': 250., 
@@ -472,28 +477,13 @@ class Model:
 
     def Km_calculation(self):
         # Calculation of Km, 2 substrates: Km for lipids = 5, for acyl-coa = 30
-        self.Km = {'glycerol_3_p_synthesis': {'DHAP': 0.}, 
-                        'inositol_synthesis': {'glucose_6_p': 0.}, 
-                        'ceramide_synthesis': {'serine': 0.},
-                        'acetyl_coa_synthase': {'pyruvate': 0.}, 
-                        'acyl_synthase': {'acetyl_coa': 0.},
-                        'acyl_synthase_C16': 0.625,
-                        'acyl_synthase_C18': 0.002,
-                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': 0.}, 
-                        'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},
-                        'CDP_DG_synthase': {'PA': 5., 'CTP': 0.},
-                        'DAG_synthase': {'PA': 5.}, 
-                        'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, 
-                        'TAG_lipase': {'lipid_droplets': 0.}, 
-                        'DAG_kinase': {'DAG': 5.}, 
-                        'PS_synthase': {'CDP_DG': 5., 'serine': 0.},
-                        'PI_synthase': {'CDP_DG': 5., 'inositol': 0.}, 
-                        'PE_synthase': {'PS': 5.}, 
-                        'PC_synthase': {'PE': 5., 'SAM': 0.}, 
-                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': 0.},
-                        'Ergosterol_synthase': {'acetyl_coa': 0.}, 
-                        'Sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, 
-                        'Sphingolipid_synthase': {'PI': 5}}
+        self.pre_Km = { 'lyso_PA_synthase': {'acyl_coa': 30.},
+                        'CDP_DG_synthase': {'PA': 5.},
+                        'PS_synthase': {'CDP_DG': 5.},
+                        'PI_synthase': {'CDP_DG': 5.},
+                        'PC_synthase': {'PE': 5.}, 
+                        'CL_synthase': {'CDP_DG': 5.}, 
+                        'Sphingolipid_synthase': {'PI': 5.}}
 
         self.Km = {'glycerol_3_p_synthesis': {'DHAP': self.precursors_dict['DHAP'] / self._probability['glycerol_3_p_synthesis'] \
                                               - self.precursors_dict['DHAP']},
@@ -507,37 +497,47 @@ class Model:
                                           - self.precursors_dict['acetyl_coa']},
                         'acyl_synthase_C16': 0.625,
                         'acyl_synthase_C18': 0.002,
-                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': (self.precursors_dict['DHAP'] / self._probability['lyso_PA_synthase']) \
+                        'lyso_PA_synthase': {'acyl_coa': 30., 
+                                             'DHAP': (self.precursors_dict['DHAP'] / self._probability['lyso_PA_synthase']) \
                                              * ((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated)))\
-                                             / (self.Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated)) \
+                                             / (self.pre_Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated)) \
                                              + float(len(self.acyl_coa_list_unsaturated))))) - self.precursors_dict['DHAP']},
-                        'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},\
-                        'CDP_DG_synthase': {'PA': 5., 'CTP': (self.precursors_dict['CTP'] / self._probability['CDP_DG_synthase']) \
-                                            * (float(len(self.PA_list)) / (self.Km['CDP_DG_synthase']['PA'] + float(len(self.PA_list)))) \
+                        'PA_synthase': {'lyso-PA': 5., 
+                                        'acyl_coa': 30.},\
+                        'CDP_DG_synthase': {'PA': 5., 
+                                            'CTP': (self.precursors_dict['CTP'] / self._probability['CDP_DG_synthase']) \
+                                            * (float(len(self.PA_list)) / (self.pre_Km['CDP_DG_synthase']['PA'] + float(len(self.PA_list)))) \
                                             - self.precursors_dict['CTP']},
                         'DAG_synthase': {'PA': 5.}, 
-                        'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, 
+                        'TAG_synthase': {'DAG': 5., 
+                                         'acyl_coa': 30.}, 
                         'TAG_lipase': {'lipid_droplets': float(len(self.lipid_droplets)) / self._probability['TAG_lipase'] \
                                        - float(len(self.lipid_droplets))},
                         'DAG_kinase': {'DAG': 5.}, 
-                        'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_dict['serine'] / self._probability['PS_synthase']) \
-                                        * (float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
+                        'PS_synthase': {'CDP_DG': 5., 
+                                        'serine': (self.precursors_dict['serine'] / self._probability['PS_synthase']) \
+                                        * (float(len(self.CDP_DG_list)) / (self.pre_Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
                                         - self.precursors_dict['serine']},
-                        'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_dict['inositol'] / self._probability['PI_synthase']) \
-                                        * (float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
+                        'PI_synthase': {'CDP_DG': 5., 
+                                        'inositol': (self.precursors_dict['inositol'] / self._probability['PI_synthase']) \
+                                        * (float(len(self.CDP_DG_list)) / (self.pre_Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) \
                                         - self.precursors_dict['inositol']},
                         'PE_synthase': {'PS': 5.}, 
-                        'PC_synthase': {'PE': 5., 'SAM': (self.precursors_dict['SAM'] / self._probability['PC_synthase']) \
-                                        * (float(len(self.PE_list)) / (self.Km['PC_synthase']['PE'] + float(len(self.PE_list)))) 
+                        'PC_synthase': {'PE': 5., 
+                                        'SAM': (self.precursors_dict['SAM'] / self._probability['PC_synthase']) \
+                                        * (float(len(self.PE_list)) / (self.pre_Km['PC_synthase']['PE'] + float(len(self.PE_list)))) 
                                         - self.precursors_dict['SAM']}, 
-                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': (self.precursors_dict['glycerol_3_p_mito'] 
-                                        / self._probability['CL_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['CL_synthase']['CDP_DG'] \
+                        'CL_synthase': {'CDP_DG': 5., 
+                                        'glycerol_3_p_mito': (self.precursors_dict['glycerol_3_p_mito'] 
+                                        / self._probability['CL_synthase']) * (float(len(self.CDP_DG_list)) / (self.pre_Km['CL_synthase']['CDP_DG'] \
                                         + float(len(self.CDP_DG_list)))) - self.precursors_dict['glycerol_3_p_mito']},
                         'Ergosterol_synthase': {'acetyl_coa': self.precursors_dict['acetyl_coa'] / self._probability['Ergosterol_synthase'] \
                                                 - self.precursors_dict['acetyl_coa']},
-                        'Sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, 
-                        'Sphingolipid_synthase': {'PI': 5, 'ceramide': (self.precursors_dict['ceramide'] / self._probability['Sphingolipid_synthase']) \
-                                                  * (float(len(self.PI_list)) / (self.Km['Sphingolipid_synthase']['PI'] + float(len(self.PI_list)))) \
+                        'Sterylester_synthase': {'ergosterol': 5., 
+                                                 'acyl_coa': 30.}, 
+                        'Sphingolipid_synthase': {'PI': 5, 
+                                                  'ceramide': (self.precursors_dict['ceramide'] / self._probability['Sphingolipid_synthase']) \
+                                                  * (float(len(self.PI_list)) / (self.pre_Km['Sphingolipid_synthase']['PI'] + float(len(self.PI_list)))) \
                                                   - self.precursors_dict['ceramide']}}
 
 
@@ -977,7 +977,7 @@ class Model:
         '''
         General transport function for all produced lipids.
         '''
-        for lipid in self.lipid_lists:
+        for lipid in self.transport_list:
             if lipid == self.TAG_list or lipid == self.Sterylester_list:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
@@ -1033,9 +1033,8 @@ class Model:
                     self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
             x += 1
 
-
     def numbers(self):
-        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.precursor_list):
+        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
             current_lipid_number.append(len(number_of_lipid))
         #for plotting the number of lipids in a certain membrane
         for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
