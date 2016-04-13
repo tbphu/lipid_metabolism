@@ -43,7 +43,7 @@ class Model:
                        'ceramide_synthesis':     2, 
                        'acetyl_coa_synthase':    650, 
                        'acyl_synthase':          450, 
-                       'PA_synthese':            17,
+                       'PA_synthase':            17,
                        'CDP_DG_synthase':        20, 
                        'TAG_synthese':           30, 
                        'TAG_lipase':             23, 
@@ -224,7 +224,7 @@ class Model:
                               self.ceramide_synthesis,
                               self.acetyl_coa_synthase,
                               self.acyl_synthase,
-                              self.PA_synthese,
+                              self.PA_synthase,
                               self.CDP_DG_synthase,
                               self.TAG_synthese,
                               self.PS_synthase,
@@ -764,11 +764,11 @@ class Model:
                     self.precursors_dict['H2O'] += 2
             del self.acyl_coa_list[:-1]
 
-    def PA_synthese(self):
+    def PA_synthase(self):
         """
         Synthesis of PA in two reaction steps.
         """
-        for i in range(self._rates['PA_synthese']):
+        for i in range(self._rates['PA_synthase']):
             self.lyso_PA_synthase()
             self.PA_synthase()
 
