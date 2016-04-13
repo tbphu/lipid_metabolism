@@ -14,69 +14,66 @@ class Model:
     ===========
     At the beginning there are several lists defined which will contain the produced lipids.
     The model starts with a given amount of precursors (pyruvate, dhap, ctp, serine, glucose-6-p, SAM, glycerol-3-p).
-    After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
+    After several reactions and the tranport function in the end there are membranes of different compartments with 
+    several different lipids.
     """
     def __init__(self):
+        # initialise parameters and lists
+        ## model parameters
+        self._initialise_model_parameters()
+        ## output lists
+        self._initialise_lists()
+        ## initialise precursor production
+        self._initialise_precursor_production()
+        ## initial state
+        self._initialise_molecules()
+
+    def _initialise_model_parameters(self):
+        """
+        Initialise model parameters, all values were adjusted manually to the data of Uchida et al. (2011, PMID:21360734) 
+        and Zinser et al. (1991, PMID:2002005).
+        """
         # VMAX of reactions
-        self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 'acyl_synthase': 450, 'PA_synthese': 17, \
-                      'CDP_DG_synthase': 20, 'TAG_synthese': 30, 'TAG_lipase': 23, 'DAG_kinase': 40, 'PS_synthase': 18, 'PI_synthase': 6,\
-                      'PE_synthase': 12, 'PC_synthase': 5, 'CL_synthase': 2, 'Ergosterol_synthase': 25, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
+        ## adjusted manually
+        self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 
+                      'acyl_synthase': 450, 'PA_synthese': 17, 'CDP_DG_synthase': 20, 'TAG_synthese': 30, 'TAG_lipase': 23, 
+                      'DAG_kinase': 40, 'PS_synthase': 18, 'PI_synthase': 6, 'PE_synthase': 12, 'PC_synthase': 5, 'CL_synthase': 2, 
+                      'Ergosterol_synthase': 25, 'Sterylester_synthase': 25, 'Sphingolipid_synthase': 2}
         # probabilities of reaction to take place
-        self.probability = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 'acetyl_coa_synthase': 0.8, 'acyl_synthase': 0.5, \
-                            'acyl_synthase_C16': 0.375, 'acyl_synthase_C18': 0.998, 'lyso_PA_synthase': 0.45, 'PA_synthase': 0.2, 'CDP_DG_synthase': 0.8, \
-                            'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_kinase': 0.1, 'PS_synthase': 0.5, 'PI_synthase': 0.5, \
-                            'PE_synthase': 0.5, 'PC_synthase': 0.5, 'CL_synthase': 0.05, 'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.4, 'Sphingolipid_synthase': 0.2}
+        ## adjusted manually
+        self.probability = {'glycerol_3_p_synthesis': 0.5, 'inositol_synthesis': 0.5, 'ceramide_synthesis': 0.5, 
+                            'acetyl_coa_synthase': 0.8, 'acyl_synthase': 0.5, 'acyl_synthase_C16': 0.375, 
+                            'acyl_synthase_C18': 0.998, 'lyso_PA_synthase': 0.45, 'PA_synthase': 0.2, 'CDP_DG_synthase': 0.8,
+                            'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.8, 'DAG_kinase': 0.1, 'PS_synthase': 0.5, 
+                            'PI_synthase': 0.5, 'PE_synthase': 0.5, 'PC_synthase': 0.5, 'CL_synthase': 0.05, 
+                            'Ergosterol_synthase': 0.6, 'Sterylester_synthase': 0.4, 'Sphingolipid_synthase': 0.2}
 
         # probabilities in CC phase G1
+        ## adjusted manually
         self.probability_G1 = {'DAG_synthase': 0.3, 'TAG_synthase': 0.2, 'TAG_lipase': 0.05, 'DAG_kinase': 0.03}
         # probabilities in CC phases S-M
-        self.probability_S_M = {'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.6, 'DAG_kinase': 0.1, 'Sterylester_synthase': 0.2}
-        # thresholds calculated from probabilities
+        ## adjusted manually
+        self.probability_S_M = {'DAG_synthase': 0.01, 'TAG_synthase': 0.2, 'TAG_lipase': 0.6, 'DAG_kinase': 0.1, 
+                                'Sterylester_synthase': 0.2}
+        # thresholds calculated from probabilities: (1-probability)
         self.manual_threshold = {reaction: 1-prob for reaction, prob in self.probability.iteritems()}
         # compartment weights (probabilities)
+        ## adjusted manually
         self.compartment_weights = [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015]
         # FA probabilities
+        ## adjusted manually
         self.weights_fa = [0.4, 0.6]
+        ## C16, C18
+        self.unsaturated_weights = [0.375, 0.625]
+        ## C16:0, C18:0, C16:1, C18:1
+        self.saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
-    def run(self, timesteps=7200, volume=35):
-        """
-        Start the simulation.
-
-        Parameters
-        ----------
-        timesteps: int
-            number of simulation steps in sec
-        volume: int
-            volume of the cell in fL
-        """
-        # initialise simulation time (s) & cell volume (fL)
-        self.timesteps = timesteps
-        self.volume = volume
-
-        # determine the timesteps, self.t for plotting, self.time for cell cycle
-        self.time = 0
-        self.t = [i for i in range(self.timesteps)]
-
-
-        # number of small molecules in the cell
-        self.precursors_dict = {'pyruvate' : 2200., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000., 'serine': 250., 'glucose_6_p': 1000., 'SAM': 331., 'SAH': 0.,\
-                                'glycerol_3_p_mito': 50., 'ceramide': 100, 'GDP-mannose': 0, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
-                                'CO2': 0, 'Pi': 0, 'CTP': 1000, 'CMP': 0, 'inositol': 350, 'ATP': 0, 'ADP': 0}
-
-        # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
-        ## G1 phase
-        self.precursors_production_G1 = {'pyruvate' : 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30., 'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,\
-                                         'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
-                                         'CO2': 0, 'Pi': 0, 'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
-        ## S-M phase
-        self.precursors_production_S_M = {'pyruvate' : 1700., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 35., 'serine': 30., 'glucose_6_p': 12., 'SAM': 55., 'SAH': 0.,\
-                                          'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,\
-                                          'CO2': 0, 'Pi': 0, 'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
-
-        # lists of all precursors for plotting
-        self.precursors = {'pyruvate' : [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [], 'glucose_6_p': [], 'SAM': [], 'SAH': [],\
-                           'glycerol_3_p_mito': [], 'ceramide': [], 'GDP-mannose': [], 'NAD': [], 'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [], 'CO2': [],\
-                           'Pi': [], 'CTP': [], 'CMP': [], 'inositol': [], 'ATP': [], 'ADP': []}
+    def _initialise_lists(self):
+        # lists of all precursors (for plotting)
+        self.precursors = {'pyruvate' : [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [], 'glucose_6_p': [], 
+                           'SAM': [], 'SAH': [], 'glycerol_3_p_mito': [], 'ceramide': [], 'GDP-mannose': [], 'NAD': [], 
+                           'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [], 'CO2': [], 'Pi': [], 'CTP': [], 'CMP': [], 
+                           'inositol': [], 'ATP': [], 'ADP': []}
 
         # names of small molecules for plotting
         self.precursor_keys = ['pyruvate', 'acetyl_coa', 'glycerol-3-p', 'DHAP', 'serine', 'glucose_6_p', 'SAM', 'SAH', 'glycerol_3_p_mito', 'ceramide',\
@@ -103,14 +100,13 @@ class Model:
         self.Ergosterol_list = []
         self.Sterylester_list = []
         self.Sphingolipid_list = []
-
-        # lists to collect the lists of all produced species and membrane lipids (not transported yet) for plotting
         ## precursors
-        self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,\
-                                self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
-
+        self.precursor_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, self.PI_list,
+                               self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, 
+                               self.Sphingolipid_list]
         ## lipids
-        self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
+        self.lipid_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, self.Ergosterol_list, 
+                            self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
 
         # lists to collect the transported lipids
         ## compartment names
@@ -127,13 +123,11 @@ class Model:
         self.outer_mit_membrane = []
         self.lipid_droplets = []
         ## list of lists
-        self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, \
-                                    self.peroxisomes, self.light_microsomes, self.inner_mit_membrane, \
-                                    self.outer_mit_membrane, self.lipid_droplets]
+        self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus, self.peroxisomes, 
+                                  self.light_microsomes, self.inner_mit_membrane, self.outer_mit_membrane, self.lipid_droplets]
 
         # relatives list for calculation of the relative parts of each lipid in a membrane for the compartment_relatives_dict
         self.relatives_list = []
-
         # collecting the products of every timestep. Lipids that are produced in the start function don't need the 0 for plotting
         self.number_acetyl_coa = []
         self.number_acyl_coa = []
@@ -149,11 +143,10 @@ class Model:
         self.number_Sterylester = []
         self.number_DAG = []
         self.number_Sphingolipid = []
-
+        ## list of lists
         self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,\
-                                    self.number_PS, self.number_PI, self.number_PE, self.number_PC,	self.number_CL,\
+                                    self.number_PS, self.number_PI, self.number_PE, self.number_PC, self.number_CL,\
                                     self.number_Ergosterol, self.number_Sterylester, self.number_DAG, self.number_Sphingolipid]
-
         # counting the lipids in each membrane after every timestep
         self.number_plasma_membrane = []
         self.number_secretory_vesicles = []
@@ -164,24 +157,62 @@ class Model:
         self.number_inner_mit_membrane = []
         self.number_outer_mit_membrane = []
         self.number_lipid_droplets = []
-
+        ## list of lists
         self.number_membranes_list = [self.number_plasma_membrane, self.number_secretory_vesicles, self.number_vacuoles, \
                                         self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,\
-                                        self.number_inner_mit_membrane,	self.number_outer_mit_membrane, self.number_lipid_droplets]
+                                        self.number_inner_mit_membrane, self.number_outer_mit_membrane, self.number_lipid_droplets]
 
         # possible fatty acids and weights to reach the biological proportions
         self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}
         self.chainlength_unsaturated = {16: 'C16:1', 18: 'C18:1'}
-        self.unsaturated_weights = [0.375, 0.625]
         self.chainlength_saturated_unsaturated = ['C16:0', 'C18:0', 'C16:1', 'C18:1']
-        self.saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
-
         # names of membrane lipids
         self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'SE', 'TAG', 'SL']
 
         self.compartment_relatives_dict = {comp: dict(zip(self.membrane_lipids, [0.0 for z in range(10)])) for comp in self.compartment}
 
         self.Km = {}
+
+    def _initialise_precursor_production(self):
+
+        # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
+        ## G1 phase
+        self.precursors_production_G1 = {'pyruvate' : 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30., 'serine': 20., 
+                                         'glucose_6_p': 8., 'SAM': 45., 'SAH': 0., 'glycerol_3_p_mito': 5., 'ceramide': 0, 
+                                         'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,
+                                         'CO2': 0, 'Pi': 0, 'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
+        ## S-M phase
+        self.precursors_production_S_M = {'pyruvate' : 1700., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 35., 'serine': 30., 
+                                          'glucose_6_p': 12., 'SAM': 55., 'SAH': 0., 'glycerol_3_p_mito': 5., 'ceramide': 0, 
+                                          'GDP-mannose': 10, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,
+                                          'CO2': 0, 'Pi': 0, 'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
+
+    def _initialise_molecules(self):
+
+        # initialise number of small molecules in the cell
+        self.precursors_dict = {'pyruvate' : 2200., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000., 'serine': 250., 
+                                'glucose_6_p': 1000., 'SAM': 331., 'SAH': 0., 'glycerol_3_p_mito': 50., 'ceramide': 100, 
+                                'GDP-mannose': 0, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0,
+                                'CO2': 0, 'Pi': 0, 'CTP': 1000, 'CMP': 0, 'inositol': 350, 'ATP': 0, 'ADP': 0}
+
+
+    def run(self, timesteps=7200):
+        """
+        Start the simulation.
+
+        Parameters
+        ----------
+        timesteps: int
+            number of simulation steps in sec
+        volume: int
+            volume of the cell in fL
+        """
+        # initialise simulation time (s)
+        self.timesteps = timesteps
+
+        # determine the timesteps, self.t for plotting, self.time for cell cycle
+        self.time = 0
+        self.t = [i for i in range(self.timesteps)]
 
         self.start()	#function that produces the lipids and membranes that are existing at the beginning of the cell cycle
         self.Km_calculation()
@@ -1122,6 +1153,6 @@ if __name__ == '__main__':
     st = time.time()
     m = Model()
     # test run: 5 sec, volume 35 fL
-    m.run(5, 35)
+    m.run(5)
     et = time.time()
     print "Runtime: " + str(et - st) + "s"
