@@ -801,11 +801,11 @@ class Model:
                         if ':0' in self.lipid_droplets[z].sn3:
                             for key, value in self.chainlength_unsaturated.items():
                                 if value == self.lipid_droplets[z].sn3:
-                                    self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+                                    self.acyl_coa_list_saturated.append(components.FattyAcid(key, 0))
                         elif ':1' in self.lipid_droplets[z].sn3:
                             for key, value in self.chainlength_saturated.items():
                                 if value == self.lipid_droplets[z].sn3:
-                                    self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+                                    self.acyl_coa_list_unsaturated.append(components.FattyAcid(key, 1))
                         self.DAG_list.append(self.lipid_droplets[z])
                         self.DAG_list[-1].__class__ = components.Lipid
                         delattr(self.DAG_list[-1], 'sn3')
@@ -816,11 +816,11 @@ class Model:
                         if ':0' in self.lipid_droplets[z].FA:
                             for key, value in self.chainlength_unsaturated.items():
                                 if value == self.lipid_droplets[z].FA:
-                                    self.acyl_coa_list_saturated.append(fatty_acids(key, 0))
+                                    self.acyl_coa_list_saturated.append(components.FattyAcid(key, 0))
                         elif ':1' in self.lipid_droplets[z].FA:
                             for key, value in self.chainlength_saturated.items():
                                 if value == self.lipid_droplets[z].FA:
-                                    self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
+                                    self.acyl_coa_list_unsaturated.append(components.FattyAcid(key, 1))
                     del self.lipid_droplets[z]
 
 
@@ -905,7 +905,7 @@ class Model:
                 z = np.random.randint(0, len(self.CDP_DG_list)-2)
                 self.CDP_DG_list[z].head = 'neutral'
                 self.CL_list.append(self.CDP_DG_list[z])
-                self.CL_list[-1].__class__ = CL
+                self.CL_list[-1].__class__ = components.CL
                 self.CL_list[-1].sn4, self.CL_list[-1].sn3 = self.CDP_DG_list[z+1].sn2, self.CDP_DG_list[z+1].sn1
                 del self.CDP_DG_list[z:z+1]
                 self.precursors_dict['glycerol_3_p_mito'] -= 1
@@ -966,7 +966,7 @@ class Model:
         for i in range(self._rates['Sphingolipid_synthase']):
             x = np.random.random()
             if x >= self.probabilities['Sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and self.precursors_dict['GDP-mannose'] > 1:
-                self.Sphingolipid_list.append(sphingolipid('ceramide', None, self._compartment_weights))
+                self.Sphingolipid_list.append(components.Sphingolipid('ceramide', None, self._compartment_weights))
                 z= np.random.randint(0, len(self.PI_list)-2)
                 del self.PI_list[z:z+1]
                 self.precursors_dict['ceramide'] -= 1
