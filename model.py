@@ -45,7 +45,7 @@ class Model:
                        'acyl_synthase':          450, 
                        'PA_synthase':            17,
                        'CDP_DG_synthase':        20, 
-                       'TAG_synthese':           30, 
+                       'TAG_synthase':           30,
                        'TAG_lipase':             23, 
                        'DAG_kinase':             40, 
                        'PS_synthase':            18, 
@@ -226,7 +226,7 @@ class Model:
                               self.acyl_synthase,
                               self.PA_synthase,
                               self.CDP_DG_synthase,
-                              self.TAG_synthese,
+                              self.TAG_synthase,
                               self.PS_synthase,
                               self.PI_synthase,
                               self.PE_synthase,
@@ -835,11 +835,11 @@ class Model:
                 self.precursors_dict['CTP'] -= 1
                 self.precursors_dict['Pi'] += 2
 
-    def TAG_synthese(self):
+    def TAG_synthase(self):
         """
         Function for TAG synthesis divided in production of DAG and TAG afterwards
         """
-        for i in range(self._rates['TAG_synthese']):
+        for i in range(self._rates['TAG_synthase']):
             self.DAG_synthase()
             self.TAG_synthase()
 
