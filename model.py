@@ -53,7 +53,7 @@ class Model:
                        'PE_synthase':            12, 
                        'PC_synthase':            5, 
                        'CL_synthase':            2, 
-                       'Ergosterol_synthase':    25, 
+                       'ergosterol_synthase':    25,
                        'Sterylester_synthase':   25, 
                        'Sphingolipid_synthase':  2}
 
@@ -78,7 +78,7 @@ class Model:
                              'PE_synthase':            0.5, 
                              'PC_synthase':            0.5, 
                              'CL_synthase':            0.05, 
-                             'Ergosterol_synthase':    0.6, 
+                             'ergosterol_synthase':    0.6,
                              'Sterylester_synthase':   0.4, 
                              'Sphingolipid_synthase':  0.2}
 
@@ -234,7 +234,7 @@ class Model:
                               self.CL_synthase,
                               self.TAG_lipase,
                               self.DAG_kinase,
-                              self.Ergosterol_synthase,
+                              self.ergosterol_synthase,
                               self.Sterylester_synthase,
                               self.Sphingolipid_synthase,
                               self.transport]
@@ -417,8 +417,8 @@ class Model:
                                          (self.precursors_dict['glycerol_3_p_mito'] /
                                          (self.Km['CL_synthase']['glycerol_3_p_mito'] +
                                           self.precursors_dict['glycerol_3_p_mito']))),
-                     'Ergosterol_synthase': 1 - (self.precursors_dict['acetyl_coa'] /
-                                                 (self.Km['Ergosterol_synthase']['acetyl_coa'] +
+                     'ergosterol_synthase': 1 - (self.precursors_dict['acetyl_coa'] /
+                                                 (self.Km['ergosterol_synthase']['acetyl_coa'] +
                                                   self.precursors_dict['acetyl_coa'])),
                      'Sterylester_synthase': 1 - ((float(len(self.Ergosterol_list)) /
                                                   (self.Km['Sterylester_synthase']['ergosterol'] +
@@ -620,7 +620,7 @@ class Model:
                                                                                                    (self.pre_Km['CL_synthase']['CDP_DG'] +
                                                                                                     float(len(self.CDP_DG_list)))) -
                                         self.precursors_dict['glycerol_3_p_mito']},
-                        'Ergosterol_synthase': {'acetyl_coa': self.precursors_dict['acetyl_coa'] / self._probability['Ergosterol_synthase'] -
+                        'ergosterol_synthase': {'acetyl_coa': self.precursors_dict['acetyl_coa'] / self._probability['ergosterol_synthase'] -
                                                 self.precursors_dict['acetyl_coa']},
                         'Sterylester_synthase': {'ergosterol': 5., 
                                                  'acyl_coa': 30.}, 
@@ -1000,13 +1000,13 @@ class Model:
                 self.precursors_dict['Pi'] += 1
                 self.precursors_dict['CMP'] += 2
 
-    def Ergosterol_synthase(self):
+    def ergosterol_synthase(self):
         """
         Synthesis of the most existing sterol in yeast: ergosterol
         """
-        for i in range(self._rates['Ergosterol_synthase']):
+        for i in range(self._rates['ergosterol_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['Ergosterol_synthase'] and self.precursors_dict['acetyl_coa'] > 18:
+            if x >= self.probabilities['ergosterol_synthase'] and self.precursors_dict['acetyl_coa'] > 18:
                 self.Ergosterol_list.append(components.Sterol('sterol', None, self._compartment_weights))
                 self.precursors_dict['acetyl_coa'] -= 18
                 self.precursors_dict['ATP'] -= 3
