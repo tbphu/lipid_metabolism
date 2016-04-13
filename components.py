@@ -7,7 +7,7 @@ Component classes for the lipid metabolism model.
 import numpy as np
 
 
-class Lipids(object):
+class Lipid(object):
     """
     Lipid class
     ===========
@@ -129,7 +129,7 @@ class Lipids(object):
         self.comp = np.random.choice(self.compartment, p=weights_normal)
 
 
-class TAG(Lipids):
+class TAG(Lipid):
     """
     TAG class
     """
@@ -144,7 +144,7 @@ class TAG(Lipids):
         self.comp = 'lipid_droplets'
 
 
-class CL(Lipids):
+class CL(Lipid):
     """
     CL class
     """
@@ -163,7 +163,7 @@ class CL(Lipids):
         self.comp = np.random.choice(self.compartment, p=weights_normal)
 
 
-class FattyAcids(object):	#name als attribut statt der einzelnen unterklassen
+class FattyAcid(object):	#name als attribut statt der einzelnen unterklassen
     """
     Fatty acid class
     ================

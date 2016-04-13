@@ -393,9 +393,9 @@ class Model:
                     new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
                                     np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
                 elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
-                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
                 else:
-                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
+                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), self.compartment[x], self.compartment_weights)
                     new_lipid.__class__ = components.TAG
                     new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated, p=self.saturation_weights_total)
                 membrane.append(new_lipid)
@@ -415,19 +415,19 @@ class Model:
                     new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total),\
                                             np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == None:
-                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                     new_lipid.__class__ = components.TAG
                     new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total)
                 elif head == 'ceramide':
                     new_lipid = components.Sphingolipid(head, None, self.compartment_weights)
                 elif head == 'cdp':
-                    new_lipid = components.Lipids('p', np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipid('p', np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == 'lyso':
-                    new_lipid = components.Lipids('p', None, np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipid('p', None, np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 elif head == 'dag':
-                    new_lipid = components.Lipids(None, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipid(None, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 else:
-                    new_lipid = components.Lipids(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
+                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(), p = self.unsaturated_weights), np.random.choice(self.chainlength_saturated_unsaturated, p = self.saturation_weights_total), None, self.compartment_weights)
                 lipid_list.append(new_lipid)
             z += 1
 
@@ -435,7 +435,7 @@ class Model:
         choice_weights_acyl_start = [0.13, 0.87]
         choice_C_acyl_start = [16, 18]
         for i in range(60):
-            new_acyl = components.FattyAcids(np.random.choice(choice_C_acyl_start), np.random.choice(choice_list_acyl_start, p = choice_weights_acyl_start))
+            new_acyl = components.FattyAcid(np.random.choice(choice_C_acyl_start), np.random.choice(choice_list_acyl_start, p = choice_weights_acyl_start))
             if new_acyl.saturation == 0:
                 self.acyl_coa_list_saturated.append(new_acyl)
             else:
@@ -602,13 +602,13 @@ class Model:
             x = np.random.random()						#5 reactions in 1 timestep but only with a probability of 90%
             if self.precursors_dict['acetyl_coa'] > 2:		#control if at least 2 Acetyl-CoA are available
                 if len(self.acyl_coa_list) == 0:		#starting the first reaction
-                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
 
                 elif self.acyl_coa_list[-1].C == 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
-                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -618,7 +618,7 @@ class Model:
                     #CO2 production is not mentioned here as onyl acetyl-CoA is used and not malonyl-CoA, so we need all C-atoms we give in the reaction
 
                 elif self.acyl_coa_list[-1].C == 18 and x >= self.probabilities['acyl_synthase_C18']:	#stop the reaction cycle and starting a new one
-                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -628,7 +628,7 @@ class Model:
 
                 elif self.acyl_coa_list[-1].C == 26:
                     self.acyl_coa_list[-1].saturation = 0
-                    new_acyl = components.FattyAcids(2, np.random.choice(choice_list, p = choice_weights))
+                    new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
                     self.acyl_coa_list.append(new_acyl)
                     self.acyl_coa_list[-1].C += 2
                     self.precursors_dict['acetyl_coa'] -= 2
@@ -675,12 +675,12 @@ class Model:
             if np.random.choice(choice_list, p = self.weights_fa) == 0:
                 sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_saturated)-1))
                 chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
-                lyso_pa = components.Lipids('p', None, self.chainlength_saturated[chainlength_sn1], None, self.compartment_weights)
+                lyso_pa = components.Lipid('p', None, self.chainlength_saturated[chainlength_sn1], None, self.compartment_weights)
                 del self.acyl_coa_list_saturated[sn1_chain]
             else:
                 sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
                 chainlength_sn1 = self.acyl_coa_list_unsaturated[sn1_chain].C
-                lyso_pa = components.Lipids('p', None, self.chainlength_unsaturated[chainlength_sn1], None, self.compartment_weights)
+                lyso_pa = components.Lipid('p', None, self.chainlength_unsaturated[chainlength_sn1], None, self.compartment_weights)
                 del self.acyl_coa_list_unsaturated[sn1_chain]
             self.lyso_pa_list.append(lyso_pa)
             i = np.random.choice(choice_list, p = weights_pa)
@@ -784,7 +784,7 @@ class Model:
                                 if value == self.lipid_droplets[z].sn3:
                                     self.acyl_coa_list_unsaturated.append(fatty_acids(key, 1))
                         self.DAG_list.append(self.lipid_droplets[z])
-                        self.DAG_list[-1].__class__ = components.Lipids
+                        self.DAG_list[-1].__class__ = components.Lipid
                         delattr(self.DAG_list[-1], 'sn3')
                         self.precursors_dict['H2O'] -= 1
                     elif self.lipid_droplets[z].head == 'sterylester':
