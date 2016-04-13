@@ -82,15 +82,15 @@ class Model:
         # probabilities in CC phase G1
         ## adjusted manually
         self._probability_G1 = {'DAG_synthase': 0.3, 
-                               'TAG_synthase': 0.2, 
-                               'TAG_lipase':   0.05, 
-                               'DAG_kinase':   0.03}
+                               'TAG_synthase':  0.2, 
+                               'TAG_lipase':    0.05, 
+                               'DAG_kinase':    0.03}
         # probabilities in CC phases S-M
         ## adjusted manually
         self._probability_S_M = {'DAG_synthase': 0.01, 
-                                'TAG_synthase': 0.2, 
-                                'TAG_lipase':   0.6, 
-                                'DAG_kinase':   0.1, 
+                                'TAG_synthase':  0.2, 
+                                'TAG_lipase':    0.6, 
+                                'DAG_kinase':    0.1, 
                                 'Sterylester_synthase': 0.2}
 
         # thresholds calculated from probabilities: (1-probability)
@@ -113,13 +113,6 @@ class Model:
                            'SAM': [], 'SAH': [], 'glycerol_3_p_mito': [], 'ceramide': [], 'GDP-mannose': [], 'NAD': [], 
                            'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [], 'CO2': [], 'Pi': [], 'CTP': [], 'CMP': [], 
                            'inositol': [], 'ATP': [], 'ADP': []}
-
-        # names of small molecules for plotting
-        self.precursor_keys = ['pyruvate', 'acetyl_coa', 'glycerol-3-p', 'DHAP', 'serine', 'glucose_6_p', 'SAM', 'SAH', 'glycerol_3_p_mito', 'ceramide',\
-                               'GDP-mannose', 'NAD', 'NADH', 'NADP', 'NADPH', 'O2', 'H2O', 'CO2', 'Pi', 'CTP', 'CMP', 'inositol', 'ATP', 'ADP']
-
-        # list of the 4 cell cycle phases
-        self.cell_cycle_phases = ['G1', 'S', 'G2', 'M']
 
         # empty lists for the produced fatty acids and lipids
         self.acyl_coa_list = []
@@ -302,11 +295,8 @@ class Model:
         for t in range(self.timesteps):
             self.time += 1 		#counting the seconds for knowing the cell cycle phase
 
-            #function that can change the cell cycle phase
-            self.cell_cycle()
-
             # cell cycle phase dependent precurosor production
-            if self.phase == 'G1':
+            if self.cell_cycle() == 'G1':
                 self.precursors_production = self.precursors_production_G1
             else:
                 self.precursors_production = self.precursors_production_S_M
@@ -322,7 +312,7 @@ class Model:
             self.probabilities = self.thresholds  
 
             # change rates dependent on cell cycle phase
-            if self.phase == 'G1':
+            if self.cell_cycle() == 'G1':
                 self.probabilities['DAG_synthase'] = 1- self._probability_G1['DAG_synthase']
                 self.probabilities['TAG_synthase'] = 1- self._probability_G1['TAG_synthase']
                 self.probabilities['TAG_lipase'] = 1- self._probability_G1['TAG_lipase']
@@ -556,14 +546,9 @@ class Model:
         Function to determine the cell cycle phases depending on the elapsed time.
         '''
         if self.time <= 1800:
-            self.phase = self.cell_cycle_phases[0]
-        elif self.time <= 4500:
-            self.phase = self.cell_cycle_phases[1]
-        elif self.time <= 6300:
-            self.phase = self.cell_cycle_phases[2]
+            return 'G1'
         else:
-            self.phase = self.cell_cycle_phases[3]
-
+            return 'S/G2/M'
 
     def glycerol_3_p_synthesis(self):
         '''
@@ -577,7 +562,6 @@ class Model:
                     self.precursors_dict['DHAP'] -= 1
                     self.precursors_dict['NADH'] += 1
                     self.precursors_dict['NAD'] -= 1
-
 
     def inositol_synthesis(self):
         '''
@@ -1057,9 +1041,8 @@ class Model:
         for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
             current_membrane_number.append(len(number_of_membrane))
 
-        for z in range(len(self.precursor_keys)):
-            self.precursors[self.precursor_keys[z]].append(self.precursors_dict[self.precursor_keys[z]])
-
+        for precursor in self.precursors.keys():
+            self.precursors[precursor].append(self.precursors_dict[precursor])
 
     def saturation_counter(self):
         '''
@@ -1143,8 +1126,8 @@ class Model:
         fig = mat.figure()
         ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
         i = 0
-        while i < 6:  # in range(len(self.precursor_keys)):
-            ax.plot(self.t, self.precursors[self.precursor_keys[i]], label=self.precursor_keys[i])
+        while i < 6:  # in range(len(self.precursors.keys())):
+            ax.plot(self.t, self.precursors[self.precursors.keys()[i]], label=self.precursors.keys()[i])
             i += 1
         ax.plot(self.t, self.precursors['inositol'], label='inositol')
         ax.plot(self.t, self.precursors['serine'], label='serine')
