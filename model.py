@@ -55,7 +55,7 @@ class Model:
                        'CL_synthase':            2, 
                        'ergosterol_synthase':    25,
                        'sterylester_synthase':   25,
-                       'Sphingolipid_synthase':  2}
+                       'sphingolipid_synthase':  2}
 
         # probabilities of reaction to take place
         # adjusted manually
@@ -80,7 +80,7 @@ class Model:
                              'CL_synthase':            0.05, 
                              'ergosterol_synthase':    0.6,
                              'sterylester_synthase':   0.4,
-                             'Sphingolipid_synthase':  0.2}
+                             'sphingolipid_synthase':  0.2}
 
         # probabilities in CC phase G1
         # adjusted manually
@@ -236,7 +236,7 @@ class Model:
                               self.DAG_kinase,
                               self.ergosterol_synthase,
                               self.sterylester_synthase,
-                              self.Sphingolipid_synthase,
+                              self.sphingolipid_synthase,
                               self.transport]
 
     def _init_precursor_production(self):
@@ -428,11 +428,11 @@ class Model:
                                                   (self.Km['sterylester_synthase']['acyl_coa'] +
                                                    (float(len(self.acyl_coa_list_saturated)) +
                                                     float(len(self.acyl_coa_list_unsaturated)))))),
-                     'Sphingolipid_synthase': 1 - ((float(len(self.PI_list)) /
-                                                   (self.Km['Sphingolipid_synthase']['PI'] +
+                     'sphingolipid_synthase': 1 - ((float(len(self.PI_list)) /
+                                                   (self.Km['sphingolipid_synthase']['PI'] +
                                                     float(len(self.PI_list)))) *
                                                    (self.precursors_dict['ceramide'] /
-                                                   (self.Km['Sphingolipid_synthase']['ceramide'] +
+                                                   (self.Km['sphingolipid_synthase']['ceramide'] +
                                                     self.precursors_dict['ceramide'])))}
         return threshold
 
@@ -567,7 +567,7 @@ class Model:
                         'PI_synthase': {'CDP_DG': 5.},
                         'PC_synthase': {'PE': 5.}, 
                         'CL_synthase': {'CDP_DG': 5.}, 
-                        'Sphingolipid_synthase': {'PI': 5.}}
+                        'sphingolipid_synthase': {'PI': 5.}}
 
         self.Km = {'glycerol_3_p_synthesis': {'DHAP': self.precursors_dict['DHAP'] / self._probability['glycerol_3_p_synthesis'] -
                                               self.precursors_dict['DHAP']},
@@ -624,9 +624,9 @@ class Model:
                                                 self.precursors_dict['acetyl_coa']},
                         'sterylester_synthase': {'ergosterol': 5.,
                                                  'acyl_coa': 30.}, 
-                        'Sphingolipid_synthase': {'PI': 5, 
-                                                  'ceramide': (self.precursors_dict['ceramide'] / self._probability['Sphingolipid_synthase']) *
-                                                  (float(len(self.PI_list)) / (self.pre_Km['Sphingolipid_synthase']['PI'] +
+                        'sphingolipid_synthase': {'PI': 5,
+                                                  'ceramide': (self.precursors_dict['ceramide'] / self._probability['sphingolipid_synthase']) *
+                                                  (float(len(self.PI_list)) / (self.pre_Km['sphingolipid_synthase']['PI'] +
                                                                                float(len(self.PI_list)))) - self.precursors_dict['ceramide']}}
 
     def cell_cycle(self):
@@ -1044,13 +1044,13 @@ class Model:
                     else:
                         j += 1
 
-    def Sphingolipid_synthase(self):
+    def sphingolipid_synthase(self):
         """
-        Synthesis of the most abundant Sphingolipid mannose-(inositol-phosphate)2-ceramide
+        Synthesis of the most abundant sphingolipid mannose-(inositol-phosphate)2-ceramide
         """
-        for i in range(self._rates['Sphingolipid_synthase']):
+        for i in range(self._rates['sphingolipid_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['Sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and \
+            if x >= self.probabilities['sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and \
                     self.precursors_dict['GDP-mannose'] > 1:
                 self.Sphingolipid_list.append(components.Sphingolipid('ceramide', None, self._compartment_weights))
                 z= np.random.randint(0, len(self.PI_list)-2)
