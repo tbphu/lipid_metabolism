@@ -248,8 +248,7 @@ class Model:
 
         Returns
         -------
-        self.saturation_composition_total: 
-        self.number_membranes_list:
+        self.saturation_composition_total:
         self.comp_ratio_dict: 
         """
         # determine the time steps, self.t for plotting, self.time for cell cycle
@@ -300,7 +299,7 @@ class Model:
         self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
         self.saturation_counter()  # calculating the percentages of each fatty acid that was used
 
-        return self.saturation_composition_total, self.number_membranes_list, self.comp_ratio_dict
+        return self.saturation_composition_total, self.comp_ratio_dict
 
     def _calculate_threshold(self):
         """
@@ -1079,11 +1078,6 @@ class Model:
         components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
                                 self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
                                 self.sterylester_list, self.DAG_list, self.sphingolipid_list]
-        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, components_list):
-            current_lipid_number.append(len(number_of_lipid))
-        # for plotting the number of lipids in a certain membrane
-        for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
-            current_membrane_number.append(len(number_of_membrane))
 
         for precursor in self.precursors.keys():
             self.precursors[precursor].append(self.precursors_dict[precursor])
