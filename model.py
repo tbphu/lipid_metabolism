@@ -136,13 +136,13 @@ class Model:
         self.sphingolipid_list = []
         
         # lipids to transport
-        self.transport_list = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, 
-                               self.ergosterol_list, self.sterylester_list, self.TAG_list, self.sphingolipid_list]
+        self.transport_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, 
+                                self.ergosterol_list, self.sterylester_list, self.TAG_list, self.sphingolipid_list]
 
         # lists to collect the transported lipids
         # compartment names
-        self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes',
-                            'light_microsomes', 'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
+        self.compartment_names = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes',
+                                  'light_microsomes', 'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
         # compartment lists
         self.plasma_membrane = []
         self.secretory_vesicles = []
@@ -160,7 +160,7 @@ class Model:
 
         # relatives list for calculation of the relative parts of each lipid in a membrane for the
         # compartment_relatives_dict
-        self.relatives_list = []
+        self.comp_ratio_list = []
         # collecting the products of every time step. Lipids that are produced in the start function
         # don't need the 0 for plotting
         self.number_acetyl_coa = []
@@ -205,8 +205,8 @@ class Model:
         # names of membrane lipids
         self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'SE', 'TAG', 'SL']
 
-        self.compartment_relatives_dict = \
-            {comp: dict(zip(self.membrane_lipids, [0.0 for i in range(10)])) for comp in self.compartment}
+        self.comp_ratio_dict = \
+            {comp: dict(zip(self.membrane_lipids, [0] * 10)) for comp in self.compartment_names}
 
         # dict for Km values
         self.Km = {}
@@ -287,7 +287,7 @@ class Model:
         -------
         self.saturation_composition_total: 
         self.number_membranes_list:
-        self.compartment_relatives_dict: 
+        self.comp_ratio_dict: 
         """
         # determine the timesteps, self.t for plotting, self.time for cell cycle
         self.time = 0
@@ -337,7 +337,7 @@ class Model:
         self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
         self.saturation_counter()  # calculating the percentages of each fatty acid that was used
 
-        return self.saturation_composition_total, self.number_membranes_list, self.compartment_relatives_dict
+        return self.saturation_composition_total, self.number_membranes_list, self.comp_ratio_dict
 
     def _calculate_threshold(self):
         """
@@ -441,27 +441,27 @@ class Model:
             membrane_comp_start_relative = [z / sum(membrane_comp_start) for z in membrane_comp_start]
             self.membrane_compositions_start_relatives.append(membrane_comp_start_relative)
 
-        self.compositions_start = dict(zip(self.compartment, self.membrane_compositions_start_relatives))
+        self.compositions_start = dict(zip(self.compartment_names, self.membrane_compositions_start_relatives))
 
         x = 0
         # number of lipids that are produced in the start function for every membrane
         self.start_lipids = [32950, 500, 2500, 6000, 500, 500, 5000, 2500, 1000]
-        self.membrane_start = dict(zip(self.compartment, self.start_lipids))
+        self.membrane_start = dict(zip(self.compartment_names, self.start_lipids))
         for membrane in self.compartment_lists:
             # producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
-            for i in range(self.membrane_start[self.compartment[x]]):
+            for i in range(self.membrane_start[self.compartment_names[x]]):
                 self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol',
                                           'sterylester', None, 'ceramide']
-                weights_start = self.compositions_start[self.compartment[x]]
+                weights_start = self.compositions_start[self.compartment_names[x]]
                 head = np.random.choice(self.head_groups_start, p=weights_start)
                 if head == 'sterol':
-                    new_lipid = components.Sterol(head, self.compartment[x], self._compartment_weights)
+                    new_lipid = components.Sterol(head, self.compartment_names[x], self._compartment_weights)
                 elif head == 'sterylester':
                     new_lipid = components.Sterylester(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                              p=[0.67, 0.33]), self.compartment[x],
+                                                                              p=[0.67, 0.33]), self.compartment_names[x],
                                                        self._compartment_weights)
                 elif head == 'ceramide':
-                    new_lipid = components.Sphingolipid(head, self.compartment[x], self._compartment_weights)
+                    new_lipid = components.Sphingolipid(head, self.compartment_names[x], self._compartment_weights)
                 elif head == 'neutral':
                     new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(),
                                                                      p=self._unsaturated_weights),
@@ -470,19 +470,19 @@ class Model:
                                     np.random.choice(self.chainlength_unsaturated.values(),
                                                      p=self._unsaturated_weights),
                                               np.random.choice(self.chainlength_saturated_unsaturated,
-                                                               p=self._saturation_weights_total), self.compartment[x],
+                                                               p=self._saturation_weights_total), self.compartment_names[x],
                                               self._compartment_weights)
                 elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
                     new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
                                                                         p=self._unsaturated_weights),
                                                  np.random.choice(self.chainlength_saturated_unsaturated,
                                                                   p=self._saturation_weights_total),
-                                                 self.compartment[x], self._compartment_weights)
+                                                 self.compartment_names[x], self._compartment_weights)
                 else:
                     new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
                                                                         p=self._unsaturated_weights),
                                                  np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), self.compartment[x],
+                                                                  p=self._saturation_weights_total), self.compartment_names[x],
                                                  self._compartment_weights)
                     new_lipid.__class__ = components.TAG
                     new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated,
@@ -1056,7 +1056,7 @@ class Model:
         """
         General transport function for all produced lipids.
         """
-        for lipid in self.transport_list:
+        for lipid in self.transport_lists:
             if lipid == self.TAG_list or lipid == self.sterylester_list:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
@@ -1097,7 +1097,7 @@ class Model:
         x = 0
         for comp in self.compartment_lists:
             if len(comp) > 0:
-                self.relatives_list = [(float(sum(j.head == 'serine' for j in comp)) / len(comp)),
+                self.comp_ratio_list = [(float(sum(j.head == 'serine' for j in comp)) / len(comp)),
                                         (float(sum(j.head == 'inositol' for j in comp)) / len(comp)),
                                         (float(sum(j.head == 'choline' for j in comp)) / len(comp)),
                                         (float(sum(j.head == 'ethanolamine' for j in comp)) / len(comp)),
@@ -1107,8 +1107,8 @@ class Model:
                                         (float(sum(j.head == 'sterylester' for j in comp)) / len(comp)),
                                         (float(sum(j.head is None for j in comp)) / len(comp)),
                                         (float(sum(j.head == 'ceramide' for j in comp)) / len(comp))]
-                for i in range(len(self.relatives_list)):
-                    self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
+                for i in range(len(self.comp_ratio_list)):
+                    self.comp_ratio_dict[self.compartment_names[x]][self.membrane_lipids[i]] = self.comp_ratio_list[i]
             x += 1
 
     def calc_numbers(self):
