@@ -29,7 +29,6 @@ class Model:
         # initial state
         self._init_molecules()
         # lists for plotting
-        self._init_plot_lists()
 
     def _init_parameters(self):
         """
@@ -110,12 +109,6 @@ class Model:
         # C16:0, C18:0, C16:1, C18:1
         self._saturation_weights_total = [0.2, 0.2, 0.167, 0.433]
 
-    def _init_plot_lists(self):
-        # component list
-        self.components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list, 
-                                self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list, 
-                                self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
-
     def _init_lists(self):
         # lists of all precursors, mainly needed for plotting
         self.precursors = {'pyruvate': [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [],
@@ -138,13 +131,13 @@ class Model:
         self.PE_list = []
         self.PC_list = []
         self.CL_list = []
-        self.Ergosterol_list = []
-        self.Sterylester_list = []
-        self.Sphingolipid_list = []
+        self.ergosterol_list = []
+        self.sterylester_list = []
+        self.sphingolipid_list = []
         
         # lipids to transport
         self.transport_list = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, 
-                               self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
+                               self.ergosterol_list, self.sterylester_list, self.TAG_list, self.sphingolipid_list]
 
         # lists to collect the transported lipids
         # compartment names
@@ -340,7 +333,7 @@ class Model:
                 func = np.random.choice(self.function_list)
                 func()
                 self.function_list.remove(func)
-            self.numbers()  # calculating the produced lipids after each time step
+            self.calc_numbers()  # calculating the produced lipids after each time step
         self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
         self.saturation_counter()  # calculating the percentages of each fatty acid that was used
 
@@ -420,9 +413,9 @@ class Model:
                      'ergosterol_synthase': 1 - (self.precursors_dict['acetyl_coa'] /
                                                  (self.Km['ergosterol_synthase']['acetyl_coa'] +
                                                   self.precursors_dict['acetyl_coa'])),
-                     'sterylester_synthase': 1 - ((float(len(self.Ergosterol_list)) /
+                     'sterylester_synthase': 1 - ((float(len(self.ergosterol_list)) /
                                                   (self.Km['sterylester_synthase']['ergosterol'] +
-                                                   float(len(self.Ergosterol_list)))) *
+                                                   float(len(self.ergosterol_list)))) *
                                                   ((float(len(self.acyl_coa_list_saturated)) +
                                                    float(len(self.acyl_coa_list_unsaturated))) /
                                                   (self.Km['sterylester_synthase']['acyl_coa'] +
@@ -498,8 +491,8 @@ class Model:
             x += 1
 
         self.lipid_lists_start = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.lyso_pa_list, self.PA_list,
-                                  self.CDP_DG_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, self.TAG_list,
-                                  self.Sphingolipid_list]
+                                  self.CDP_DG_list, self.ergosterol_list, self.sterylester_list, self.DAG_list, self.TAG_list,
+                                  self.sphingolipid_list]
         z = 0
         for lipid_list in self.lipid_lists_start:
             for i in range(20):
@@ -901,7 +894,7 @@ class Model:
                         delattr(self.DAG_list[-1], 'sn3')
                         self.precursors_dict['H2O'] -= 1
                     elif self.lipid_droplets[z].head == 'sterylester':
-                        self.Ergosterol_list.append(components.Sterol('sterol', None, self._compartment_weights))
+                        self.ergosterol_list.append(components.Sterol('sterol', None, self._compartment_weights))
                         self.precursors_dict['H2O'] -= 1
                         if ':0' in self.lipid_droplets[z].FA:
                             for key, value in self.chainlength_unsaturated.items():
@@ -1008,7 +1001,7 @@ class Model:
         for i in range(self._rates['ergosterol_synthase']):
             x = np.random.random()
             if x >= self.probabilities['ergosterol_synthase'] and self.precursors_dict['acetyl_coa'] > 18:
-                self.Ergosterol_list.append(components.Sterol('sterol', None, self._compartment_weights))
+                self.ergosterol_list.append(components.Sterol('sterol', None, self._compartment_weights))
                 self.precursors_dict['acetyl_coa'] -= 18
                 self.precursors_dict['ATP'] -= 3
                 self.precursors_dict['ADP'] += 3
@@ -1027,19 +1020,19 @@ class Model:
         for i in range(self._rates['sterylester_synthase']):
             x = np.random.random()
             if x >= self.probabilities['sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and \
-                    any(fa.C == 18 for fa in self.acyl_coa_list_unsaturated) and len(self.Ergosterol_list) > 1:
-                z = np.random.randint(0, len(self.Ergosterol_list)-1)
+                    any(fa.C == 18 for fa in self.acyl_coa_list_unsaturated) and len(self.ergosterol_list) > 1:
+                z = np.random.randint(0, len(self.ergosterol_list)-1)
                 j = 0
                 while j < 5:
                     fa_index = np.random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
                     if self.acyl_coa_list_unsaturated[fa_index].C == 18 and np.random.random() < 0.33:
-                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C18:1', None, self._compartment_weights))
-                        del self.Ergosterol_list[z]
+                        self.sterylester_list.append(components.Sterylester('sterylester', 'C18:1', None, self._compartment_weights))
+                        del self.ergosterol_list[z]
                         del self.acyl_coa_list_unsaturated[fa_index]
                         break
                     elif self.acyl_coa_list_unsaturated[fa_index].C == 16:
-                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C16:1', None, self._compartment_weights))
-                        del self.Ergosterol_list[z]
+                        self.sterylester_list.append(components.Sterylester('sterylester', 'C16:1', None, self._compartment_weights))
+                        del self.ergosterol_list[z]
                         del self.acyl_coa_list_unsaturated[fa_index]
                         break
                     else:
@@ -1053,7 +1046,7 @@ class Model:
             x = np.random.random()
             if x >= self.probabilities['sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and \
                     self.precursors_dict['GDP-mannose'] > 1:
-                self.Sphingolipid_list.append(components.Sphingolipid('ceramide', None, self._compartment_weights))
+                self.sphingolipid_list.append(components.Sphingolipid('ceramide', None, self._compartment_weights))
                 z= np.random.randint(0, len(self.PI_list)-2)
                 del self.PI_list[z:z+1]
                 self.precursors_dict['ceramide'] -= 1
@@ -1064,7 +1057,7 @@ class Model:
         General transport function for all produced lipids.
         """
         for lipid in self.transport_list:
-            if lipid == self.TAG_list or lipid == self.Sterylester_list:
+            if lipid == self.TAG_list or lipid == self.sterylester_list:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
                         z = np.random.randint(0, len(lipid)-1)
@@ -1118,8 +1111,12 @@ class Model:
                     self.compartment_relatives_dict[self.compartment[x]][self.membrane_lipids[i]] = self.relatives_list[i]
             x += 1
 
-    def numbers(self):
-        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
+    def calc_numbers(self):
+        # component list
+        components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
+                                self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
+                                self.sterylester_list, self.DAG_list, self.sphingolipid_list]
+        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, components_list):
             current_lipid_number.append(len(number_of_lipid))
         # for plotting the number of lipids in a certain membrane
         for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
