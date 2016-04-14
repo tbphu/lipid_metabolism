@@ -158,8 +158,7 @@ class Model:
                                   self.peroxisomes, self.light_microsomes, self.inner_mit_membrane,
                                   self.outer_mit_membrane, self.lipid_droplets]
 
-        # relatives list for calculation of the relative parts of each lipid in a membrane for the
-        # compartment_relatives_dict
+        # list for calculation of the lipid ratios in every membrane (goes to comp_ratio_dict)
         self.comp_ratio_list = []
         # collecting the products of every time step. Lipids that are produced in the start function
         # don't need the 0 for plotting
@@ -289,7 +288,7 @@ class Model:
         self.number_membranes_list:
         self.comp_ratio_dict: 
         """
-        # determine the timesteps, self.t for plotting, self.time for cell cycle
+        # determine the time steps, self.t for plotting, self.time for cell cycle
         self.time = 0
         self.t = [i for i in range(timesteps)]
         # function that produces the lipids and membranes that are existing at the beginning of the cell cycle
