@@ -4,7 +4,6 @@ Simulation class for the lipid metabolism model.
 @date: 03/06/2015
 @author: Vera Schuetzhold - vera.schue@gmail.com
 """
-import matplotlib.pyplot as mat
 import numpy as np
 import components
 
@@ -28,7 +27,8 @@ class Model:
         self._init_precursor_production()
         # initial state
         self._init_molecules()
-        # lists for plotting
+        # initialise simulation
+        self._init_simulation()
 
     def _init_parameters(self):
         """
@@ -95,8 +95,6 @@ class Model:
                                  'DAG_kinase':    0.1,
                                  'sterylester_synthase': 0.2}
 
-        # thresholds calculated from probabilities: (1-probability)
-        self._manual_threshold = {reaction: 1-prob for reaction, prob in self._probability.iteritems()}
         # compartment weights (probabilities)
         # adjusted manually
         self._compartment_weights = [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015]
@@ -199,11 +197,11 @@ class Model:
 
         # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
         # G1 phase
-        self.precursors_production_G1 = {'pyruvate': 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30.,
-                                         'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,
-                                         'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
-                                         'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
-                                         'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
+        self.precursors_production = {'pyruvate': 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30.,
+                                      'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,
+                                      'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
+                                      'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
+                                      'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
         # S-M phase
         self.precursors_production_S_M = {'pyruvate': 1700., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 35.,
                                           'serine': 30., 'glucose_6_p': 12., 'SAM': 55., 'SAH': 0.,
@@ -237,6 +235,10 @@ class Model:
                                             self.inner_mit_membrane_comp_start, self.outer_mit_membrane_comp_start, 
                                             self.lipid_droplets_comp_start]
 
+    def _init_simulation(self):
+        # time point list for plotting
+        self.t = None
+
     def run(self, timesteps=7200):
         """
         Start the simulation.
@@ -251,34 +253,32 @@ class Model:
         self.saturation_composition_total:
         self.comp_ratio_dict: 
         """
-        # determine the time steps, self.t for plotting, self.time for cell cycle
-        self.time = 0
+        # determine the time steps, self.t for plotting, sim_time for cell cycle
+        sim_time = 0
         self.t = [i for i in range(timesteps)]
         # function that produces the lipids and membranes that are existing at the beginning of the cell cycle
         self.start()
+        # calculate Km values
         self.Km_calculation()
+        # simulation
         for t in range(timesteps):
             # counting the seconds for knowing the cell cycle phase
-            self.time += 1
+            sim_time += 1
 
             # cell cycle phase dependent precursor production
-            if self.cell_cycle() == 'G1':
-                self.precursors_production = self.precursors_production_G1
-            else:
+            if self.cell_cycle(sim_time) != 'G1':
                 self.precursors_production = self.precursors_production_S_M
 
-            # produce precursor every 10 time steps 
-            if self.time % 10 == 0:
+            # produce precursor every 10 time steps
+            if sim_time % 10 == 0:
                 for key in self.precursors_dict:
                     self.precursors_dict[key] += self.precursors_production[key]
 
             # calculate new thresholds
-            self.thresholds = self._calculate_threshold()
-            # manual_threshold
-            self.probabilities = self.thresholds  
+            self.probabilities = self._calculate_threshold()
 
             # change rates dependent on cell cycle phase
-            if self.cell_cycle() == 'G1':
+            if self.cell_cycle(sim_time) == 'G1':
                 self.probabilities['DAG_synthase'] = 1 - self._probability_G1['DAG_synthase']
                 self.probabilities['TAG_synthase'] = 1 - self._probability_G1['TAG_synthase']
                 self.probabilities['TAG_lipase'] = 1 - self._probability_G1['TAG_lipase']
@@ -295,9 +295,12 @@ class Model:
                 func = np.random.choice(self.function_list)
                 func()
                 self.function_list.remove(func)
-            self.calc_numbers()  # calculating the produced lipids after each time step
-        self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
-        self.saturation_counter()  # calculating the percentages of each fatty acid that was used
+            # calculating the produced lipids after each time step
+            self.calc_numbers()
+        # calculation of the membrane compositions at the end of the run
+        self.membrane_compositions()
+        # calculating the percentages of each fatty acid that was used
+        self.saturation_counter()
 
         return self.saturation_composition_total, self.comp_ratio_dict
 
@@ -584,11 +587,11 @@ class Model:
                                                   (float(len(self.PI_list)) / (self.pre_Km['sphingolipid_synthase']['PI'] +
                                                                                float(len(self.PI_list)))) - self.precursors_dict['ceramide']}}
 
-    def cell_cycle(self):
+    def cell_cycle(self, sim_time):
         """
         Function to determine the cell cycle phases depending on the elapsed time.
         """
-        if self.time <= 1800:
+        if sim_time <= 1800:
             return 'G1'
         else:
             return 'S/G2/M'
