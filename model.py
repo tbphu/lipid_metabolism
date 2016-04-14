@@ -173,15 +173,15 @@ class Model:
         self.number_PE = []
         self.number_PC = []
         self.number_CL = []
-        self.number_Ergosterol = []
-        self.number_Sterylester = []
+        self.number_ergosterol = []
+        self.number_sterylester = []
         self.number_DAG = []
-        self.number_Sphingolipid = []
+        self.number_sphingolipid = []
         # list of lists
         self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,
                                    self.number_PS, self.number_PI, self.number_PE, self.number_PC, self.number_CL,
-                                   self.number_Ergosterol, self.number_Sterylester, self.number_DAG,
-                                   self.number_Sphingolipid]
+                                   self.number_ergosterol, self.number_sterylester, self.number_DAG,
+                                   self.number_sphingolipid]
         # counting the lipids in each membrane after every time step
         self.number_plasma_membrane = []
         self.number_secretory_vesicles = []
@@ -1228,9 +1228,9 @@ class Model:
         ax.plot(self.t, self.number_PE, label='pe')
         ax.plot(self.t, self.number_PC, label='pc')
         ax.plot(self.t, self.number_CL, label='cl')
-        ax.plot(self.t, self.number_Ergosterol, label='es')
-        ax.plot(self.t, self.number_Sterylester, label='se')
-        ax.plot(self.t, self.number_Sphingolipid, label='sl')
+        ax.plot(self.t, self.number_ergosterol, label='es')
+        ax.plot(self.t, self.number_sterylester, label='se')
+        ax.plot(self.t, self.number_sphingolipid, label='sl')
         ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         mat.show()
 
