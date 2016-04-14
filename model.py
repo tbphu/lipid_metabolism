@@ -170,6 +170,46 @@ class Model:
         self.comp_ratio_dict = \
             {comp: dict(zip(self.membrane_lipids, [0] * 10)) for comp in self.compartment_names}
 
+        # collecting the products of every time step. Lipids that are produced in the start function don't need the 0 for plotting
+        self.number_acetyl_coa = []
+        self.number_acyl_coa = []
+        self.number_pa = []
+        self.number_cdp_dg = []
+        self.number_tag = []
+        self.number_PS = []
+        self.number_PI = []
+        self.number_PE = []
+        self.number_PC = []
+        self.number_CL = []
+        self.number_Ergosterol = []
+        self.number_Sterylester = []
+        self.number_DAG = []
+        self.number_Sphingolipid = []
+
+        self.number_lipids_list = [self.number_acyl_coa, self.number_pa, self.number_cdp_dg, self.number_tag,
+                                   self.number_PS, self.number_PI, self.number_PE, self.number_PC, self.number_CL,
+                                   self.number_Ergosterol, self.number_Sterylester, self.number_DAG, self.number_Sphingolipid]
+
+        # counting the lipids in each membrane after every time step
+        self.number_plasma_membrane = []
+        self.number_secretory_vesicles = []
+        self.number_vacuoles = []
+        self.number_nucleus = []
+        self.number_peroxisomes = []
+        self.number_light_microsomes = []
+        self.number_inner_mit_membrane = []
+        self.number_outer_mit_membrane = []
+        self.number_lipid_droplets = []
+
+        self.number_membranes_list = [self.number_plasma_membrane, self.number_secretory_vesicles, self.number_vacuoles,
+                                      self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,
+                                      self.number_inner_mit_membrane, self.number_outer_mit_membrane, self.number_lipid_droplets]
+
+        # component list
+        self.components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
+                                self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
+                                self.sterylester_list, self.DAG_list, self.sphingolipid_list]
+
         # dict for Km values
         self.km = {}
 
@@ -1082,10 +1122,12 @@ class Model:
             x += 1
 
     def calc_numbers(self):
-        # # component list
-        # components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
-        #                         self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
-        #                         self.sterylester_list, self.DAG_list, self.sphingolipid_list]
+        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
+            current_lipid_number.append(len(number_of_lipid))
+
+        # for plotting the number of lipids in a certain membrane
+        for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
+            current_membrane_number.append(len(number_of_membrane))
 
         for precursor in self.precursors.keys():
             self.precursors[precursor].append(self.precursors_dict[precursor])
