@@ -1122,12 +1122,18 @@ class Model:
             x += 1
 
     def calc_numbers(self):
-        for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
-            current_lipid_number.append(len(number_of_lipid))
+        for i, sp in enumerate(self.components_list):
+            self.number_lipids_list[i].append(len(sp))
+
+        # for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
+        #     current_lipid_number.append(len(number_of_lipid))
 
         # for plotting the number of lipids in a certain membrane
-        for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
-            current_membrane_number.append(len(number_of_membrane))
+        for i, sp in enumerate(self.compartment_lists):
+            self.number_membranes_list[i].append(len(sp))
+
+        # for current_membrane_number, number_of_membrane in zip(self.number_membranes_list, self.compartment_lists):
+        #     current_membrane_number.append(len(number_of_membrane))
 
         for precursor in self.precursors.keys():
             self.precursors[precursor].append(self.precursors_dict[precursor])
