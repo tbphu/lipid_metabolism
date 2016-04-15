@@ -22,7 +22,7 @@ class lipids(object):
         self.sn2_options = ['C16:1', 'C18:1', None]
         self.sn1_options = ['C16:0', 'C16:1', 'C18:0', 'C18:1', None]
         self.compartment_options = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
-                            'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]
+                                    'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets', None]
         self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',\
                             'inner_mit_membrane', 'outer_mit_membrane']
 
@@ -295,7 +295,7 @@ class model:
     After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
     """
     def __init__(self):
-        self.timesteps = 7200
+        self.timesteps = 10
         self.volume = 35
 
         self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 'acyl_synthase': 450, 'PA_synthese': 17, \
@@ -1393,9 +1393,15 @@ class model:
                                                  'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
 
 if __name__ == '__main__':
+    # Test run, with runtime tracker
     import time
+
     st = time.time()
     m = model()
-    m.run()
+    # test run: 5 sec
+    r, mem, s = m.run()
     et = time.time()
-    print "Laufzeit: " + str(et - st) + "s"
+    for lili in m.number_lipids_list:
+        mat.plot(m.t, lili)
+    print "Runtime: " + str(et - st) + "s"
+    mat.show()
