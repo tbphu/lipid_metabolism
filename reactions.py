@@ -3,8 +3,55 @@ import components
 
 
 class Reactions:
+    def __init__(self, state, rates, probabilities, precursors):
+        """
+        Description
 
-def glycerol_3_p_synthesis(self):
+        Parameters
+        ----------
+        precursors: dict
+            number of precursors to add
+        state: dict
+            current membrane states
+
+        Return
+        ------
+        state: dict
+            actual list of objects - membrane compositions
+        """
+        self.rates = rates
+        self.probabilities = probabilities
+        self.precursors_dict = precursors
+
+        self.run_step()
+
+    def run_step(self):
+        function_list = [self.glycerol_3_p_synthesis,
+                         self.inositol_synthesis,
+                         self.ceramide_synthesis,
+                         self.acetyl_coa_synthase,
+                         self.acyl_synthase,
+                         self.PA_synthese,
+                         self.CDP_DG_synthase,
+                         self.TAG_synthese,
+                         self.PS_synthase,
+                         self.PI_synthase,
+                         self.PE_synthase,
+                         self.PC_synthase,
+                         self.CL_synthase,
+                         self.TAG_lipase,
+                         self.DAG_kinase,
+                         self.Ergosterol_synthase,
+                         self.Sterylester_synthase,
+                         self.Sphingolipid_synthase,
+                         self.transport]
+        #all reactions that take place during one second in a random order
+        for i in function_list:
+            func = np.random.choice(function_list)
+            func()
+            function_list.remove(func)
+
+    def glycerol_3_p_synthesis(self):
         '''
         Synthesis of glycerol-3-p out of DHAP.
         '''
