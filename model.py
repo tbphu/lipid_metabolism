@@ -6,6 +6,7 @@ Simulation class for the lipid metabolism model.
 """
 import numpy as np
 import components
+import matplotlib.pyplot as pyp
 
 
 class Model:
@@ -39,62 +40,62 @@ class Model:
         # VMAX of reactions
         # adjusted manually
         self.rates = {'glycerol_3_p_synthesis': 8, 
-                       'inositol_synthesis':     5, 
-                       'ceramide_synthesis':     2, 
-                       'acetyl_coa_synthase':    650, 
-                       'acyl_synthase':          450, 
-                       'PA_synthesis':            17,
-                       'CDP_DG_synthase':        20, 
-                       'TAG_synthesis':           30,
-                       'TAG_lipase':             23, 
-                       'DAG_kinase':             40, 
-                       'PS_synthase':            18, 
-                       'PI_synthase':            6, 
-                       'PE_synthase':            12, 
-                       'PC_synthase':            5, 
-                       'CL_synthase':            2, 
-                       'ergosterol_synthase':    25,
-                       'sterylester_synthase':   25,
-                       'sphingolipid_synthase':  2}
+                      'inositol_synthesis':     5,
+                      'ceramide_synthesis':     2,
+                      'acetyl_coa_synthase':    650,
+                      'acyl_synthase':          450,
+                      'PA_synthesis':            17,
+                      'CDP_DG_synthase':        20,
+                      'TAG_synthesis':           30,
+                      'TAG_lipase':             23,
+                      'DAG_kinase':             40,
+                      'PS_synthase':            18,
+                      'PI_synthase':            6,
+                      'PE_synthase':            12,
+                      'PC_synthase':            5,
+                      'CL_synthase':            2,
+                      'ergosterol_synthase':    25,
+                      'sterylester_synthase':   25,
+                      'sphingolipid_synthase':  2}
 
         # probabilities of reaction to take place
         # adjusted manually
         self.probability = {'glycerol_3_p_synthesis': 0.5, 
-                             'inositol_synthesis':     0.5, 
-                             'ceramide_synthesis':     0.5, 
-                             'acetyl_coa_synthase':    0.8, 
-                             'acyl_synthase':          0.5, 
-                             'acyl_synthase_C16':      0.375, 
-                             'acyl_synthase_C18':      0.998, 
-                             'lyso_PA_synthase':       0.45, 
-                             'PA_synthase':            0.2,
-                             'CDP_DG_synthase':        0.8,
-                             'DAG_synthase':           0.01, 
-                             'TAG_synthase':           0.2, 
-                             'TAG_lipase':             0.8, 
-                             'DAG_kinase':             0.1, 
-                             'PS_synthase':            0.5, 
-                             'PI_synthase':            0.5, 
-                             'PE_synthase':            0.5, 
-                             'PC_synthase':            0.5, 
-                             'CL_synthase':            0.05, 
-                             'ergosterol_synthase':    0.6,
-                             'sterylester_synthase':   0.4,
-                             'sphingolipid_synthase':  0.2}
+                            'inositol_synthesis':     0.5,
+                            'ceramide_synthesis':     0.5,
+                            'acetyl_coa_synthase':    0.8,
+                            'acyl_synthase':          0.5,
+                            'acyl_synthase_C16':      0.375,
+                            'acyl_synthase_C18':      0.998,
+                            'lyso_PA_synthase':       0.45,
+                            'PA_synthase':            0.2,
+                            'CDP_DG_synthase':        0.8,
+                            'DAG_synthase':           0.01,
+                            'TAG_synthase':           0.2,
+                            'TAG_lipase':             0.8,
+                            'DAG_kinase':             0.1,
+                            'PS_synthase':            0.5,
+                            'PI_synthase':            0.5,
+                            'PE_synthase':            0.5,
+                            'PC_synthase':            0.5,
+                            'CL_synthase':            0.05,
+                            'ergosterol_synthase':    0.6,
+                            'sterylester_synthase':   0.4,
+                            'sphingolipid_synthase':  0.2}
 
         # probabilities in CC phase G1
         # adjusted manually
         self.probability_G1 = {'DAG_synthase': 0.3, 
-                                'TAG_synthase':  0.2,
-                                'TAG_lipase':    0.05,
-                                'DAG_kinase':    0.03}
+                               'TAG_synthase':  0.2,
+                               'TAG_lipase':    0.05,
+                               'DAG_kinase':    0.03}
         # probabilities in CC phases S-M
         # adjusted manually
         self.probability_S_M = {'DAG_synthase': 0.01, 
-                                 'TAG_synthase':  0.2,
-                                 'TAG_lipase':    0.6,
-                                 'DAG_kinase':    0.1,
-                                 'sterylester_synthase': 0.2}
+                                'TAG_synthase':  0.2,
+                                'TAG_lipase':    0.6,
+                                'DAG_kinase':    0.1,
+                                'sterylester_synthase': 0.2}
 
         # compartment weights (probabilities)
         # adjusted manually
@@ -133,10 +134,6 @@ class Model:
         self.ergosterol_list = []
         self.sterylester_list = []
         self.sphingolipid_list = []
-        
-        # lipids to transport
-        self.transport_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list, 
-                                self.ergosterol_list, self.sterylester_list, self.TAG_list, self.sphingolipid_list]
 
         # lists to collect the transported lipids
         # compartment names
@@ -205,34 +202,8 @@ class Model:
                                       self.number_nucleus, self.number_peroxisomes, self.number_light_microsomes,
                                       self.number_inner_mit_membrane, self.number_outer_mit_membrane, self.number_lipid_droplets]
 
-        # component list
-        self.components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
-                                self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
-                                self.sterylester_list, self.DAG_list, self.sphingolipid_list]
-
         # dict for Km values
         self.km = {}
-
-        # create list of functions
-        self.function_list = [self.glycerol_3_p_synthesis,
-                              self.inositol_synthesis,
-                              self.ceramide_synthesis,
-                              self.acetyl_coa_synthase,
-                              self.acyl_synthase,
-                              self.PA_synthase,
-                              self.CDP_DG_synthase,
-                              self.TAG_synthesis,
-                              self.PS_synthase,
-                              self.PI_synthase,
-                              self.PE_synthase,
-                              self.PC_synthase,
-                              self.CL_synthase,
-                              self.TAG_lipase,
-                              self.DAG_kinase,
-                              self.ergosterol_synthase,
-                              self.sterylester_synthase,
-                              self.sphingolipid_synthase,
-                              self.transport]
 
     def _init_precursor_production(self):
 
@@ -334,11 +305,31 @@ class Model:
                 self.probabilities['DAG_kinase'] = 1 - self.probability_S_M['DAG_kinase']
                 self.probabilities['sterylester_synthase'] = 1 - self.probability_S_M['sterylester_synthase']
 
+            # create list of functions
+            function_list = [self.glycerol_3_p_synthesis,
+                                  self.inositol_synthesis,
+                                  self.ceramide_synthesis,
+                                  self.acetyl_coa_synthase,
+                                  self.acyl_synthase,
+                                  self.PA_synthase,
+                                  self.CDP_DG_synthase,
+                                  self.TAG_synthesis,
+                                  self.PS_synthase,
+                                  self.PI_synthase,
+                                  self.PE_synthase,
+                                  self.PC_synthase,
+                                  self.CL_synthase,
+                                  self.TAG_lipase,
+                                  self.DAG_kinase,
+                                  self.ergosterol_synthase,
+                                  self.sterylester_synthase,
+                                  self.sphingolipid_synthase,
+                                  self.transport]
             # all reactions that take place during one second in a random order
-            for i in range(len(self.function_list)):
-                func = np.random.choice(self.function_list)
+            for i in range(len(function_list)):
+                func = np.random.choice(function_list)
                 func()
-                self.function_list.remove(func)
+                function_list.remove(func)
             # calculating the produced lipids after each time step
             self.calc_numbers()
         # calculation of the membrane compositions at the end of the run
@@ -346,7 +337,7 @@ class Model:
         # calculating the percentages of each fatty acid that was used
         self.saturation_counter()
 
-        return self.saturation_composition_total, self.comp_ratio_dict
+        return self.saturation_composition_total, self.number_membranes_list, self.comp_ratio_dict
 
     def _calculate_threshold(self):
         """
@@ -1057,6 +1048,7 @@ class Model:
             if x >= self.probabilities['sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_dict['ceramide'] > 1 and \
                     self.precursors_dict['GDP-mannose'] > 1:
                 self.sphingolipid_list.append(components.Sphingolipid('ceramide', None, self.compartment_weights))
+                print len(self.PI_list)
                 z= np.random.randint(0, len(self.PI_list)-2)
                 del self.PI_list[z:z+1]
                 self.precursors_dict['ceramide'] -= 1
@@ -1066,7 +1058,11 @@ class Model:
         """
         General transport function for all produced lipids.
         """
-        for lipid in self.transport_lists:
+        # lipids to transport
+        transport_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list,
+                                self.ergosterol_list, self.sterylester_list, self.TAG_list, self.sphingolipid_list]
+
+        for lipid in transport_lists:
             if lipid == self.TAG_list or lipid == self.sterylester_list:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
@@ -1122,7 +1118,12 @@ class Model:
             x += 1
 
     def calc_numbers(self):
-        for i, sp in enumerate(self.components_list):
+        # component list
+        components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
+                           self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.ergosterol_list,
+                           self.sterylester_list, self.DAG_list, self.sphingolipid_list]
+
+        for i, sp in enumerate(components_list):
             self.number_lipids_list[i].append(len(sp))
 
         # for current_lipid_number, number_of_lipid in zip(self.number_lipids_list, self.components_list):
@@ -1219,6 +1220,12 @@ if __name__ == '__main__':
     st = time.time()
     m = Model()
     # test run: 5 sec
-    m.run(5)
+    r, mem, s = m.run(10)
     et = time.time()
+    for lili in m.number_lipids_list:
+        pyp.plot(m.t, lili)
     print "Runtime: " + str(et - st) + "s"
+    pyp.show()
+
+
+
