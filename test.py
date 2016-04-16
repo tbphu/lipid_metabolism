@@ -106,47 +106,23 @@ class model:
                            'GDP-mannose': [], 'NAD': [], 'NADH': [], 'NADP': [], 'NADPH': [], 'O2': [], 'H2O': [],
                            'CO2': [], 'Pi': [], 'CTP': [], 'CMP': [], 'inositol': [], 'ATP': [], 'ADP': []}
 
-        # empty lists for the produced fatty acids and lipids
-        self.acyl_coa_list = []  # TODO: list, Acyl-CoA objects
-        self.acyl_coa_list_C26 = []  # TODO: list, Acyl-CoA-C26 objects
-        self.acyl_coa_list_saturated = []  # TODO: list, Acyl-CoA saturated objects
-        self.acyl_coa_list_unsaturated = []  # TODO: list, Acyl-CoA unsaturated objects
-        self.lyso_pa_list = []  # TODO: list, Lyso-PA objects
-        self.PA_list = []  # TODO: list, PA objects
-        self.CDP_DG_list = []  # TODO: list, CDP-DG objects
-        self.DAG_list = []  # TODO: list, DAG objects
-        self.TAG_list = []  # TODO: list, TAG objects
-        self.PS_list = []  # TODO: list, PS objects
-        self.PI_list = []  # TODO: list, PI objects
-        self.PE_list = []  # TODO: list, PE objects
-        self.PC_list = []  # TODO: list, PC objects
-        self.CL_list = []  # TODO: list, CL objects
-        self.Ergosterol_list = []  # TODO: list, ergosterol objects
-        self.Sterylester_list = []  # TODO: list, sterylester objects
-        self.Sphingolipid_list = []  # TODO: list, sphingolipid objects
-
-        self.components_state = {'acyl_coa': [], 'acyl_coa_C26': [], 'acyl_coa_saturated': [], 'acyl_coa_unsaturated': [], 'lyso_pa': [],
+        self.components_state = {'acyl_coa': [], 'acyl_coa_C26': [], 'acyl_coa_saturated': [], 'acyl_coa_unsaturated': [], 'lyso_PA': [],
                                  'PA': [], 'CDP_DG': [], 'DAG': [], 'TAG': [], 'PS': [], 'PI': [], 'PE': [], 'PC': [], 'CL': [],
-                                 'ergosterol': [], 'sterylester': [], 'sphingolipid': []}
+                                 'ergosterol': [], 'sterylester':[], 'sphingolipid': []}
 
         # lists to collect the transported lipids
         # compartment names
         self.compartment_names = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes',  # TODO: list, all compartment names
                                   'light_microsomes', 'inner_mit_membrane', 'outer_mit_membrane', 'lipid_droplets']
         # compartment lists
-        self.plasma_membrane = []  # TODO: list, lipids in PM
-        self.secretory_vesicles = []  # TODO: list, lipids in SecVec
-        self.vacuoles = []  # TODO: list, lipids in Vac
-        self.nucleus = []  # TODO: list, lipids in Nuc
-        self.peroxisomes = []  # TODO: list, lipids in perox
-        self.light_microsomes = []  # TODO: list, lipids in LightMic
-        self.inner_mit_membrane = []  # TODO: list, lipids MitMemIn
-        self.outer_mit_membrane = []  # TODO: list, lipids MitMemOut
-        self.lipid_droplets = []  # TODO: list, lipids in LipidDroplets
+        self.membranes_state = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [], 'peroxisomes': [],
+                                'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [], 'lipid_droplets': []}
         # list of lists
-        self.compartment_lists = [self.plasma_membrane, self.secretory_vesicles, self.vacuoles, self.nucleus,  # TODO: list, all compartment lists
-                                  self.peroxisomes, self.light_microsomes, self.inner_mit_membrane,
-                                  self.outer_mit_membrane, self.lipid_droplets]
+        self.compartment_lists = [self.membranes_state['plasma_membrane'], self.membranes_state['secretory_vesicles'],
+                                  self.membranes_state['vacuoles'], self.membranes_state['nucleus'],
+                                  self.membranes_state['peroxisomes'], self.membranes_state['light_microsomes'],
+                                  self.membranes_state['inner_mit_membrane'], self.membranes_state['outer_mit_membrane'],
+                                  self.membranes_state['lipid_droplets']]  # TODO: list, all compartment lists
 
         # possible fatty acids and weights to reach the biological proportions
         self.chainlength_saturated = {16: 'C16:0', 18: 'C18:0'}  # TODO: dict, saturated - names for FAs
@@ -337,70 +313,70 @@ class model:
                                             self.precursors_state['acetyl_coa'])),
                      'acyl_synthase_C16': 0.625,
                      'acyl_synthase_C18': 0.002,
-                     'lyso_PA_synthase': 1 - (((float(len(self.acyl_coa_list_saturated)) +
-                                                float(len(self.acyl_coa_list_unsaturated))) /
+                     'lyso_PA_synthase': 1 - (((float(len(self.components_state['acyl_coa_saturated'])) +
+                                                float(len(self.components_state['acyl_coa_unsaturated']))) /
                                                (self.Km['lyso_PA_synthase']['acyl_coa'] +
-                                                (float(len(self.acyl_coa_list_saturated)) +
-                                                 float(len(self.acyl_coa_list_unsaturated))))) *
+                                                (float(len(self.components_state['acyl_coa_saturated'])) +
+                                                 float(len(self.components_state['acyl_coa_unsaturated']))))) *
                                               (self.precursors_state['DHAP'] /
                                                (self.Km['lyso_PA_synthase']['DHAP'] + self.precursors_state['DHAP']))),
-                     'PA_synthase': 1 - ((float(len(self.lyso_pa_list)) / (self.Km['PA_synthase']['lyso-PA'] +
-                                                                           float(len(self.lyso_pa_list)))) *
-                                         ((float(len(self.acyl_coa_list_saturated)) +
-                                           float(len(self.acyl_coa_list_unsaturated))) /
+                     'PA_synthase': 1 - ((float(len(self.components_state['lyso_PA'])) / (self.Km['PA_synthase']['lyso-PA'] +
+                                                                           float(len(self.components_state['lyso_PA'])))) *
+                                         ((float(len(self.components_state['acyl_coa_saturated'])) +
+                                           float(len(self.components_state['acyl_coa_unsaturated']))) /
                                           (self.Km['PA_synthase']['acyl_coa'] +
-                                           (float(len(self.acyl_coa_list_saturated)) +
-                                            float(len(self.acyl_coa_list_unsaturated)))))),
-                     'CDP_DG_synthase': 1 - ((float(len(self.PA_list)) / (self.Km['CDP_DG_synthase']['PA'] +
-                                                                          float(len(self.PA_list)))) *
+                                           (float(len(self.components_state['acyl_coa_saturated'])) +
+                                            float(len(self.components_state['acyl_coa_unsaturated'])))))),
+                     'CDP_DG_synthase': 1 - ((float(len(self.components_state['PA'])) / (self.Km['CDP_DG_synthase']['PA'] +
+                                                                          float(len(self.components_state['PA'])))) *
                                              (self.precursors_state['CTP'] / (self.Km['CDP_DG_synthase']['CTP'] +
                                                                              self.precursors_state['CTP']))),
-                     'DAG_synthase': 1 - (float(len(self.PA_list)) / (self.Km['DAG_synthase']['PA'] +
-                                                                      float(len(self.PA_list)))),
-                     'TAG_synthase': 1 - (((float(len(self.acyl_coa_list_saturated)) +
-                                            float(len(self.acyl_coa_list_unsaturated))) /
+                     'DAG_synthase': 1 - (float(len(self.components_state['PA'])) / (self.Km['DAG_synthase']['PA'] +
+                                                                      float(len(self.components_state['PA'])))),
+                     'TAG_synthase': 1 - (((float(len(self.components_state['acyl_coa_saturated'])) +
+                                            float(len(self.components_state['acyl_coa_unsaturated']))) /
                                            (self.Km['TAG_synthase']['acyl_coa'] +
-                                            (float(len(self.acyl_coa_list_saturated)) +
-                                             float(len(self.acyl_coa_list_unsaturated))))) *
-                                          (float(len(self.DAG_list)) /
-                                           (self.Km['TAG_synthase']['DAG'] + float(len(self.DAG_list))))),
-                     'TAG_lipase': 1 - (float(len(self.lipid_droplets)) / (self.Km['TAG_lipase']['lipid_droplets'] +
-                                                                           float(len(self.lipid_droplets)))),
-                     'DAG_kinase': 1 - (float(len(self.DAG_list)) / (self.Km['DAG_kinase']['DAG'] +
-                                                                     float(len(self.DAG_list)))),
-                     'PS_synthase': 1 - ((float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] +
-                                                                          float(len(self.CDP_DG_list)))) *
+                                            (float(len(self.components_state['acyl_coa_saturated'])) +
+                                             float(len(self.components_state['acyl_coa_unsaturated']))))) *
+                                          (float(len(self.components_state['DAG'])) /
+                                           (self.Km['TAG_synthase']['DAG'] + float(len(self.components_state['DAG']))))),
+                     'TAG_lipase': 1 - (float(len(self.membranes_state['lipid_droplets'])) / (self.Km['TAG_lipase']['lipid_droplets'] +
+                                                                           float(len(self.membranes_state['lipid_droplets'])))),
+                     'DAG_kinase': 1 - (float(len(self.components_state['DAG'])) / (self.Km['DAG_kinase']['DAG'] +
+                                                                     float(len(self.components_state['DAG'])))),
+                     'PS_synthase': 1 - ((float(len(self.components_state['CDP_DG'])) / (self.Km['PS_synthase']['CDP_DG'] +
+                                                                          float(len(self.components_state['CDP_DG'])))) *
                                          (self.precursors_state['serine'] / (self.Km['PS_synthase']['serine'] +
                                                                             self.precursors_state['serine']))),
-                     'PI_synthase': 1 - ((float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] +
-                                                                          float(len(self.CDP_DG_list)))) *
+                     'PI_synthase': 1 - ((float(len(self.components_state['CDP_DG'])) / (self.Km['PI_synthase']['CDP_DG'] +
+                                                                          float(len(self.components_state['CDP_DG'])))) *
                                          (self.precursors_state['inositol'] / (self.Km['PI_synthase']['inositol'] +
                                                                               self.precursors_state['inositol']))),
-                     'PE_synthase': 1 - (float(len(self.PS_list)) / (self.Km['PE_synthase']['PS'] +
-                                                                     float(len(self.PS_list)))),
-                     'PC_synthase': 1 - ((float(len(self.PE_list)) / (self.Km['PC_synthase']['PE'] +
-                                                                      float(len(self.PE_list)))) *
+                     'PE_synthase': 1 - (float(len(self.components_state['PS'])) / (self.Km['PE_synthase']['PS'] +
+                                                                     float(len(self.components_state['PS'])))),
+                     'PC_synthase': 1 - ((float(len(self.components_state['PE'])) / (self.Km['PC_synthase']['PE'] +
+                                                                      float(len(self.components_state['PE'])))) *
                                          (self.precursors_state['SAM'] / (self.Km['PC_synthase']['SAM'] +
                                                                          self.precursors_state['SAM']))),
-                     'CL_synthase': 1 - ((float(len(self.CDP_DG_list)) / (self.Km['CL_synthase']['CDP_DG'] +
-                                                                          float(len(self.CDP_DG_list)))) *
+                     'CL_synthase': 1 - ((float(len(self.components_state['CDP_DG'])) / (self.Km['CL_synthase']['CDP_DG'] +
+                                                                          float(len(self.components_state['CDP_DG'])))) *
                                          (self.precursors_state['glycerol_3_p_mito'] /
                                           (self.Km['CL_synthase']['glycerol_3_p_mito'] +
                                            self.precursors_state['glycerol_3_p_mito']))),
                      'ergosterol_synthase': 1 - (self.precursors_state['acetyl_coa'] /
                                                  (self.Km['ergosterol_synthase']['acetyl_coa'] +
                                                   self.precursors_state['acetyl_coa'])),
-                     'sterylester_synthase': 1 - ((float(len(self.Ergosterol_list)) /
+                     'sterylester_synthase': 1 - ((float(len(self.components_state['ergosterol'])) /
                                                    (self.Km['sterylester_synthase']['ergosterol'] +
-                                                    float(len(self.Ergosterol_list)))) *
-                                                  ((float(len(self.acyl_coa_list_saturated)) +
-                                                    float(len(self.acyl_coa_list_unsaturated))) /
+                                                    float(len(self.components_state['ergosterol'])))) *
+                                                  ((float(len(self.components_state['acyl_coa_saturated'])) +
+                                                    float(len(self.components_state['acyl_coa_unsaturated']))) /
                                                    (self.Km['sterylester_synthase']['acyl_coa'] +
-                                                    (float(len(self.acyl_coa_list_saturated)) +
-                                                     float(len(self.acyl_coa_list_unsaturated)))))),
-                     'sphingolipid_synthase': 1 - ((float(len(self.PI_list)) /
+                                                    (float(len(self.components_state['acyl_coa_saturated'])) +
+                                                     float(len(self.components_state['acyl_coa_unsaturated'])))))),
+                     'sphingolipid_synthase': 1 - ((float(len(self.components_state['PI'])) /
                                                     (self.Km['sphingolipid_synthase']['PI'] +
-                                                     float(len(self.PI_list)))) *
+                                                     float(len(self.components_state['PI'])))) *
                                                    (self.precursors_state['ceramide'] /
                                                     (self.Km['sphingolipid_synthase']['ceramide'] +
                                                      self.precursors_state['ceramide'])))}
@@ -532,9 +508,9 @@ class model:
                                                      p=self.saturation_weights_total)
                 membrane.append(new_lipid)
 
-        lipid_lists_start = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.lyso_pa_list, self.PA_list,
-                             self.CDP_DG_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, self.TAG_list,
-                             self.Sphingolipid_list]
+        lipid_lists_start = [self.components_state['PS'], self.components_state['PI'], self.components_state['PC'], self.components_state['PE'], self.components_state['CL'], self.components_state['lyso_PA'], self.components_state['PA'],
+                             self.components_state['CDP_DG'], self.components_state['ergosterol'], self.components_state['sterylester'], self.components_state['DAG'], self.components_state['TAG'],
+                             self.components_state['sphingolipid']]
 
         for i, lipid_list in enumerate(lipid_lists_start):
             for j in range(20):
@@ -590,9 +566,9 @@ class model:
             new_acyl = components.FattyAcid(np.random.choice(choice_c_acyl_start), np.random.choice(choice_list_acyl_start,
                                                                                                     p=choice_weights_acyl_start))
             if new_acyl.saturation == 0:
-                self.acyl_coa_list_saturated.append(new_acyl)
+                self.components_state['acyl_coa_saturated'].append(new_acyl)
             else:
-                self.acyl_coa_list_unsaturated.append(new_acyl)
+                self.components_state['acyl_coa_unsaturated'].append(new_acyl)
     # def start(self):
     #     '''
     #     Function that produces the starting lipids. Membrane compositions are given in self.membrane_compositions_start_relatives.
@@ -635,7 +611,7 @@ class model:
     #         x += 1
     #
     #
-    #     self.lipid_lists_start = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.lyso_pa_list, self.PA_list, self.CDP_DG_list, self.Ergosterol_list, self.Sterylester_list, self.DAG_list, self.TAG_list, self.Sphingolipid_list]
+    #     self.lipid_lists_start = [self.components_state['PS'], self.components_state['PI'], self.components_state['PC'], self.components_state['PE'], self.components_state['CL'], self.components_state['lyso_PA'], self.components_state['PA'], self.components_state['CDP_DG'], self.components_state['ergosterol'], self.components_state['sterylester'], self.components_state['DAG'], self.components_state['TAG'], self.components_state['sphingolipid']]
     #     z = 0
     #     for lipid_list in self.lipid_lists_start:
     #         for i in range(20):
@@ -671,9 +647,9 @@ class model:
     #     for i in range(60):
     #         new_acyl = components.FattyAcid(np.random.choice(choice_C_acyl_start), np.random.choice(choice_list_acyl_start, p = choice_weights_acyl_start))
     #         if new_acyl.saturation == 0:
-    #             self.acyl_coa_list_saturated.append(new_acyl)
+    #             self.components_state['acyl_coa_saturated'].append(new_acyl)
     #         else:
-    #             self.acyl_coa_list_unsaturated.append(new_acyl)
+    #             self.components_state['acyl_coa_unsaturated'].append(new_acyl)
 
     def Km_calculation(self):
         #Calculation of Km, 2 substrates: Km for lipids = 5, for acyl-coa = 30
@@ -707,22 +683,22 @@ class model:
                         'acyl_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probability['acyl_synthase'] - self.precursors_state['acetyl_coa']},\
                         'acyl_synthase_C16': 0.625,\
                         'acyl_synthase_C18': 0.002,\
-                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': (self.precursors_state['DHAP'] / self.initial_probability['lyso_PA_synthase']) * ((float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated)))\
-                                             / (self.Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.acyl_coa_list_saturated)) + float(len(self.acyl_coa_list_unsaturated))))) - self.precursors_state['DHAP']}, \
+                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': (self.precursors_state['DHAP'] / self.initial_probability['lyso_PA_synthase']) * ((float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated'])))\
+                                             / (self.Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated']))))) - self.precursors_state['DHAP']}, \
                         'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},\
-                        'CDP_DG_synthase': {'PA': 5., 'CTP': (self.precursors_state['CTP'] / self.initial_probability['CDP_DG_synthase']) * (float(len(self.PA_list)) / (self.Km['CDP_DG_synthase']['PA'] + float(len(self.PA_list)))) - self.precursors_state['CTP']},\
+                        'CDP_DG_synthase': {'PA': 5., 'CTP': (self.precursors_state['CTP'] / self.initial_probability['CDP_DG_synthase']) * (float(len(self.components_state['PA'])) / (self.Km['CDP_DG_synthase']['PA'] + float(len(self.components_state['PA'])))) - self.precursors_state['CTP']},\
                         'DAG_synthase': {'PA': 5.}, \
                         'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
-                        'TAG_lipase': {'lipid_droplets': float(len(self.lipid_droplets)) / self.initial_probability['TAG_lipase'] - float(len(self.lipid_droplets))}, \
+                        'TAG_lipase': {'lipid_droplets': float(len(self.membranes_state['lipid_droplets'])) / self.initial_probability['TAG_lipase'] - float(len(self.membranes_state['lipid_droplets']))}, \
                         'DAG_kinase': {'DAG': 5.}, \
-                        'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_state['serine'] / self.initial_probability['PS_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) - self.precursors_state['serine']},\
-                        'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_state['inositol'] / self.initial_probability['PI_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) - self.precursors_state['inositol']}, \
+                        'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_state['serine'] / self.initial_probability['PS_synthase']) * (float(len(self.components_state['CDP_DG'])) / (self.Km['PS_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['serine']},\
+                        'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_state['inositol'] / self.initial_probability['PI_synthase']) * (float(len(self.components_state['CDP_DG'])) / (self.Km['PI_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['inositol']}, \
                         'PE_synthase': {'PS': 5.}, \
-                        'PC_synthase': {'PE': 5., 'SAM': (self.precursors_state['SAM'] / self.initial_probability['PC_synthase']) * (float(len(self.PE_list)) / (self.Km['PC_synthase']['PE'] + float(len(self.PE_list)))) - self.precursors_state['SAM']}, \
-                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': (self.precursors_state['glycerol_3_p_mito'] / self.initial_probability['CL_synthase']) * (float(len(self.CDP_DG_list)) / (self.Km['CL_synthase']['CDP_DG'] + float(len(self.CDP_DG_list)))) - self.precursors_state['glycerol_3_p_mito']},\
+                        'PC_synthase': {'PE': 5., 'SAM': (self.precursors_state['SAM'] / self.initial_probability['PC_synthase']) * (float(len(self.components_state['PE'])) / (self.Km['PC_synthase']['PE'] + float(len(self.components_state['PE'])))) - self.precursors_state['SAM']}, \
+                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': (self.precursors_state['glycerol_3_p_mito'] / self.initial_probability['CL_synthase']) * (float(len(self.components_state['CDP_DG'])) / (self.Km['CL_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['glycerol_3_p_mito']},\
                         'ergosterol_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probability['ergosterol_synthase'] - self.precursors_state['acetyl_coa']}, \
                         'sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, \
-                        'sphingolipid_synthase': {'PI': 5, 'ceramide': (self.precursors_state['ceramide'] / self.initial_probability['sphingolipid_synthase']) * (float(len(self.PI_list)) / (self.Km['sphingolipid_synthase']['PI'] + float(len(self.PI_list)))) - self.precursors_state['ceramide']}}
+                        'sphingolipid_synthase': {'PI': 5, 'ceramide': (self.precursors_state['ceramide'] / self.initial_probability['sphingolipid_synthase']) * (float(len(self.components_state['PI'])) / (self.Km['sphingolipid_synthase']['PI'] + float(len(self.components_state['PI'])))) - self.precursors_state['ceramide']}}
 
 
     def cell_cycle(self, time):
@@ -771,18 +747,18 @@ class model:
         for i in range(self.rates['ceramide_synthesis']):
             x = np.random.random()
             if x >= self.probabilities['ceramide_synthesis']:
-                if len(self.acyl_coa_list_C26) > 1 and self.precursors_state['serine'] > 1 and len(self.acyl_coa_list_saturated) > 1 and any(fa.C == 16 for fa in self.acyl_coa_list_saturated):
+                if len(self.components_state['acyl_coa_C26']) > 1 and self.precursors_state['serine'] > 1 and len(self.components_state['acyl_coa_saturated']) > 1 and any(fa.C == 16 for fa in self.components_state['acyl_coa_saturated']):
                     self.precursors_state['ceramide'] += 1
                     self.precursors_state['serine'] -= 1
                     self.precursors_state['CO2'] += 1
                     self.precursors_state['NADPH'] += 1
                     self.precursors_state['NADP'] -= 1
                     j = 0
-                    if self.acyl_coa_list_saturated[j].C == 18 and i <= len(self.acyl_coa_list_saturated):
+                    if self.components_state['acyl_coa_saturated'][j].C == 18 and i <= len(self.components_state['acyl_coa_saturated']):
                         j += 1
-                    elif self.acyl_coa_list_saturated[j].C == 16:
-                        del self.acyl_coa_list_saturated[j]
-                        del self.acyl_coa_list_C26[0]
+                    elif self.components_state['acyl_coa_saturated'][j].C == 16:
+                        del self.components_state['acyl_coa_saturated'][j]
+                        del self.components_state['acyl_coa_C26'][0]
 
 
     def acetyl_coa_synthase(self):
@@ -810,56 +786,56 @@ class model:
         for i in range(self.rates['acyl_synthase']):
             x = np.random.random()						#5 reactions in 1 timestep but only with a probability of 90%
             if self.precursors_state['acetyl_coa'] > 2:		#control if at least 2 Acetyl-CoA are available
-                if len(self.acyl_coa_list) == 0:		#starting the first reaction
+                if len(self.components_state['acyl_coa']) == 0:		#starting the first reaction
                     new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
-                    self.acyl_coa_list.append(new_acyl)
-                    self.acyl_coa_list[-1].C += 2
+                    self.components_state['acyl_coa'].append(new_acyl)
+                    self.components_state['acyl_coa'][-1].C += 2
                     self.precursors_state['acetyl_coa'] -= 2
 
-                elif self.acyl_coa_list[-1].C == 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
+                elif self.components_state['acyl_coa'][-1].C == 16 and x >= self.probabilities['acyl_synthase_C16']:	#stop the reaction cycle and starting a new one
                     new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
-                    self.acyl_coa_list.append(new_acyl)
-                    self.acyl_coa_list[-1].C += 2
+                    self.components_state['acyl_coa'].append(new_acyl)
+                    self.components_state['acyl_coa'][-1].C += 2
                     self.precursors_state['acetyl_coa'] -= 2
                     self.precursors_state['NADPH'] -= 14
                     self.precursors_state['NADP'] += 14
                     self.precursors_state['H2O'] += 7
                     #CO2 production is not mentioned here as onyl acetyl-CoA is used and not malonyl-CoA, so we need all C-atoms we give in the reaction
 
-                elif self.acyl_coa_list[-1].C == 18 and x >= self.probabilities['acyl_synthase_C18']:	#stop the reaction cycle and starting a new one
+                elif self.components_state['acyl_coa'][-1].C == 18 and x >= self.probabilities['acyl_synthase_C18']:	#stop the reaction cycle and starting a new one
                     new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
-                    self.acyl_coa_list.append(new_acyl)
-                    self.acyl_coa_list[-1].C += 2
+                    self.components_state['acyl_coa'].append(new_acyl)
+                    self.components_state['acyl_coa'][-1].C += 2
                     self.precursors_state['acetyl_coa'] -= 2
                     self.precursors_state['NADPH'] -= 16
                     self.precursors_state['NADP'] += 16
                     self.precursors_state['H2O'] += 8
 
-                elif self.acyl_coa_list[-1].C == 26:
-                    self.acyl_coa_list[-1].saturation = 0
+                elif self.components_state['acyl_coa'][-1].C == 26:
+                    self.components_state['acyl_coa'][-1].saturation = 0
                     new_acyl = components.FattyAcid(2, np.random.choice(choice_list, p = choice_weights))
-                    self.acyl_coa_list.append(new_acyl)
-                    self.acyl_coa_list[-1].C += 2
+                    self.components_state['acyl_coa'].append(new_acyl)
+                    self.components_state['acyl_coa'][-1].C += 2
                     self.precursors_state['acetyl_coa'] -= 2
                     self.precursors_state['NADPH'] -= 24
                     self.precursors_state['NADP'] += 24
                     self.precursors_state['H2O'] += 12
 
                 else:									#adding an Acetyl_CoA to the growing ffa
-                    self.acyl_coa_list[-1].C += 2
+                    self.components_state['acyl_coa'][-1].C += 2
                     self.precursors_state['acetyl_coa'] -= 1
 
-        if len(self.acyl_coa_list) > 1:
-            for j in range(len(self.acyl_coa_list)-1):
-                if self.acyl_coa_list[j].C == 26:
-                    self.acyl_coa_list_C26.append(self.acyl_coa_list[j])
-                elif self.acyl_coa_list[j].saturation == 0:
-                    self.acyl_coa_list_saturated.append(self.acyl_coa_list[j])
-                elif self.acyl_coa_list[j].saturation == 1:
-                    self.acyl_coa_list_unsaturated.append(self.acyl_coa_list[j])
+        if len(self.components_state['acyl_coa']) > 1:
+            for j in range(len(self.components_state['acyl_coa'])-1):
+                if self.components_state['acyl_coa'][j].C == 26:
+                    self.components_state['acyl_coa_C26'].append(self.components_state['acyl_coa'][j])
+                elif self.components_state['acyl_coa'][j].saturation == 0:
+                    self.components_state['acyl_coa_saturated'].append(self.components_state['acyl_coa'][j])
+                elif self.components_state['acyl_coa'][j].saturation == 1:
+                    self.components_state['acyl_coa_unsaturated'].append(self.components_state['acyl_coa'][j])
                     self.precursors_state['O2'] -= 1
                     self.precursors_state['H2O'] += 2
-            del self.acyl_coa_list[:-1]
+            del self.components_state['acyl_coa'][:-1]
 
 
     def PA_synthese(self):
@@ -880,18 +856,18 @@ class model:
         weights_pa = [self.precursors_state['DHAP'] / (self.precursors_state['DHAP'] + self.precursors_state['glycerol-3-p']),\
                     self.precursors_state['glycerol-3-p'] / (self.precursors_state['DHAP'] + self.precursors_state['glycerol-3-p'])]
         x = np.random.random()
-        if x >= self.probabilities['lyso_PA_synthase'] and len(self.acyl_coa_list_saturated) > 1 and len(self.acyl_coa_list_unsaturated) > 1 and (self.precursors_state['DHAP'] > 1 and self.precursors_state['glycerol-3-p'] > 1):  # at least 1 ffa has to be unsaturated
+        if x >= self.probabilities['lyso_PA_synthase'] and len(self.components_state['acyl_coa_saturated']) > 1 and len(self.components_state['acyl_coa_unsaturated']) > 1 and (self.precursors_state['DHAP'] > 1 and self.precursors_state['glycerol-3-p'] > 1):  # at least 1 ffa has to be unsaturated
             if np.random.choice(choice_list, p = self.weights_fa) == 0:
-                sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_saturated)-1))
-                chainlength_sn1 = self.acyl_coa_list_saturated[sn1_chain].C
+                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_saturated'])-1))
+                chainlength_sn1 = self.components_state['acyl_coa_saturated'][sn1_chain].C
                 lyso_pa = components.Lipid('p', None, self.chainlength_saturated[chainlength_sn1], None, self.compartment_weights)
-                del self.acyl_coa_list_saturated[sn1_chain]
+                del self.components_state['acyl_coa_saturated'][sn1_chain]
             else:
-                sn1_chain = np.random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
-                chainlength_sn1 = self.acyl_coa_list_unsaturated[sn1_chain].C
+                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated'])-1))
+                chainlength_sn1 = self.components_state['acyl_coa_unsaturated'][sn1_chain].C
                 lyso_pa = components.Lipid('p', None, self.chainlength_unsaturated[chainlength_sn1], None, self.compartment_weights)
-                del self.acyl_coa_list_unsaturated[sn1_chain]
-            self.lyso_pa_list.append(lyso_pa)
+                del self.components_state['acyl_coa_unsaturated'][sn1_chain]
+            self.components_state['lyso_PA'].append(lyso_pa)
             i = np.random.choice(choice_list, p = weights_pa)
             if i == 0:
                 self.precursors_state['DHAP'] -= 1
@@ -906,14 +882,14 @@ class model:
         Synthesis of PA by adding the second fatty acid to lyso_PA (sn2: saturated or unsaturated) --> 1-acyl-sn-glycerol-3-phosphate acyltransferase
         '''
         x = np.random.random()
-        if x >= self.probabilities['PA_synthase'] and len(self.acyl_coa_list_unsaturated) > 1 and len(self.lyso_pa_list) > 1:
-            z = np.random.randint(0, (len(self.lyso_pa_list)-1))
-            sn2_chain = np.random.randint(0, (len(self.acyl_coa_list_unsaturated)-1))
-            chainlength_sn2 = self.acyl_coa_list_unsaturated[sn2_chain].C
-            self.lyso_pa_list[z].sn2 = self.chainlength_unsaturated[chainlength_sn2]
-            self.PA_list.append(self.lyso_pa_list[z])
-            del self.acyl_coa_list_unsaturated[sn2_chain]		# deletion of the consumed ffa
-            del self.lyso_pa_list[z]
+        if x >= self.probabilities['PA_synthase'] and len(self.components_state['acyl_coa_unsaturated']) > 1 and len(self.components_state['lyso_PA']) > 1:
+            z = np.random.randint(0, (len(self.components_state['lyso_PA'])-1))
+            sn2_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated'])-1))
+            chainlength_sn2 = self.components_state['acyl_coa_unsaturated'][sn2_chain].C
+            self.components_state['lyso_PA'][z].sn2 = self.chainlength_unsaturated[chainlength_sn2]
+            self.components_state['PA'].append(self.components_state['lyso_PA'][z])
+            del self.components_state['acyl_coa_unsaturated'][sn2_chain]		# deletion of the consumed ffa
+            del self.components_state['lyso_PA'][z]
 
 
     def CDP_DG_synthase(self):
@@ -922,11 +898,11 @@ class model:
         '''
         for i in range(self.rates['CDP_DG_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['CDP_DG_synthase'] and self.precursors_state['CTP'] > 1 and len(self.PA_list) > 1:
-                z = np.random.randint(0, len(self.PA_list)-1)
-                self.PA_list[z].head = 'cdp'
-                self.CDP_DG_list.append(self.PA_list[z])		#CDP-DG production from PA
-                del self.PA_list[z]
+            if x >= self.probabilities['CDP_DG_synthase'] and self.precursors_state['CTP'] > 1 and len(self.components_state['PA']) > 1:
+                z = np.random.randint(0, len(self.components_state['PA'])-1)
+                self.components_state['PA'][z].head = 'cdp'
+                self.components_state['CDP_DG'].append(self.components_state['PA'][z])		#CDP-DG production from PA
+                del self.components_state['PA'][z]
                 self.precursors_state['CTP'] -= 1
                 self.precursors_state['Pi'] += 2
 
@@ -945,13 +921,13 @@ class model:
         DAG synthesis: Removing the head of the lipid and adding the lipid to the DAG list.
         '''
         x = np.random.random()
-        if x >= self.probabilities['DAG_synthase'] and len(self.PA_list) > 1:
-            z = np.random.randint(0, len(self.PA_list)-1)
-            self.PA_list[z].head = None
-            self.DAG_list.append(self.PA_list[z])
+        if x >= self.probabilities['DAG_synthase'] and len(self.components_state['PA']) > 1:
+            z = np.random.randint(0, len(self.components_state['PA'])-1)
+            self.components_state['PA'][z].head = None
+            self.components_state['DAG'].append(self.components_state['PA'][z])
             self.precursors_state['H2O'] -= 1
             self.precursors_state['Pi'] += 1
-            del self.PA_list[z]
+            del self.components_state['PA'][z]
 
 
     def TAG_synthase(self):
@@ -959,69 +935,69 @@ class model:
         DAG is processed to TAG by adding a third acyl-chain at position sn3.
         '''
         x = np.random.random()
-        if x >= self.probabilities['TAG_synthase'] and len(self.DAG_list) > 1 and len(self.acyl_coa_list_saturated) > 1 and len(self.acyl_coa_list_unsaturated) > 1:
-            z = np.random.randint(0, len(self.DAG_list)-1)
-            self.TAG_list.append(self.DAG_list[z])
-            self.TAG_list[-1].__class__ = components.TAG
+        if x >= self.probabilities['TAG_synthase'] and len(self.components_state['DAG']) > 1 and len(self.components_state['acyl_coa_saturated']) > 1 and len(self.components_state['acyl_coa_unsaturated']) > 1:
+            z = np.random.randint(0, len(self.components_state['DAG'])-1)
+            self.components_state['TAG'].append(self.components_state['DAG'][z])
+            self.components_state['TAG'][-1].__class__ = components.TAG
             if x <= 0.575:
-                sn3 = np.random.randint(0, len(self.acyl_coa_list_saturated)-1)
-                chainlength_sn3 = self.acyl_coa_list_saturated[sn3].C
-                self.TAG_list[-1].sn3 = self.chainlength_saturated[chainlength_sn3]
-                del self.acyl_coa_list_saturated[sn3]
+                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_saturated'])-1)
+                chainlength_sn3 = self.components_state['acyl_coa_saturated'][sn3].C
+                self.components_state['TAG'][-1].sn3 = self.chainlength_saturated[chainlength_sn3]
+                del self.components_state['acyl_coa_saturated'][sn3]
             else:
-                sn3 = np.random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
-                chainlength_sn3 = self.acyl_coa_list_unsaturated[sn3].C
-                self.TAG_list[-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
-                del self.acyl_coa_list_unsaturated[sn3]
-            del self.DAG_list[z]
+                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated'])-1)
+                chainlength_sn3 = self.components_state['acyl_coa_unsaturated'][sn3].C
+                self.components_state['TAG'][-1].sn3 = self.chainlength_unsaturated[chainlength_sn3]
+                del self.components_state['acyl_coa_unsaturated'][sn3]
+            del self.components_state['DAG'][z]
 
 
     def TAG_lipase(self):
         '''
         Cdk1/Cdc28-dependent activation of the major triacylglycerol lipase
         '''
-        if len(self.lipid_droplets) > self.rates['TAG_lipase']:
+        if len(self.membranes_state['lipid_droplets']) > self.rates['TAG_lipase']:
             for i in range(self.rates['TAG_lipase']):
                 x = np.random.random()
                 if x >= self.probabilities['TAG_lipase']:
-                    z = np.random.randint(0, len(self.lipid_droplets)-1)
-                    if self.lipid_droplets[z].head == None:
-                        if ':0' in self.lipid_droplets[z].sn3:
+                    z = np.random.randint(0, len(self.membranes_state['lipid_droplets'])-1)
+                    if self.membranes_state['lipid_droplets'][z].head == None:
+                        if ':0' in self.membranes_state['lipid_droplets'][z].sn3:
                             for key, value in self.chainlength_unsaturated.items():
-                                if value == self.lipid_droplets[z].sn3:
-                                    self.acyl_coa_list_saturated.append(components.FattyAcid(key, 0))
-                        elif ':1' in self.lipid_droplets[z].sn3:
+                                if value == self.membranes_state['lipid_droplets'][z].sn3:
+                                    self.components_state['acyl_coa_saturated'].append(components.FattyAcid(key, 0))
+                        elif ':1' in self.membranes_state['lipid_droplets'][z].sn3:
                             for key, value in self.chainlength_saturated.items():
-                                if value == self.lipid_droplets[z].sn3:
-                                    self.acyl_coa_list_unsaturated.append(components.FattyAcid(key, 1))
-                        self.DAG_list.append(self.lipid_droplets[z])
-                        self.DAG_list[-1].__class__ = components.Lipid
-                        delattr(self.DAG_list[-1], 'sn3')
+                                if value == self.membranes_state['lipid_droplets'][z].sn3:
+                                    self.components_state['acyl_coa_unsaturated'].append(components.FattyAcid(key, 1))
+                        self.components_state['DAG'].append(self.membranes_state['lipid_droplets'][z])
+                        self.components_state['DAG'][-1].__class__ = components.Lipid
+                        delattr(self.components_state['DAG'][-1], 'sn3')
                         self.precursors_state['H2O'] -= 1
-                    elif self.lipid_droplets[z].head == 'sterylester':
-                        self.Ergosterol_list.append(components.Sterol('sterol', None, self.compartment_weights))
+                    elif self.membranes_state['lipid_droplets'][z].head == 'sterylester':
+                        self.components_state['ergosterol'].append(components.Sterol('sterol', None, self.compartment_weights))
                         self.precursors_state['H2O'] -= 1
-                        if ':0' in self.lipid_droplets[z].FA:
+                        if ':0' in self.membranes_state['lipid_droplets'][z].FA:
                             for key, value in self.chainlength_unsaturated.items():
-                                if value == self.lipid_droplets[z].FA:
-                                    self.acyl_coa_list_saturated.append(components.FattyAcid(key, 0))
-                        elif ':1' in self.lipid_droplets[z].FA:
+                                if value == self.membranes_state['lipid_droplets'][z].FA:
+                                    self.components_state['acyl_coa_saturated'].append(components.FattyAcid(key, 0))
+                        elif ':1' in self.membranes_state['lipid_droplets'][z].FA:
                             for key, value in self.chainlength_saturated.items():
-                                if value == self.lipid_droplets[z].FA:
-                                    self.acyl_coa_list_unsaturated.append(components.FattyAcid(key, 1))
-                    del self.lipid_droplets[z]
+                                if value == self.membranes_state['lipid_droplets'][z].FA:
+                                    self.components_state['acyl_coa_unsaturated'].append(components.FattyAcid(key, 1))
+                    del self.membranes_state['lipid_droplets'][z]
 
 
     def DAG_kinase(self):
-        if len(self.DAG_list) > self.rates['DAG_kinase']:
+        if len(self.components_state['DAG']) > self.rates['DAG_kinase']:
             for i in range(self.rates['DAG_kinase']):
                 x = np.random.random()
                 if x >= self.probabilities['DAG_kinase']:
-                    z = np.random.randint(0, len(self.DAG_list)-1)
-                    self.PA_list.append(self.DAG_list[z])
-                    self.PA_list[-1].head = 'p'
-                    self.PA_list[-1].comp = None
-                    del self.DAG_list[z]
+                    z = np.random.randint(0, len(self.components_state['DAG'])-1)
+                    self.components_state['PA'].append(self.components_state['DAG'][z])
+                    self.components_state['PA'][-1].head = 'p'
+                    self.components_state['PA'][-1].comp = None
+                    del self.components_state['DAG'][z]
 
 
     def PS_synthase(self):
@@ -1030,11 +1006,11 @@ class model:
         '''
         for i in range(self.rates['PS_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['PS_synthase'] and len(self.CDP_DG_list) > 1 and self.precursors_state['serine'] > 1:
-                z = np.random.randint(0, len(self.CDP_DG_list)-1)
-                self.CDP_DG_list[z].head = 'serine'				#PS synthesis from CDP-DG
-                self.PS_list.append(self.CDP_DG_list[z])
-                del self.CDP_DG_list[z]
+            if x >= self.probabilities['PS_synthase'] and len(self.components_state['CDP_DG']) > 1 and self.precursors_state['serine'] > 1:
+                z = np.random.randint(0, len(self.components_state['CDP_DG'])-1)
+                self.components_state['CDP_DG'][z].head = 'serine'				#PS synthesis from CDP-DG
+                self.components_state['PS'].append(self.components_state['CDP_DG'][z])
+                del self.components_state['CDP_DG'][z]
                 self.precursors_state['serine'] -= 1
                 self.precursors_state['CMP'] += 1
 
@@ -1045,11 +1021,11 @@ class model:
         '''
         for i in range(self.rates['PI_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['PI_synthase'] and len(self.CDP_DG_list) > 1 and self.precursors_state['inositol'] > 1:
-                z = np.random.randint(0, len(self.CDP_DG_list)-1)
-                self.CDP_DG_list[z].head = 'inositol'
-                self.PI_list.append(self.CDP_DG_list[z])
-                del self.CDP_DG_list[z]
+            if x >= self.probabilities['PI_synthase'] and len(self.components_state['CDP_DG']) > 1 and self.precursors_state['inositol'] > 1:
+                z = np.random.randint(0, len(self.components_state['CDP_DG'])-1)
+                self.components_state['CDP_DG'][z].head = 'inositol'
+                self.components_state['PI'].append(self.components_state['CDP_DG'][z])
+                del self.components_state['CDP_DG'][z]
                 self.precursors_state['inositol'] -= 1
                 self.precursors_state['CMP'] += 1
 
@@ -1060,12 +1036,12 @@ class model:
         '''
         for i in range(self.rates['PE_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['PE_synthase'] and len(self.PS_list) >= 10:
-                z = np.random.randint(0, len(self.PS_list)-1)
-                self.PS_list[z].head = 'ethanolamine'
-                self.PE_list.append(self.PS_list[z])
+            if x >= self.probabilities['PE_synthase'] and len(self.components_state['PS']) >= 10:
+                z = np.random.randint(0, len(self.components_state['PS'])-1)
+                self.components_state['PS'][z].head = 'ethanolamine'
+                self.components_state['PE'].append(self.components_state['PS'][z])
                 self.precursors_state['CO2'] += 1
-                del self.PS_list[z]
+                del self.components_state['PS'][z]
 
 
     def PC_synthase(self):
@@ -1074,11 +1050,11 @@ class model:
         '''
         for i in range(self.rates['PC_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['PC_synthase'] and len(self.PE_list) >= 5 and self.precursors_state['SAM'] >= 4:
-                z = np.random.randint(0, len(self.PE_list)-1)
-                self.PE_list[z].head = 'choline'
-                self.PC_list.append(self.PE_list[z])
-                del self.PE_list[z]
+            if x >= self.probabilities['PC_synthase'] and len(self.components_state['PE']) >= 5 and self.precursors_state['SAM'] >= 4:
+                z = np.random.randint(0, len(self.components_state['PE'])-1)
+                self.components_state['PE'][z].head = 'choline'
+                self.components_state['PC'].append(self.components_state['PE'][z])
+                del self.components_state['PE'][z]
                 self.precursors_state['SAM'] -= 3
                 self.precursors_state['SAH'] += 3
 
@@ -1089,13 +1065,13 @@ class model:
         '''
         for i in range(self.rates['CL_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['CL_synthase'] and self.precursors_state['glycerol_3_p_mito'] > 1 and len(self.CDP_DG_list) > 2:
-                z = np.random.randint(0, len(self.CDP_DG_list)-2)
-                self.CDP_DG_list[z].head = 'neutral'
-                self.CL_list.append(self.CDP_DG_list[z])
-                self.CL_list[-1].__class__ = components.CL
-                self.CL_list[-1].sn4, self.CL_list[-1].sn3 = self.CDP_DG_list[z+1].sn2, self.CDP_DG_list[z+1].sn1
-                del self.CDP_DG_list[z:z+1]
+            if x >= self.probabilities['CL_synthase'] and self.precursors_state['glycerol_3_p_mito'] > 1 and len(self.components_state['CDP_DG']) > 2:
+                z = np.random.randint(0, len(self.components_state['CDP_DG'])-2)
+                self.components_state['CDP_DG'][z].head = 'neutral'
+                self.components_state['CL'].append(self.components_state['CDP_DG'][z])
+                self.components_state['CL'][-1].__class__ = components.CL
+                self.components_state['CL'][-1].sn4, self.components_state['CL'][-1].sn3 = self.components_state['CDP_DG'][z+1].sn2, self.components_state['CDP_DG'][z+1].sn1
+                del self.components_state['CDP_DG'][z:z+1]
                 self.precursors_state['glycerol_3_p_mito'] -= 1
                 self.precursors_state['H2O'] -= 1
                 self.precursors_state['Pi'] += 1
@@ -1109,7 +1085,7 @@ class model:
         for i in range(self.rates['ergosterol_synthase']):
             x = np.random.random()
             if x >= self.probabilities['ergosterol_synthase'] and self.precursors_state['acetyl_coa'] > 18:
-                self.Ergosterol_list.append(components.Sterol('sterol', None, self.compartment_weights))
+                self.components_state['ergosterol'].append(components.Sterol('sterol', None, self.compartment_weights))
                 self.precursors_state['acetyl_coa'] -= 18
                 self.precursors_state['ATP'] -= 3
                 self.precursors_state['ADP'] += 3
@@ -1128,20 +1104,20 @@ class model:
         '''
         for i in range(self.rates['sterylester_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['sterylester_synthase'] and any(fa.C == 16 for fa in self.acyl_coa_list_unsaturated) and any(fa.C == 18 for fa in self.acyl_coa_list_unsaturated) and len(self.Ergosterol_list) > 1:
-                z = np.random.randint(0, len(self.Ergosterol_list)-1)
+            if x >= self.probabilities['sterylester_synthase'] and any(fa.C == 16 for fa in self.components_state['acyl_coa_unsaturated']) and any(fa.C == 18 for fa in self.components_state['acyl_coa_unsaturated']) and len(self.components_state['ergosterol']) > 1:
+                z = np.random.randint(0, len(self.components_state['ergosterol'])-1)
                 j = 0
                 while j < 5:
-                    fa_index = np.random.randint(0, len(self.acyl_coa_list_unsaturated)-1)
-                    if self.acyl_coa_list_unsaturated[fa_index].C == 18 and np.random.random() < 0.33:
-                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C18:1', None, self.compartment_weights))
-                        del self.Ergosterol_list[z]
-                        del self.acyl_coa_list_unsaturated[fa_index]
+                    fa_index = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated'])-1)
+                    if self.components_state['acyl_coa_unsaturated'][fa_index].C == 18 and np.random.random() < 0.33:
+                        self.components_state['sterylester'].append(components.Sterylester('sterylester', 'C18:1', None, self.compartment_weights))
+                        del self.components_state['ergosterol'][z]
+                        del self.components_state['acyl_coa_unsaturated'][fa_index]
                         break
-                    elif self.acyl_coa_list_unsaturated[fa_index].C == 16:
-                        self.Sterylester_list.append(components.Sterylester('sterylester', 'C16:1', None, self.compartment_weights))
-                        del self.Ergosterol_list[z]
-                        del self.acyl_coa_list_unsaturated[fa_index]
+                    elif self.components_state['acyl_coa_unsaturated'][fa_index].C == 16:
+                        self.components_state['sterylester'].append(components.Sterylester('sterylester', 'C16:1', None, self.compartment_weights))
+                        del self.components_state['ergosterol'][z]
+                        del self.components_state['acyl_coa_unsaturated'][fa_index]
                         break
                     else:
                         j += 1
@@ -1153,11 +1129,11 @@ class model:
         '''
         for i in range(self.rates['sphingolipid_synthase']):
             x = np.random.random()
-            if x >= self.probabilities['sphingolipid_synthase'] and len(self.PI_list) >= 2 and self.precursors_state['ceramide'] > 1 and self.precursors_state['GDP-mannose'] > 1:
-                self.Sphingolipid_list.append(components.Sphingolipid('ceramide', None, self.compartment_weights))
-                print len(self.PI_list)
-                z= np.random.randint(0, len(self.PI_list)-2)
-                del self.PI_list[z:z+1]
+            if x >= self.probabilities['sphingolipid_synthase'] and len(self.components_state['PI']) >= 2 and self.precursors_state['ceramide'] > 1 and self.precursors_state['GDP-mannose'] > 1:
+                self.components_state['sphingolipid'].append(components.Sphingolipid('ceramide', None, self.compartment_weights))
+                print len(self.components_state['PI'])
+                z= np.random.randint(0, len(self.components_state['PI'])-2)
+                del self.components_state['PI'][z:z+1]
                 self.precursors_state['ceramide'] -= 1
                 self.precursors_state['GDP-mannose'] -= 1
 
@@ -1167,17 +1143,17 @@ class model:
         General transport function for all produced lipids.
         '''
         # lipids to transport
-        transport_lists = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.PA_list,
-                           self.Ergosterol_list, self.Sterylester_list, self.TAG_list, self.Sphingolipid_list]
+        transport_lists = [self.components_state['PS'], self.components_state['PI'], self.components_state['PC'], self.components_state['PE'], self.components_state['CL'], self.components_state['PA'],
+                           self.components_state['ergosterol'], self.components_state['sterylester'], self.components_state['TAG'], self.components_state['sphingolipid']]
 
         for lipid in transport_lists:
-            if lipid == self.TAG_list or lipid == self.Sterylester_list:
+            if lipid == self.components_state['TAG'] or lipid == self.components_state['sterylester']:
                 if len(lipid) > 10:
                     for j in range(len(lipid)/10):
                         z = np.random.randint(0, len(lipid)-1)
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'lipid_droplets':
-                            self.lipid_droplets.append(lipid[z])
+                            self.membranes_state['lipid_droplets'].append(lipid[z])
                         del lipid[z]
             else:
                 if len(lipid) > 5:
@@ -1185,23 +1161,23 @@ class model:
                         z = np.random.randint(0, len(lipid)-1)
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'plasma_membrane':
-                            self.plasma_membrane.append(lipid[z])
+                            self.membranes_state['plasma_membrane'].append(lipid[z])
                         elif lipid[z].comp == 'secretory_vesicles':
-                            self.secretory_vesicles.append(lipid[z])
+                            self.membranes_state['secretory_vesicles'].append(lipid[z])
                         elif lipid[z].comp == 'vacuoles':
-                            self.vacuoles.append(lipid[z])
+                            self.membranes_state['vacuoles'].append(lipid[z])
                         elif lipid[z].comp == 'nucleus':
-                            self.nucleus.append(lipid[z])
+                            self.membranes_state['nucleus'].append(lipid[z])
                         elif lipid[z].comp == 'peroxisomes':
-                            self.peroxisomes.append(lipid[z])
+                            self.membranes_state['peroxisomes'].append(lipid[z])
                         elif lipid[z].comp == 'light_microsomes':
-                            self.light_microsomes.append(lipid[z])
+                            self.membranes_state['light_microsomes'].append(lipid[z])
                         elif lipid[z].comp == 'inner_mit_membrane':
-                            self.inner_mit_membrane.append(lipid[z])
+                            self.membranes_state['inner_mit_membrane'].append(lipid[z])
                         elif lipid[z].comp == 'outer_mit_membrane':
-                            self.outer_mit_membrane.append(lipid[z])
+                            self.membranes_state['outer_mit_membrane'].append(lipid[z])
                         elif lipid[z].comp == 'lipid_droplets':
-                            self.lipid_droplets.append(lipid[z])
+                            self.membranes_state['lipid_droplets'].append(lipid[z])
                         del lipid[z]
 
 
@@ -1229,9 +1205,9 @@ class model:
 
     def numbers(self):
         # component list
-        components_list = [self.acyl_coa_list, self.PA_list, self.CDP_DG_list, self.TAG_list, self.PS_list,
-                           self.PI_list, self.PE_list, self.PC_list, self.CL_list, self.Ergosterol_list,
-                           self.Sterylester_list, self.DAG_list, self.Sphingolipid_list]
+        components_list = [self.components_state['acyl_coa'], self.components_state['PA'], self.components_state['CDP_DG'], self.components_state['TAG'], self.components_state['PS'],
+                           self.components_state['PI'], self.components_state['PE'], self.components_state['PC'], self.components_state['CL'], self.components_state['ergosterol'],
+                           self.components_state['sterylester'], self.components_state['DAG'], self.components_state['sphingolipid']]
 
         for i, sp in enumerate(components_list):
             self.number_lipids_list[i].append(len(sp))
@@ -1264,7 +1240,7 @@ class model:
         self.c18_1_sn1 = 0
         self.wrong_fatty_acid = 0
         for c in self.compartment_lists:
-            if c == self.lipid_droplets:
+            if c == self.membranes_state['lipid_droplets']:
                 continue
             else:
                 for i in range(len(c)):
@@ -1287,7 +1263,7 @@ class model:
         self.c18_1_sn2 = 0
         self.wrong_fatty_acid = 0
         for c in self.compartment_lists:
-            if c == self.lipid_droplets:
+            if c == self.membranes_state['lipid_droplets']:
                 continue
             else:
                 for i in range(len(c)):
@@ -1308,7 +1284,7 @@ class model:
 
         self.sterylester_C16 = 0
         self.sterylester_C18 = 0
-        for c in self.lipid_droplets:
+        for c in self.membranes_state['lipid_droplets']:
             if c.head == 'sterylester':
                 if c.FA == 'C16:1':
                     self.sterylester_C16 += 1
