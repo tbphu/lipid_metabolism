@@ -39,7 +39,7 @@ class Model:
         self.Km = {}
         # VMAX of reactions
         # adjusted manually
-        self.rates = {'glycerol_3_p_synthesis': 8, 
+        self.rates = {'glycerol_3_p_synthesis': 8,
                       'inositol_synthesis':     5,
                       'ceramide_synthesis':     2,
                       'acetyl_coa_synthase':    650,
@@ -60,7 +60,7 @@ class Model:
 
         # probabilities of reaction to take place
         # adjusted manually
-        self.probability = {'glycerol_3_p_synthesis': 0.5, 
+        self.probability = {'glycerol_3_p_synthesis': 0.5,
                             'inositol_synthesis':     0.5,
                             'ceramide_synthesis':     0.5,
                             'acetyl_coa_synthase':    0.8,
@@ -85,13 +85,13 @@ class Model:
 
         # probabilities in CC phase G1
         # adjusted manually
-        self.probability_G1 = {'DAG_synthase': 0.3, 
+        self.probability_G1 = {'DAG_synthase': 0.3,
                                'TAG_synthase':  0.2,
                                'TAG_lipase':    0.05,
                                'DAG_kinase':    0.03}
         # probabilities in CC phases S-M
         # adjusted manually
-        self.probability_S_M = {'DAG_synthase': 0.01, 
+        self.probability_S_M = {'DAG_synthase': 0.01,
                                 'TAG_synthase':  0.2,
                                 'TAG_lipase':    0.6,
                                 'DAG_kinase':    0.1,
@@ -429,125 +429,7 @@ class Model:
                                                     self.precursors_dict['ceramide'])))}
         return threshold
 
-    def start(self):
-        """
-        Function that produces the initial lipids at t = 0.
-        Membrane compositions are given in membrane_compositions_start_ratio.
-        Number of starting lipids for each membrane are given in self.start_lipids.
-        """
-        membrane_compositions_start_ratio = []
 
-        # numbers of the comp_start lists should yield 1 when summed
-        for membrane_comp_start in self.membrane_compositions_start:
-            membrane_comp_start_ratio = [component / sum(membrane_comp_start) for component in membrane_comp_start]
-            membrane_compositions_start_ratio.append(membrane_comp_start_ratio)
-
-        compositions_start = dict(zip(self.compartment_names, membrane_compositions_start_ratio))
-        membrane_start = dict(zip(self.compartment_names, self.start_lipids))
-
-        for i, membrane in enumerate(self.compartment_lists):
-            # producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
-            for j in range(membrane_start[self.compartment_names[i]]):
-                head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol',
-                                     'sterylester', None, 'ceramide']
-                weights_start = compositions_start[self.compartment_names[i]]
-                head = np.random.choice(head_groups_start, p=weights_start)
-                if head == 'sterol':
-                    new_lipid = components.Sterol(head, self.compartment_names[i], self.compartment_weights)
-                elif head == 'sterylester':
-                    new_lipid = components.Sterylester(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                              p=[0.67, 0.33]), self.compartment_names[i],
-                                                       self.compartment_weights)
-                elif head == 'ceramide':
-                    new_lipid = components.Sphingolipid(head, self.compartment_names[i], self.compartment_weights)
-                elif head == 'neutral':
-                    new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                     p=self._unsaturated_weights),
-                                              np.random.choice(self.chainlength_saturated_unsaturated,
-                                                               p=self._saturation_weights_total),
-                                              np.random.choice(self.chainlength_unsaturated.values(),
-                                                               p=self._unsaturated_weights),
-                                              np.random.choice(self.chainlength_saturated_unsaturated,
-                                                               p=self._saturation_weights_total), self.compartment_names[i],
-                                              self.compartment_weights)
-                elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
-                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                        p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total),
-                                                 self.compartment_names[i], self.compartment_weights)
-                else:
-                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                        p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), self.compartment_names[i],
-                                                 self.compartment_weights)
-                    new_lipid.__class__ = components.TAG
-                    new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated,
-                                                     p=self._saturation_weights_total)
-                membrane.append(new_lipid)
-
-        lipid_lists_start = [self.PS_list, self.PI_list, self.PC_list, self.PE_list, self.CL_list, self.lyso_pa_list, self.PA_list,
-                             self.CDP_DG_list, self.ergosterol_list, self.sterylester_list, self.DAG_list, self.TAG_list,
-                             self.sphingolipid_list]
-
-        for i, lipid_list in enumerate(lipid_lists_start):
-            for j in range(20):
-                head_groups_start_lipids = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'lyso', 'p', 'cdp',
-                                            'sterol', 'sterylester', 'dag', None, 'ceramide']
-                head = head_groups_start_lipids[i]
-                if head == 'sterol':
-                    new_lipid = components.Sterol(head, None, self.compartment_weights)
-                elif head == 'sterylester':
-                    new_lipid = components.Sterylester(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                              p=[0.67, 0.33]), None, self.compartment_weights)
-                elif head == 'neutral':
-                    new_lipid = components.CL(head, np.random.choice(self.chainlength_unsaturated.values(), p=self._unsaturated_weights),
-                                              np.random.choice(self.chainlength_saturated_unsaturated, p=self._saturation_weights_total),
-                                              np.random.choice(self.chainlength_unsaturated.values(), p=self._unsaturated_weights),
-                                              np.random.choice(self.chainlength_saturated_unsaturated, p=self._saturation_weights_total),
-                                              None, self.compartment_weights)
-                elif head is None:
-                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                        p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), None, self.compartment_weights)
-                    new_lipid.__class__ = components.TAG
-                    new_lipid.sn3 = np.random.choice(self.chainlength_saturated_unsaturated, p=self._saturation_weights_total)
-                elif head == 'ceramide':
-                    new_lipid = components.Sphingolipid(head, None, self.compartment_weights)
-                elif head == 'cdp':
-                    new_lipid = components.Lipid('p', np.random.choice(self.chainlength_unsaturated.values(),
-                                                                       p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), None, self.compartment_weights)
-                elif head == 'lyso':
-                    new_lipid = components.Lipid('p', None, np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                             p=self._saturation_weights_total), None,
-                                                 self.compartment_weights)
-                elif head == 'dag':
-                    new_lipid = components.Lipid(None, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                        p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), None, self.compartment_weights)
-                else:
-                    new_lipid = components.Lipid(head, np.random.choice(self.chainlength_unsaturated.values(),
-                                                                        p=self._unsaturated_weights),
-                                                 np.random.choice(self.chainlength_saturated_unsaturated,
-                                                                  p=self._saturation_weights_total), None, self.compartment_weights)
-                lipid_list.append(new_lipid)
-
-        choice_list_acyl_start = [0, 1]
-        choice_weights_acyl_start = [0.13, 0.87]
-        choice_c_acyl_start = [16, 18]
-
-        for i in range(60):
-            new_acyl = components.FattyAcid(np.random.choice(choice_c_acyl_start), np.random.choice(choice_list_acyl_start,
-                                                                                                    p=choice_weights_acyl_start))
-            if new_acyl.saturation == 0:
-                self.acyl_coa_list_saturated.append(new_acyl)
-            else:
-                self.acyl_coa_list_unsaturated.append(new_acyl)
 
     def Km_calculation(self):
         #Calculation of Km, 2 substrates: Km for lipids = 5, for acyl-coa = 30
@@ -1200,7 +1082,7 @@ if __name__ == '__main__':
     st = time.time()
     m = Model()
     # test run: 5 sec
-    r, mem, s = m.run(10)
+    r, mem, s = m.run(7200)
     et = time.time()
     for lili in m.number_lipids_list:
         pyp.plot(m.t, lili)

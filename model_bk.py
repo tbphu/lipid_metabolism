@@ -295,7 +295,7 @@ class model:
     After several reactions and the tranport function in the end there are membranes of different compartments with several different lipids.
     """
     def __init__(self):
-        self.timesteps = 10
+        self.timesteps = 7200
         self.volume = 35
 
         self.rates = {'glycerol_3_p_synthesis': 8, 'inositol_synthesis': 5, 'ceramide_synthesis': 2, 'acetyl_coa_synthase': 650, 'acyl_synthase': 450, 'PA_synthese': 17, \
@@ -1405,3 +1405,9 @@ if __name__ == '__main__':
         mat.plot(m.t, lili)
     print "Runtime: " + str(et - st) + "s"
     mat.show()
+
+    for lili in mem:
+        mat.plot(m.t, lili)
+    mat.show()
+
+    print m.compartment_relatives_dict
