@@ -8,7 +8,8 @@ import matplotlib.pyplot as mat
 import numpy as np
 import components
 
-class model:
+
+class Model:
     """
     The model.
     At the beginning there are several lists defined which will contain the produced lipids.
@@ -27,7 +28,6 @@ class model:
         Initialise model parameters, all values were adjusted manually to the data of Uchida et al.
         (2011, PMID:21360734) and Zinser et al. (1991, PMID:2002005).
         """
-        #self.Km = {}
         # VMAX of reactions
         # adjusted manually
         self.rates = {'glycerol_3_p_synthesis': 8,  # TODO: dict of VMAX values
@@ -121,12 +121,6 @@ class model:
         self.chainlength_saturated_unsaturated = ['C16:0', 'C18:0', 'C16:1', 'C18:1']  # TODO: list, names of FAs
         # names of membrane lipids
         self.membrane_lipids = ['PS', 'PI', 'PC', 'PE', 'CL', 'PA', 'ES', 'SE', 'TAG', 'SL']  # TODO: list, names of lipids
-
-        # names of the small molecules for plotting
-        self.precursor_keys = ['pyruvate', 'acetyl_coa', 'glycerol-3-p', 'DHAP', 'serine', 'glucose_6_p', 'SAM', 'SAH',
-                               'glycerol_3_p_mito', 'ceramide',  'GDP-mannose', 'NAD', 'NADH', 'NADP', 'NADPH', 'O2', 'H2O',
-                               'CO2', 'Pi', 'CTP', 'CMP', 'inositol', 'ATP', 'ADP']  # TODO: list, names of precursors
-
         # model output: membrane ratios for every time step
         self.comp_ratio_dict = \
             {comp: dict(zip(self.membrane_lipids, [0] * 10)) for comp in self.membranes_state.keys()}  # TODO: dict, output mem ratios over time
@@ -136,32 +130,24 @@ class model:
                                  'PE': [], 'PC': [], 'CL': [], 'ergosterol': [], 'sterylester': [], 'DAG': [], 'sphingolipid': []}
 
         # counting the lipids in each membrane after every time step
-        self.number_membranes_tc = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [], 
+        self.number_membranes_tc = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [],
                                     'peroxisomes': [], 'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [],
                                     'lipid_droplets': []}
-
-        self.number_membranes_list = [self.number_membranes_tc['plasma_membrane'], self.number_membranes_tc['secretory_vesicles'], self.number_membranes_tc['vacuoles'],  # TODO: list, list of all mem sizes
-                                      self.number_membranes_tc['nucleus'], self.number_membranes_tc['peroxisomes'], self.number_membranes_tc['light_microsomes'],
-                                      self.number_membranes_tc['inner_mit_membrane'], self.number_membranes_tc['outer_mit_membrane'], self.number_membranes_tc['lipid_droplets']]
-
-        # dict for Km values
-        # self.Km = {}
 
     def _init_precursor_production(self):
 
         # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
         # G1 phase
-        self.precursors_production = {'pyruvate': 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30.,  # TODO: dict, production of precursors in G1
-                                      'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,
-                                      'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
-                                      'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
-                                      'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
-        # S-M phase
-        self.precursors_production_S_M = {'pyruvate': 1700., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 35.,  # TODO: dict, production of precursors in S/M
-                                          'serine': 30., 'glucose_6_p': 12., 'SAM': 55., 'SAH': 0.,
-                                          'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
-                                          'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
-                                          'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}
+        self.cc_precursors_production = {'G1': {'pyruvate': 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30.,  # TODO: dict, production of precursors in G1
+                                             'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,
+                                             'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
+                                             'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
+                                             'CTP': 20, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0},
+                                      'S_M': {'pyruvate': 1700., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 35.,  # TODO: dict, production of precursors in S/M
+                                             'serine': 30., 'glucose_6_p': 12., 'SAM': 55., 'SAH': 0.,
+                                             'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
+                                             'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0, 'H2O': 0, 'CO2': 0, 'Pi': 0,
+                                             'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}}
 
     def _init_molecules(self):
 
@@ -214,18 +200,18 @@ class model:
 
         self.Km = {}  # TODO: dict of Km values
 
-        self.start()	#function that produces the lipids and membranes that are existing at the beginning of the cell cycle
+        self.start()  # function that produces the lipids and membranes that are existing at the beginning of the cell cycle
 
         self.Km_calculation()
         for t in range(timesteps):
-            sim_time += 1 		#counting the seconds for knowing the cell cycle phase
+            sim_time += 1  # counting the seconds for knowing the cell cycle phase
 
-            if self.cell_cycle(sim_time) != 'G1':
-                self.precursors_production = self.precursors_production_S_M
+            # precursor production is cell cycle dependent
+            precursors_production = self.cc_precursors_production[self.cell_cycle(sim_time)]
 
             if sim_time % 10 == 0:
                 for key in self.precursors_state:
-                    self.precursors_state[key] += self.precursors_production[key]
+                    self.precursors_state[key] += precursors_production[key]
 
             self.probabilities = self._calculate_threshold() 						#manual_threshold
 
@@ -271,7 +257,7 @@ class model:
         self.saturation_counter()		#calculating the percentages of each fatty acid taht was used
 
 
-        return self.saturation_composition_total, self.number_membranes_list, self.comp_ratio_dict
+        return self.saturation_composition_total, self.number_membranes_tc, self.comp_ratio_dict
 
     def _calculate_threshold(self):
         """
@@ -686,7 +672,7 @@ class model:
         if time <= 1800:
             return "G1"
         else:
-            return "meep"
+            return "S_M"
 
 
     def glycerol_3_p_synthesis(self):
@@ -1270,7 +1256,7 @@ if __name__ == '__main__':
     import time
 
     st = time.time()
-    m = model()
+    m = Model()
     # test run: 5 sec
     r, mem, s = m.run()
     et = time.time()
@@ -1281,7 +1267,7 @@ if __name__ == '__main__':
     mat.show()
 
     for lili in mem:
-        mat.plot(m.t, lili)
+        mat.plot(m.t, mem[lili])
     mat.show()
 
     print m.comp_ratio_dict
