@@ -31,7 +31,7 @@ class Model:
         """
         # VMAX of reactions
         # adjusted manually
-        self.rates = {'glycerol_3_p_synthesis': 8,
+        self.rates = {'glycerol_3_p_synthesis': 8,  # TODO: to reactions
                       'inositol_synthesis': 5,
                       'ceramide_synthesis': 2,
                       'acetyl_coa_synthase': 650,
@@ -87,7 +87,7 @@ class Model:
                                          'DAG_kinase': 0.1,
                                          'sterylester_synthase': 0.2}}
 
-        self.weights = {'compartments': [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015],
+        self.weights = {'compartments': [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015],  # TODO: to reactions
                         # compartment size ratio (molecules) - transport probabilities: adjusted manually
                         # PM, SecVec, Vac, Nuc, Perox, lightMic, MitoMemIn, MitoMemOut
                         'chain_saturated': {16: 'C16:0', 18: 'C18:0'},
@@ -102,13 +102,13 @@ class Model:
                         }
 
     def __init_lists(self):
-        self.components_state = {'acyl_coa': [], 'acyl_coa_C26': [], 'acyl_coa_saturated': [], 'acyl_coa_unsaturated': [], 'lyso_PA': [],
+        self.components_state = {'acyl_coa': [], 'acyl_coa_C26': [], 'acyl_coa_saturated': [], 'acyl_coa_unsaturated': [], 'lyso_PA': [],  # TODO: to reactions
                                  'PA': [], 'CDP_DG': [], 'DAG': [], 'TAG': [], 'PS': [], 'PI': [], 'PE': [], 'PC': [], 'CL': [],
                                  'ergosterol': [], 'sterylester': [], 'sphingolipid': []}
 
         # lists to collect the transported lipids
         # compartment lists
-        self.membranes_state = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [], 'peroxisomes': [],
+        self.membranes_state = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [], 'peroxisomes': [],  # TODO: to reactions
                                 'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [], 'lipid_droplets': []}
 
         # names of membrane lipids
@@ -132,7 +132,7 @@ class Model:
                                                  'CTP': 45, 'CMP': 0, 'inositol': 0, 'ATP': 0, 'ADP': 0}}
 
         # initialise number of small molecules in the cell
-        self.precursors_state = {'pyruvate': 2200., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000.,
+        self.precursors_state = {'pyruvate': 2200., 'acetyl_coa': 1000, 'glycerol-3-p': 1000., 'DHAP': 1000.,  # TODO: to reactions
                                  'serine': 250., 'glucose_6_p': 1000., 'SAM': 331., 'SAH': 0., 'glycerol_3_p_mito': 50.,
                                  'ceramide': 100, 'GDP-mannose': 0, 'NAD': 0, 'NADH': 0, 'NADP': 0, 'NADPH': 0, 'O2': 0,
                                  'H2O': 0, 'CO2': 0, 'Pi': 0, 'CTP': 1000, 'CMP': 0, 'inositol': 350, 'ATP': 0, 'ADP': 0}
@@ -348,24 +348,6 @@ class Model:
                                                      self.precursors_state['ceramide'])))}
         return threshold
 
-    def plot_membranes(self):
-        '''
-        Plotting the number of lipids in the membranes of different compartments.
-        '''
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_membranes_tc['plasma_membrane'], label = 'plasma membrane')
-        ax.plot(self.t, self.number_membranes_tc['secretory_vesicles'], label = 'secretory vesicles')
-        ax.plot(self.t, self.number_membranes_tc['vacuoles'], label = 'vacuoles')
-        ax.plot(self.t, self.number_membranes_tc['nucleus'], label = 'nucleus')
-        ax.plot(self.t, self.number_membranes_tc['peroxisomes'], label = 'peroxisomes')
-        ax.plot(self.t, self.number_membranes_tc['light_microsomes'], label = 'light_microsomes')
-        ax.plot(self.t, self.number_membranes_tc['inner_mit_membrane'], label = 'inner_mit_membrane')
-        ax.plot(self.t, self.number_membranes_tc['outer_mit_membrane'], label = 'outer_mit_membrane')
-        ax.plot(self.t, self.number_membranes_tc['lipid_droplets'], label = 'lipid_droplets')
-        ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
-        mat.show()
-
     def start(self):
         """
         Function that produces the initial lipids at t = 0.
@@ -482,142 +464,69 @@ class Model:
                 self.components_state['acyl_coa_saturated'].append(new_acyl)
             else:
                 self.components_state['acyl_coa_unsaturated'].append(new_acyl)
-    # def start(self):
-    #     '''
-    #     Function that produces the starting lipids. Membrane compositions are given in self.membrane_compositions_start_relatives.
-    #     Number of starting lipids for each membrane are given in self.start_lipids.
-    #     '''
-    #
-    #     self.membrane_compositions_start_relatives = []
-    #
-    #     #numbers of the comp_start lists should yield 1 when summed
-    #     for membrane_comp_start in self.membrane_compositions_start:
-    #         membrane_comp_start_relative = [z / sum(membrane_comp_start) for z in membrane_comp_start]
-    #         self.membrane_compositions_start_relatives.append(membrane_comp_start_relative)
-    #
-    #     self.compositions_start = dict(zip(self.compartment_names, self.membrane_compositions_start_relatives))
-    #
-    #     x = 0
-    #     # self.start_lipids = [32950, 500, 2500, 6000, 500, 500, 5000, 2500, 1000]  # number of lipids that are produced in the start function for every membrane
-    #     self.membrane_start = dict(zip(self.compartment_names, self.start_lipids))
-    #     for membrane in self.compartment_lists:
-    #         for i in range(self.membrane_start[self.compartment_names[x]]):  # #producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
-    #             self.head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', 'sterylester', None, 'ceramide']
-    #             weights_start = self.compositions_start[self.compartment_names[x]]
-    #             head = np.random.choice(self.head_groups_start, p = weights_start)
-    #             if head == 'sterol':
-    #                 new_lipid = components.Sterol(head, self.compartment_names[x], self.weights['compartments'])
-    #             elif head == 'sterylester':
-    #                 new_lipid = components.Sterylester(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = [0.67, 0.33]), self.compartment_names[x], self.weights['compartments'])
-    #             elif head == 'ceramide':
-    #                 new_lipid = components.Sphingolipid(head, self.compartment_names[x], self.weights['compartments'])
-    #             elif head == 'neutral':
-    #                 new_lipid = components.CL(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']),\
-    #                                 np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), self.compartment_names[x], self.weights['compartments'])
-    #             elif head == 'serine' or head == 'inositol' or head == 'choline' or head == 'ethanolamine' or head == 'p':
-    #                 new_lipid = components.Lipid(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), self.compartment_names[x], self.weights['compartments'])
-    #             else:
-    #                 new_lipid = components.Lipid(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), self.compartment_names[x], self.weights['compartments'])
-    #                 new_lipid.__class__ = components.TAG
-    #                 new_lipid.sn3 = np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total'])
-    #             membrane.append(new_lipid)
-    #         x += 1
-    #
-    #
-    #     self.lipid_lists_start = [self.components_state['PS'], self.components_state['PI'], self.components_state['PC'], self.components_state['PE'], self.components_state['CL'], self.components_state['lyso_PA'], self.components_state['PA'], self.components_state['CDP_DG'], self.components_state['ergosterol'], self.components_state['sterylester'], self.components_state['DAG'], self.components_state['TAG'], self.components_state['sphingolipid']]
-    #     z = 0
-    #     for lipid_list in self.lipid_lists_start:
-    #         for i in range(20):
-    #             self.head_groups_start_lipids = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'lyso', 'p', 'cdp', 'sterol', 'sterylester', 'dag', None, 'ceramide']
-    #             head = self.head_groups_start_lipids[z]
-    #             if head == 'sterol':
-    #                 new_lipid = components.Sterol(head, None, self.weights['compartments'])
-    #             elif head == 'sterylester':
-    #                 new_lipid = components.Sterylester(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = [0.67, 0.33]), None, self.weights['compartments'])
-    #             elif head == 'neutral':
-    #                 new_lipid = components.CL(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']),\
-    #                                         np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #             elif head == None:
-    #                 new_lipid = components.Lipid(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #                 new_lipid.__class__ = components.TAG
-    #                 new_lipid.sn3 = np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total'])
-    #             elif head == 'ceramide':
-    #                 new_lipid = components.Sphingolipid(head, None, self.weights['compartments'])
-    #             elif head == 'cdp':
-    #                 new_lipid = components.Lipid('p', np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #             elif head == 'lyso':
-    #                 new_lipid = components.Lipid('p', None, np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #             elif head == 'dag':
-    #                 new_lipid = components.Lipid(None, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #             else:
-    #                 new_lipid = components.Lipid(head, np.random.choice(self.weights['chain_unsaturated'].values(), p = self.weights['unsaturated']), np.random.choice(self.weights['chain_complete'], p = self.weights['saturation_total']), None, self.weights['compartments'])
-    #             lipid_list.append(new_lipid)
-    #         z += 1
-    #
-    #     choice_list_acyl_start = [0, 1]
-    #     choice_weights_acyl_start = [0.13, 0.87]
-    #     choice_C_acyl_start = [16, 18]
-    #     for i in range(60):
-    #         new_acyl = components.FattyAcid(np.random.choice(choice_C_acyl_start), np.random.choice(choice_list_acyl_start, p = choice_weights_acyl_start))
-    #         if new_acyl.saturation == 0:
-    #             self.components_state['acyl_coa_saturated'].append(new_acyl)
-    #         else:
-    #             self.components_state['acyl_coa_unsaturated'].append(new_acyl)
 
     def __Km_calculation(self):
-        #Calculation of Km, 2 substrates: Km for lipids = 5, for acyl-coa = 30
-        Km = {'glycerol_3_p_synthesis': {'DHAP': 0.}, \
-                        'inositol_synthesis': {'glucose_6_p': 0.}, \
-                        'ceramide_synthesis': {'serine': 0.},\
-                        'acetyl_coa_synthase': {'pyruvate': 0.}, \
-                        'acyl_synthase': {'acetyl_coa': 0.},\
-                        'acyl_synthase_C16': 0.625,\
-                        'acyl_synthase_C18': 0.002,\
-                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': 0.}, \
-                        'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},\
-                        'CDP_DG_synthase': {'PA': 5., 'CTP': 0.},\
-                        'DAG_synthase': {'PA': 5.}, \
-                        'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
-                        'TAG_lipase': {'lipid_droplets': 0.}, \
-                        'DAG_kinase': {'DAG': 5.}, \
-                        'PS_synthase': {'CDP_DG': 5., 'serine': 0.},\
-                        'PI_synthase': {'CDP_DG': 5., 'inositol': 0.}, \
-                        'PE_synthase': {'PS': 5.}, \
-                        'PC_synthase': {'PE': 5., 'SAM': 0.}, \
-                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': 0.},\
-                        'ergosterol_synthase': {'acetyl_coa': 0.}, \
-                        'sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, \
-                        'sphingolipid_synthase': {'PI': 5}}
+        """
+        Calculate current Km values based on substrate concentrations.
+
+        Return
+        ------
+        Km: dict
+            current Km values of all reactions
+        """
+        # Calculation of Km, 2 substrates: Km for lipids = 5, for acyl-coa = 30
+        Km = {'glycerol_3_p_synthesis': {'DHAP': 0.},
+              'inositol_synthesis': {'glucose_6_p': 0.},
+              'ceramide_synthesis': {'serine': 0.},
+              'acetyl_coa_synthase': {'pyruvate': 0.},
+              'acyl_synthase': {'acetyl_coa': 0.},
+              'acyl_synthase_C16': 0.625,
+              'acyl_synthase_C18': 0.002,
+              'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': 0.},
+              'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},
+              'CDP_DG_synthase': {'PA': 5., 'CTP': 0.},
+              'DAG_synthase': {'PA': 5.},
+              'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.},
+              'TAG_lipase': {'lipid_droplets': 0.},
+              'DAG_kinase': {'DAG': 5.},
+              'PS_synthase': {'CDP_DG': 5., 'serine': 0.},
+              'PI_synthase': {'CDP_DG': 5., 'inositol': 0.},
+              'PE_synthase': {'PS': 5.},
+              'PC_synthase': {'PE': 5., 'SAM': 0.},
+              'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': 0.},
+              'ergosterol_synthase': {'acetyl_coa': 0.},
+              'sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.},
+              'sphingolipid_synthase': {'PI': 5}}
 
         Km = {'glycerol_3_p_synthesis': {'DHAP': self.precursors_state['DHAP'] / self.initial_probabilities['glycerol_3_p_synthesis'] - self.precursors_state['DHAP']}, \
-                        'inositol_synthesis': {'glucose_6_p': self.precursors_state['glucose_6_p'] / self.initial_probabilities['inositol_synthesis'] - self.precursors_state['glucose_6_p']}, \
-                        'ceramide_synthesis': {'serine': self.precursors_state['serine'] / self.initial_probabilities['ceramide_synthesis'] - self.precursors_state['serine']},\
-                        'acetyl_coa_synthase': {'pyruvate': self.precursors_state['pyruvate'] / self.initial_probabilities['acetyl_coa_synthase'] - self.precursors_state['pyruvate']}, \
-                        'acyl_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probabilities['acyl_synthase'] - self.precursors_state['acetyl_coa']},\
-                        'acyl_synthase_C16': 0.625,\
-                        'acyl_synthase_C18': 0.002,\
-                        'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': (self.precursors_state['DHAP'] / self.initial_probabilities['lyso_PA_synthase']) * ((float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated'])))\
-                                             / (Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated']))))) - self.precursors_state['DHAP']}, \
-                        'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},\
-                        'CDP_DG_synthase': {'PA': 5., 'CTP': (self.precursors_state['CTP'] / self.initial_probabilities['CDP_DG_synthase']) * (float(len(self.components_state['PA'])) / (Km['CDP_DG_synthase']['PA'] + float(len(self.components_state['PA'])))) - self.precursors_state['CTP']},\
-                        'DAG_synthase': {'PA': 5.}, \
-                        'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
-                        'TAG_lipase': {'lipid_droplets': float(len(self.membranes_state['lipid_droplets'])) / self.initial_probabilities['TAG_lipase'] - float(len(self.membranes_state['lipid_droplets']))}, \
-                        'DAG_kinase': {'DAG': 5.}, \
-                        'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_state['serine'] / self.initial_probabilities['PS_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['PS_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['serine']},\
-                        'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_state['inositol'] / self.initial_probabilities['PI_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['PI_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['inositol']}, \
-                        'PE_synthase': {'PS': 5.}, \
-                        'PC_synthase': {'PE': 5., 'SAM': (self.precursors_state['SAM'] / self.initial_probabilities['PC_synthase']) * (float(len(self.components_state['PE'])) / (Km['PC_synthase']['PE'] + float(len(self.components_state['PE'])))) - self.precursors_state['SAM']}, \
-                        'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': (self.precursors_state['glycerol_3_p_mito'] / self.initial_probabilities['CL_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['CL_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['glycerol_3_p_mito']},\
-                        'ergosterol_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probabilities['ergosterol_synthase'] - self.precursors_state['acetyl_coa']}, \
-                        'sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, \
-                        'sphingolipid_synthase': {'PI': 5, 'ceramide': (self.precursors_state['ceramide'] / self.initial_probabilities['sphingolipid_synthase']) * (float(len(self.components_state['PI'])) / (Km['sphingolipid_synthase']['PI'] + float(len(self.components_state['PI'])))) - self.precursors_state['ceramide']}}
+              'inositol_synthesis': {'glucose_6_p': self.precursors_state['glucose_6_p'] / self.initial_probabilities['inositol_synthesis'] - self.precursors_state['glucose_6_p']}, \
+              'ceramide_synthesis': {'serine': self.precursors_state['serine'] / self.initial_probabilities['ceramide_synthesis'] - self.precursors_state['serine']},\
+              'acetyl_coa_synthase': {'pyruvate': self.precursors_state['pyruvate'] / self.initial_probabilities['acetyl_coa_synthase'] - self.precursors_state['pyruvate']}, \
+              'acyl_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probabilities['acyl_synthase'] - self.precursors_state['acetyl_coa']},\
+              'acyl_synthase_C16': 0.625,\
+              'acyl_synthase_C18': 0.002,\
+              'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': (self.precursors_state['DHAP'] / self.initial_probabilities['lyso_PA_synthase']) * ((float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated'])))\
+                                     / (Km['lyso_PA_synthase']['acyl_coa'] + (float(len(self.components_state['acyl_coa_saturated'])) + float(len(self.components_state['acyl_coa_unsaturated']))))) - self.precursors_state['DHAP']}, \
+              'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},\
+              'CDP_DG_synthase': {'PA': 5., 'CTP': (self.precursors_state['CTP'] / self.initial_probabilities['CDP_DG_synthase']) * (float(len(self.components_state['PA'])) / (Km['CDP_DG_synthase']['PA'] + float(len(self.components_state['PA'])))) - self.precursors_state['CTP']},\
+              'DAG_synthase': {'PA': 5.}, \
+              'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.}, \
+              'TAG_lipase': {'lipid_droplets': float(len(self.membranes_state['lipid_droplets'])) / self.initial_probabilities['TAG_lipase'] - float(len(self.membranes_state['lipid_droplets']))}, \
+              'DAG_kinase': {'DAG': 5.}, \
+              'PS_synthase': {'CDP_DG': 5., 'serine': (self.precursors_state['serine'] / self.initial_probabilities['PS_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['PS_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['serine']},\
+              'PI_synthase': {'CDP_DG': 5., 'inositol': (self.precursors_state['inositol'] / self.initial_probabilities['PI_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['PI_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['inositol']}, \
+              'PE_synthase': {'PS': 5.}, \
+              'PC_synthase': {'PE': 5., 'SAM': (self.precursors_state['SAM'] / self.initial_probabilities['PC_synthase']) * (float(len(self.components_state['PE'])) / (Km['PC_synthase']['PE'] + float(len(self.components_state['PE'])))) - self.precursors_state['SAM']}, \
+              'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': (self.precursors_state['glycerol_3_p_mito'] / self.initial_probabilities['CL_synthase']) * (float(len(self.components_state['CDP_DG'])) / (Km['CL_synthase']['CDP_DG'] + float(len(self.components_state['CDP_DG'])))) - self.precursors_state['glycerol_3_p_mito']},\
+              'ergosterol_synthase': {'acetyl_coa': self.precursors_state['acetyl_coa'] / self.initial_probabilities['ergosterol_synthase'] - self.precursors_state['acetyl_coa']}, \
+              'sterylester_synthase': {'ergosterol': 5., 'acyl_coa': 30.}, \
+              'sphingolipid_synthase': {'PI': 5, 'ceramide': (self.precursors_state['ceramide'] / self.initial_probabilities['sphingolipid_synthase']) * (float(len(self.components_state['PI'])) / (Km['sphingolipid_synthase']['PI'] + float(len(self.components_state['PI'])))) - self.precursors_state['ceramide']}}
         return Km
 
     def cell_cycle(self, time):
-        '''
-        Function to determine the cell cycle phases depending on the elapsed time.
-        '''
+        """
+        Function to determine the cell cycle phase depending on the elapsed time.
+        """
         if time <= 1800:
             return "G1"
         else:
