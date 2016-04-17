@@ -19,6 +19,7 @@ class Model:
     with several different lipids.
     """
     def __init__(self):
+        # initialise model
         self.__init_parameters()
         self.__init_lists()
         self.__init_precursors()
@@ -88,6 +89,7 @@ class Model:
                                          'DAG_kinase': 0.1,
                                          'sterylester_synthase': 0.2}}
 
+        # ratios and weights of FA properties and membrane compositions
         self.WEIGHTS = {'compartments': [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015],
                         # compartment size ratio (molecules) - transport probabilities: adjusted manually
                         # PM, SecVec, Vac, Nuc, Perox, lightMic, MitoMemIn, MitoMemOut
@@ -103,12 +105,15 @@ class Model:
                         }
 
     def __init_lists(self):
+        """
+        Initialise state vectors for components in the model.
+        """
+        # component state vector of the model
         self.components_state = {'acyl_coa': [], 'acyl_coa_C26': [], 'acyl_coa_saturated': [], 'acyl_coa_unsaturated': [], 'lyso_PA': [],
                                  'PA': [], 'CDP_DG': [], 'DAG': [], 'TAG': [], 'PS': [], 'PI': [], 'PE': [], 'PC': [], 'CL': [],
                                  'ergosterol': [], 'sterylester': [], 'sphingolipid': []}
 
-        # lists to collect the transported lipids
-        # compartment lists
+        # membrane state vector of the model
         self.membranes_state = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [], 'peroxisomes': [],
                                 'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [], 'lipid_droplets': []}
 
@@ -118,9 +123,12 @@ class Model:
         self.comp_ratio_dict = \
             {comp: dict(zip(self.MEMBRANE_LIPID_NAMES, [0] * 10)) for comp in self.membranes_state.keys()}
 
-    def __init_precursors(self): 
-        # number of small molecules that is produced from anywhere in the cell and will be added every 10 seconds
-        # G1 phase
+    def __init_precursors(self):
+        """
+        Initialise precursors and precursor production.
+        """
+        # number of small molecules that is produced from anywhere in the cell and will be added every 10 time steps
+        # cell cycle dependent, manually adjusted
         self.CC_PRECURSORS_PRODUCTION = {'G1': {'pyruvate': 1500., 'acetyl_coa': 0, 'glycerol-3-p': 5., 'DHAP': 30.,
                                                 'serine': 20., 'glucose_6_p': 8., 'SAM': 45., 'SAH': 0.,
                                                 'glycerol_3_p_mito': 5., 'ceramide': 0, 'GDP-mannose': 10, 'NAD': 0,
@@ -139,8 +147,14 @@ class Model:
                                  'H2O': 0, 'CO2': 0, 'Pi': 0, 'CTP': 1000, 'CMP': 0, 'inositol': 350, 'ATP': 0, 'ADP': 0}
 
     def __init_molecules(self):
-        # initial lipid molecules, based on Zinser et al. (1991, PMID:2002005)
-        # 'other' were interpreted as sphingolipids
+        """
+        Initialise component numbers of the model. Based on experimental data.
+        Info
+        ----
+        Data taken from Zinser et al. (1991, PMID:2002005).
+        'Other' were interpreted as sphingolipids
+        """
+        # initial lipid molecules
         PLASMA_MEMBRANE_COMP_START = [0.17320, 0.09124, 0.08660, 0.10464, 0.00103, 0.02010, 0.48454, 0.0, 0.0, 0.03557]
         SECRETORY_VESICLES_COMP_START = [0.08205, 0.11745, 0.20824, 0.13573, 0.01239, 0.01525, 0.42900, 0.0, 0.0, 0.05029]
         VACUOLES_COMP_START = [0.04817, 0.16604, 0.40517, 0.17537, 0.02442, 0.02866, 0.15200, 0.0, 0.0, 0.06525]
@@ -150,7 +164,7 @@ class Model:
         INNER_MIT_MEMBRANE_COMP_START = [0.02880, 0.12273, 0.29107, 0.18192, 0.12204, 0.01137, 0.242, 0.0, 0.0, 0.0]
         OUTER_MIT_MEMBRANE_COMP_START = [0.01189, 0.10108, 0.45190, 0.32307, 0.05847, 0.04360, 0.009, 0.0, 0.0, 0.0]
         LIPID_DROPLETS_COMP_START = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0]
-        # list of lists
+        # data in dict
         self.MEMBRANE_COMPOSITIONS_START = {'plasma_membrane': PLASMA_MEMBRANE_COMP_START,
                                             'secretory_vesicles': SECRETORY_VESICLES_COMP_START,
                                             'vacuoles': VACUOLES_COMP_START,
@@ -173,6 +187,9 @@ class Model:
                              'lipid_droplets': 1000}
 
     def __init_simulation(self):
+        """
+        Initialise simulation and time course vectors.
+        """
         # time point list for plotting
         self.t = None
         
@@ -191,29 +208,47 @@ class Model:
                                     'peroxisomes': [], 'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [],
                                     'lipid_droplets': []}
 
+        # initialise probabilities with initial values
         self.probabilities = self.INITIAL_PROBABILITIES
-
-        self.reactions = reactions.Reactions(self.RATES, self.WEIGHTS)  # TODO: initialise reactions
+        # initialise reactions of the model
+        self.reactions = reactions.Reactions(self.RATES, self.WEIGHTS)
 
     def run(self, timesteps=7200):
+        """
+        Start simulation.
+
+        Parameter
+        ---------
+        timesteps: int
+            number of time steps in seconds
+        """
+        # current model time
         sim_time = 0
+        # time range of the model, simulation time
         self.t = [i for i in range(timesteps)]
 
-        self.start()  # function that produces the lipids and membranes that are existing at the beginning of the cell cycle
-
+        # function that produces the lipids and membranes that are existing at the beginning of the cell cycle
+        self.start()
+        # Calculate Km values of the reactions
         Km = self.__Km_calculation()
+
+        # actual simulation algorithm
         for t in range(timesteps):
-            sim_time += 1  # counting the seconds for knowing the cell cycle phase
+            # simulation time
+            sim_time += 1
 
             # precursor production is cell cycle dependent
             precursors_production = self.CC_PRECURSORS_PRODUCTION[self.cell_cycle(sim_time)]
 
+            # add precursors every 10 seconds
             if sim_time % 10 == 0:
                 for key in self.precursors_state:
                     self.precursors_state[key] += precursors_production[key]
 
-            self.probabilities = self.__calculate_threshold(Km)  # manual_threshold
+            # recalculate probabilities based on substrate numbers
+            self.probabilities = self.__calculate_threshold(Km)
 
+            # overwrite probabilities with cell cycle dependent values
             if self.cell_cycle(sim_time) == 'G1':
                 self.probabilities['DAG_synthase'] = 1 - self.CC_PROBABILITIES['G1']['DAG_synthase']
                 self.probabilities['TAG_synthase'] = 1 - self.CC_PROBABILITIES['G1']['TAG_synthase']
@@ -226,15 +261,18 @@ class Model:
                 self.probabilities['DAG_kinase'] = 1 - self.CC_PROBABILITIES['S_M']['DAG_kinase']
                 self.probabilities['sterylester_synthase'] = 1 - self.CC_PROBABILITIES['S_M']['sterylester_synthase']
 
+            # call reactions of the model
             self.reactions.run_step(self.probabilities, self.components_state, self.membranes_state, self.precursors_state)
-
+            # update model state
             self.components_state = self.reactions.components_state
             self.membranes_state = self.reactions.membranes_state
             self.precursors_state = self.reactions.precursors_state
-
-            self.numbers()  # calculating the produced lipids after each time step
-        self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
-        self.saturation_counter()  # calculating the percentages of each fatty acid that was used
+            # calculating the produced lipids after each time step
+            self.numbers()
+        # calculation of the membrane compositions at the end of the run
+        self.membrane_compositions()
+        # calculating the percentages of each fatty acid that was used
+        self.saturation_counter()
 
         return self.saturation_composition_total, self.number_membranes_tc, self.comp_ratio_dict
 
@@ -539,6 +577,9 @@ class Model:
             x += 1
 
     def numbers(self):
+        """
+        Calculate numbers for plotting, write time courses.
+        """
         # component list
         components_list = ['acyl_coa', 'PA', 'CDP_DG', 'TAG', 'PS', 'PI', 'PE', 'PC', 'CL', 'ergosterol',
                            'sterylester', 'DAG', 'sphingolipid']
