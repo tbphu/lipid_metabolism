@@ -173,7 +173,7 @@ class Model:
 
     def __init_simulation(self):
         # time point list for plotting
-        self.t = None  # TODO: int, time range of simulation
+        self.t = None
         
         # lists of all precursors, needed for plotting
         self.precursors_tc = {'pyruvate': [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [],
@@ -189,6 +189,8 @@ class Model:
         self.number_membranes_tc = {'plasma_membrane': [], 'secretory_vesicles': [], 'vacuoles': [], 'nucleus': [],
                                     'peroxisomes': [], 'light_microsomes': [], 'inner_mit_membrane': [], 'outer_mit_membrane': [],
                                     'lipid_droplets': []}
+
+        self.probabilities = self.initial_probabilities
 
     def run(self, timesteps=7200):
         sim_time = 0
@@ -207,7 +209,7 @@ class Model:
                 for key in self.precursors_state:
                     self.precursors_state[key] += precursors_production[key]
 
-            self.probabilities = self._calculate_threshold(Km)  # manual_threshold
+            self.probabilities = self.__calculate_threshold(Km)  # manual_threshold
 
             if self.cell_cycle(sim_time) == 'G1':
                 self.probabilities['DAG_synthase'] = 1 - self.cc_probabilities['G1']['DAG_synthase']
@@ -221,39 +223,37 @@ class Model:
                 self.probabilities['DAG_kinase'] = 1 - self.cc_probabilities['S_M']['DAG_kinase']
                 self.probabilities['sterylester_synthase'] = 1 - self.cc_probabilities['S_M']['sterylester_synthase']
 
-
-            self.function_list = [self.glycerol_3_p_synthesis,
-                                self.inositol_synthesis,
-                                self.ceramide_synthesis,
-                                self.acetyl_coa_synthase,
-                                self.acyl_synthase,
-                                self.PA_synthesis,
-                                self.CDP_DG_synthase,
-                                self.TAG_synthese,
-                                self.PS_synthase,
-                                self.PI_synthase,
-                                self.PE_synthase,
-                                self.PC_synthase,
-                                self.CL_synthase,
-                                self.TAG_lipase,
-                                self.DAG_kinase,
-                                self.Ergosterol_synthase,
-                                self.Sterylester_synthase,
-                                self.Sphingolipid_synthase,
-                                self.transport]
-            #all reactions that take place during one second in a random order
-            for i in self.function_list:
-                func = np.random.choice(self.function_list)
+            function_list = [self.glycerol_3_p_synthesis,
+                             self.inositol_synthesis,
+                             self.ceramide_synthesis,
+                             self.acetyl_coa_synthase,
+                             self.acyl_synthase,
+                             self.PA_synthesis,
+                             self.CDP_DG_synthase,
+                             self.TAG_synthese,
+                             self.PS_synthase,
+                             self.PI_synthase,
+                             self.PE_synthase,
+                             self.PC_synthase,
+                             self.CL_synthase,
+                             self.TAG_lipase,
+                             self.DAG_kinase,
+                             self.Ergosterol_synthase,
+                             self.Sterylester_synthase,
+                             self.Sphingolipid_synthase,
+                             self.transport]
+            # all reactions that take place during one second in a random order
+            for i in function_list:
+                func = np.random.choice(function_list)
                 func()
-                self.function_list.remove(func)
-            self.numbers()				#calculating the produced lipids after each time step
-        self.membrane_compositions()	#calculation of the membrane compositions at the end of the run
-        self.saturation_counter()		#calculating the percentages of each fatty acid taht was used
-
+                function_list.remove(func)
+            self.numbers()  # calculating the produced lipids after each time step
+        self.membrane_compositions()  # calculation of the membrane compositions at the end of the run
+        self.saturation_counter()  # calculating the percentages of each fatty acid that was used
 
         return self.saturation_composition_total, self.number_membranes_tc, self.comp_ratio_dict
 
-    def _calculate_threshold(self, Km):
+    def __calculate_threshold(self, Km):
         """
         Calculate current thresholds based on amount of available precursors.
         """
