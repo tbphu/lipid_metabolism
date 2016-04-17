@@ -256,22 +256,27 @@ class Model:
     def __calculate_threshold(self, Km):
         """
         Calculate current thresholds based on amount of available precursors.
+
+        Parameter
+        ---------
+        Km: dict
+            current Km values for all reactions
+
+        Return
+        ------
+        threshold: dict
+            current thresholds of all reactions
         """
-        threshold = {'glycerol_3_p_synthesis': 1 - (self.precursors_state['DHAP'] /
-                                                    (Km['glycerol_3_p_synthesis']['DHAP'] +
-                                                     self.precursors_state['DHAP'])),
-                     'inositol_synthesis': 1 - (self.precursors_state['glucose_6_p'] /
-                                                (Km['inositol_synthesis']['glucose_6_p'] +
-                                                 self.precursors_state['glucose_6_p'])),
-                     'ceramide_synthesis': 1 - (self.precursors_state['serine'] /
-                                                (Km['ceramide_synthesis']['serine'] +
-                                                 self.precursors_state['serine'])),
-                     'acetyl_coa_synthase': 1 - (self.precursors_state['pyruvate'] /
-                                                 (Km['acetyl_coa_synthase']['pyruvate'] +
-                                                  self.precursors_state['pyruvate'])),
-                     'acyl_synthase': 1 - (self.precursors_state['acetyl_coa'] /
-                                           (Km['acyl_synthase']['acetyl_coa'] +
-                                            self.precursors_state['acetyl_coa'])),
+        threshold = {'glycerol_3_p_synthesis': 1 - (self.precursors_state['DHAP'] / (Km['glycerol_3_p_synthesis']['DHAP'] +
+                                                    self.precursors_state['DHAP'])),
+                     'inositol_synthesis': 1 - (self.precursors_state['glucose_6_p'] / (Km['inositol_synthesis']['glucose_6_p'] +
+                                                self.precursors_state['glucose_6_p'])),
+                     'ceramide_synthesis': 1 - (self.precursors_state['serine'] / (Km['ceramide_synthesis']['serine'] +
+                                                self.precursors_state['serine'])),
+                     'acetyl_coa_synthase': 1 - (self.precursors_state['pyruvate'] / (Km['acetyl_coa_synthase']['pyruvate'] +
+                                                 self.precursors_state['pyruvate'])),
+                     'acyl_synthase': 1 - (self.precursors_state['acetyl_coa'] / (Km['acyl_synthase']['acetyl_coa'] +
+                                           self.precursors_state['acetyl_coa'])),
                      'acyl_synthase_C16': 0.625,
                      'acyl_synthase_C18': 0.002,
                      'lyso_PA_synthase': 1 - (((float(len(self.components_state['acyl_coa_saturated'])) +
@@ -342,56 +347,6 @@ class Model:
                                                     (Km['sphingolipid_synthase']['ceramide'] +
                                                      self.precursors_state['ceramide'])))}
         return threshold
-
-    def plot_precursors(self):
-        '''
-        Plotting the precursor molecules from the precursors_dict.
-        '''
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        i = 0
-        while i < 6:#in range(len(self.precursor_keys)):
-            ax.plot(self.t, self.precursors_tc[self.precursor_keys[i]], label = self.precursor_keys[i])
-            i += 1
-        ax.plot(self.t, self.precursors_tc['inositol'], label = 'inositol')
-        ax.plot(self.t, self.precursors_tc['serine'], label = 'serine')
-        ax.plot(self.t, self.precursors_tc['CTP'], label = 'CTP')
-        ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
-        mat.show()
-
-
-    def plot_lipids(self):
-        '''
-        Plotting the produced lipids before they are transported into the membranes
-        '''
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_lipids_tc['TAG'], label = 'tag')
-        ax.plot(self.t, self.number_lipids_tc['PS'], label = 'ps')
-        ax.plot(self.t, self.number_lipids_tc['PI'], label = 'pi')
-        ax.plot(self.t, self.number_lipids_tc['PE'], label = 'pe')
-        ax.plot(self.t, self.number_lipids_tc['PC'], label = 'pc')
-        ax.plot(self.t, self.number_lipids_tc['CL'], label = 'cl')
-        ax.plot(self.t, self.number_lipids_tc['ergosterol'], label = 'es')
-        ax.plot(self.t, self.number_lipids_tc['sterylester'], label = 'se')
-        ax.plot(self.t, self.number_lipids_tc['sphingolipid'], label = 'sl')
-        ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
-        mat.show()
-
-
-    def plot_precursor_lipids(self):
-        '''
-        Plotting some free precursor molecules.
-        '''
-        fig = mat.figure()
-        ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
-        ax.plot(self.t, self.number_lipids_tc['acetyl_coa'][:-1], label = 'acetyl_coa')
-        ax.plot(self.t, self.number_lipids_tc['acyl_coa'][:-1], label = 'acyl_coa')
-        ax.plot(self.t, self.number_lipids_tc['PA'][:-1], label = 'pa')
-        ax.plot(self.t, self.number_lipids_tc['CDP_DG'][:-1], label = 'cdp-dg')
-        ax.legend(bbox_to_anchor = (1.05, 1), loc = 2, borderaxespad = 0.)
-        mat.show()
-
 
     def plot_membranes(self):
         '''
