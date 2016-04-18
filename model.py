@@ -90,15 +90,16 @@ class Model:
                                          'sterylester_synthase': 0.2}}
 
         # ratios and weights of FA properties and membrane compositions
-        self.WEIGHTS = {'compartments': [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015],
-                        # compartment size ratio (molecules) - transport probabilities: adjusted manually
-                        # PM, SecVec, Vac, Nuc, Perox, lightMic, MitoMemIn, MitoMemOut
+        self.WEIGHTS = {  # compartment size ratio (molecules) - transport probabilities: adjusted manually
+                          # PM, SecVec, Vac, Nuc, Perox, lightMic, MitoMemIn, MitoMemOut
+                        'compartments': [0.67, 0.01, 0.155, 0.101, 0.007, 0.007, 0.03, 0.015],
+
                         'chain_saturated': {16: 'C16:0', 18: 'C18:0'},
                         # possible fatty acids and weights to reach the biological proportions
                         'chain_unsaturated': {16: 'C16:1', 18: 'C18:1'},
                         'chain_complete': ['C16:0', 'C18:0', 'C16:1', 'C18:1'],
                         'FA': [0.4, 0.6],
-                        # saturated, unsaturated: adjusted manually
+                        # C atom fraction C16, C18
                         'unsaturated': [0.375, 0.625],
                         'saturation_total': [0.2, 0.2, 0.167, 0.433]
                         # sn1: C16:0, C18:0, C16:1, C18:1
@@ -241,9 +242,9 @@ class Model:
             precursors_production = self.CC_PRECURSORS_PRODUCTION[self.cell_cycle(sim_time)]
 
             # add precursors every 10 seconds
-            if sim_time % 10 == 0:
-                for key in self.precursors_state:
-                    self.precursors_state[key] += precursors_production[key]
+            #if sim_time % 10 == 0:
+            for key in self.precursors_state:
+                self.precursors_state[key] += precursors_production[key]/10.
 
             # recalculate probabilities based on substrate numbers
             self.probabilities = self.__calculate_threshold(Km)
@@ -374,21 +375,23 @@ class Model:
     def start(self):
         """
         Function that produces the initial lipids at t = 0.
-        Membrane compositions are given in compositions_start.
-        Number of starting lipids for each membrane are given in self.START_LIPIDS.
+        Membrane compositions are given in MEMBRANE_COMPOSITION_START.
+        Initial number of lipids for each membrane are given in self.START_LIPIDS.
         """
         compositions_start = {}
 
         # numbers of the comp_start lists should yield 1 when summed
+        # correction of error to ensure sentence above
+        # TODO: use original Zinser data and remove section: compostiion_start = self.MEMBRANE_COMPOSITIONS_START
         for mem in self.MEMBRANE_COMPOSITIONS_START:
             membrane_comp_start_ratio = [component / sum(self.MEMBRANE_COMPOSITIONS_START[mem]) for component in self.MEMBRANE_COMPOSITIONS_START[mem]]
             compositions_start[mem] = membrane_comp_start_ratio
 
+        # generate initial membranes, lipids associated with membranes
         for membrane in self.membranes_state:
             # producing the lipids for a membrane, probability for a certain lipid from the composition in Zinser
             for j in range(self.START_LIPIDS[membrane]):
-                head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol',
-                                     'sterylester', None, 'ceramide']
+                head_groups_start = ['serine', 'inositol', 'choline', 'ethanolamine', 'neutral', 'p', 'sterol', 'sterylester', None, 'ceramide']
                 weights_start = compositions_start[membrane]
                 head = np.random.choice(head_groups_start, p=weights_start)
                 if head == 'sterol':
@@ -426,6 +429,7 @@ class Model:
                                                      p=self.WEIGHTS['saturation_total'])
                 self.membranes_state[membrane].append(new_lipid)
 
+        # generate 'free' lipids, not yet associated with membranes
         lipid_lists_start = [self.components_state['PS'], self.components_state['PI'], self.components_state['PC'], self.components_state['PE'], self.components_state['CL'], self.components_state['lyso_PA'], self.components_state['PA'],
                              self.components_state['CDP_DG'], self.components_state['ergosterol'], self.components_state['sterylester'], self.components_state['DAG'], self.components_state['TAG'],
                              self.components_state['sphingolipid']]
@@ -476,6 +480,7 @@ class Model:
                                                                   p=self.WEIGHTS['saturation_total']), None, self.WEIGHTS['compartments'])
                 lipid_list.append(new_lipid)
 
+        # generate 60 free FAs (acyl-coa)
         choice_list_acyl_start = [0, 1]
         choice_weights_acyl_start = [0.13, 0.87]
         choice_c_acyl_start = [16, 18]
