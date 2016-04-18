@@ -4,15 +4,11 @@ import model
 def run_model():
     m = model.Model()
     # test run: 5 sec
-    try:
-        r, mem, s = m.run()
-        return r, mem, s
-    except:
-        print 'fault'
-        run_model()
+    r, mem, s = m.run()
+    return r, mem, s
 
 i = 0
-for i in range(1000):
+for i in range(150):
     i += 1
     print i
     r, mem, s = run_model()

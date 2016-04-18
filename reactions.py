@@ -214,12 +214,12 @@ class Reactions:
                 self.components_state['acyl_coa_unsaturated']) > 1 and (
                 self.precursors_state['DHAP'] > 1 and self.precursors_state['glycerol-3-p'] > 1):  # at least 1 ffa has to be unsaturated
             if np.random.choice(choice_list, p=self.WEIGHTS['FA']) == 0:
-                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_saturated']) - 1))
+                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_saturated'])))
                 chainlength_sn1 = self.components_state['acyl_coa_saturated'][sn1_chain].C
                 lyso_pa = components.Lipid('p', None, self.WEIGHTS['chain_saturated'][chainlength_sn1], None, self.WEIGHTS['compartments'])
                 del self.components_state['acyl_coa_saturated'][sn1_chain]
             else:
-                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated']) - 1))
+                sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated'])))
                 chainlength_sn1 = self.components_state['acyl_coa_unsaturated'][sn1_chain].C
                 lyso_pa = components.Lipid('p', None, self.WEIGHTS['chain_unsaturated'][chainlength_sn1], None,
                                            self.WEIGHTS['compartments'])
@@ -240,8 +240,8 @@ class Reactions:
         x = np.random.random()
         if x >= self.probabilities['PA_synthase'] and len(self.components_state['acyl_coa_unsaturated']) > 1 and len(
                 self.components_state['lyso_PA']) > 1:
-            z = np.random.randint(0, (len(self.components_state['lyso_PA']) - 1))
-            sn2_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated']) - 1))
+            z = np.random.randint(0, (len(self.components_state['lyso_PA'])))
+            sn2_chain = np.random.randint(0, (len(self.components_state['acyl_coa_unsaturated'])))
             chainlength_sn2 = self.components_state['acyl_coa_unsaturated'][sn2_chain].C
             self.components_state['lyso_PA'][z].sn2 = self.WEIGHTS['chain_unsaturated'][chainlength_sn2]
             self.components_state['PA'].append(self.components_state['lyso_PA'][z])
@@ -255,7 +255,7 @@ class Reactions:
         for i in range(self.RATES['CDP_DG_synthase']):
             x = np.random.random()
             if x >= self.probabilities['CDP_DG_synthase'] and self.precursors_state['CTP'] > 1 and len(self.components_state['PA']) > 1:
-                z = np.random.randint(0, len(self.components_state['PA']) - 1)
+                z = np.random.randint(0, len(self.components_state['PA']))
                 self.components_state['PA'][z].head = 'cdp'
                 self.components_state['CDP_DG'].append(self.components_state['PA'][z])  # CDP-DG production from PA
                 del self.components_state['PA'][z]
@@ -276,7 +276,7 @@ class Reactions:
         '''
         x = np.random.random()
         if x >= self.probabilities['DAG_synthase'] and len(self.components_state['PA']) > 1:
-            z = np.random.randint(0, len(self.components_state['PA']) - 1)
+            z = np.random.randint(0, len(self.components_state['PA']))
             self.components_state['PA'][z].head = None
             self.components_state['DAG'].append(self.components_state['PA'][z])
             self.precursors_state['H2O'] -= 1
@@ -290,16 +290,16 @@ class Reactions:
         x = np.random.random()
         if x >= self.probabilities['TAG_synthase'] and len(self.components_state['DAG']) > 1 and len(
                 self.components_state['acyl_coa_saturated']) > 1 and len(self.components_state['acyl_coa_unsaturated']) > 1:
-            z = np.random.randint(0, len(self.components_state['DAG']) - 1)
+            z = np.random.randint(0, len(self.components_state['DAG']))
             self.components_state['TAG'].append(self.components_state['DAG'][z])
             self.components_state['TAG'][-1].__class__ = components.TAG
             if x <= 0.575:
-                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_saturated']) - 1)
+                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_saturated']))
                 chainlength_sn3 = self.components_state['acyl_coa_saturated'][sn3].C
                 self.components_state['TAG'][-1].sn3 = self.WEIGHTS['chain_saturated'][chainlength_sn3]
                 del self.components_state['acyl_coa_saturated'][sn3]
             else:
-                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated']) - 1)
+                sn3 = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated']))
                 chainlength_sn3 = self.components_state['acyl_coa_unsaturated'][sn3].C
                 self.components_state['TAG'][-1].sn3 = self.WEIGHTS['chain_unsaturated'][chainlength_sn3]
                 del self.components_state['acyl_coa_unsaturated'][sn3]
@@ -313,8 +313,8 @@ class Reactions:
             for i in range(self.RATES['TAG_lipase']):
                 x = np.random.random()
                 if x >= self.probabilities['TAG_lipase']:
-                    z = np.random.randint(0, len(self.membranes_state['lipid_droplets']) - 1)
-                    if self.membranes_state['lipid_droplets'][z].head == None:
+                    z = np.random.randint(0, len(self.membranes_state['lipid_droplets']))
+                    if self.membranes_state['lipid_droplets'][z].head is None:
                         if ':0' in self.membranes_state['lipid_droplets'][z].sn3:
                             for key, value in self.WEIGHTS['chain_unsaturated'].items():
                                 if value == self.membranes_state['lipid_droplets'][z].sn3:
@@ -345,7 +345,7 @@ class Reactions:
             for i in range(self.RATES['DAG_kinase']):
                 x = np.random.random()
                 if x >= self.probabilities['DAG_kinase']:
-                    z = np.random.randint(0, len(self.components_state['DAG']) - 1)
+                    z = np.random.randint(0, len(self.components_state['DAG']))
                     self.components_state['PA'].append(self.components_state['DAG'][z])
                     self.components_state['PA'][-1].head = 'p'
                     self.components_state['PA'][-1].comp = None
@@ -358,7 +358,7 @@ class Reactions:
         for i in range(self.RATES['PS_synthase']):
             x = np.random.random()
             if x >= self.probabilities['PS_synthase'] and len(self.components_state['CDP_DG']) > 1 and self.precursors_state['serine'] > 1:
-                z = np.random.randint(0, len(self.components_state['CDP_DG']) - 1)
+                z = np.random.randint(0, len(self.components_state['CDP_DG']))
                 self.components_state['CDP_DG'][z].head = 'serine'  # PS synthesis from CDP-DG
                 self.components_state['PS'].append(self.components_state['CDP_DG'][z])
                 del self.components_state['CDP_DG'][z]
@@ -373,7 +373,7 @@ class Reactions:
             x = np.random.random()
             if x >= self.probabilities['PI_synthase'] and len(self.components_state['CDP_DG']) > 1 and self.precursors_state[
                 'inositol'] > 1:
-                z = np.random.randint(0, len(self.components_state['CDP_DG']) - 1)
+                z = np.random.randint(0, len(self.components_state['CDP_DG']))
                 self.components_state['CDP_DG'][z].head = 'inositol'
                 self.components_state['PI'].append(self.components_state['CDP_DG'][z])
                 del self.components_state['CDP_DG'][z]
@@ -387,7 +387,7 @@ class Reactions:
         for i in range(self.RATES['PE_synthase']):
             x = np.random.random()
             if x >= self.probabilities['PE_synthase'] and len(self.components_state['PS']) >= 10:
-                z = np.random.randint(0, len(self.components_state['PS']) - 1)
+                z = np.random.randint(0, len(self.components_state['PS']))
                 self.components_state['PS'][z].head = 'ethanolamine'
                 self.components_state['PE'].append(self.components_state['PS'][z])
                 self.precursors_state['CO2'] += 1
@@ -400,7 +400,7 @@ class Reactions:
         for i in range(self.RATES['PC_synthase']):
             x = np.random.random()
             if x >= self.probabilities['PC_synthase'] and len(self.components_state['PE']) >= 5 and self.precursors_state['SAM'] >= 4:
-                z = np.random.randint(0, len(self.components_state['PE']) - 1)
+                z = np.random.randint(0, len(self.components_state['PE']))
                 self.components_state['PE'][z].head = 'choline'
                 self.components_state['PC'].append(self.components_state['PE'][z])
                 del self.components_state['PE'][z]
@@ -415,7 +415,7 @@ class Reactions:
             x = np.random.random()
             if x >= self.probabilities['CL_synthase'] and self.precursors_state['glycerol_3_p_mito'] > 1 and len(
                     self.components_state['CDP_DG']) > 2:
-                z = np.random.randint(0, len(self.components_state['CDP_DG']) - 2)
+                z = np.random.randint(0, len(self.components_state['CDP_DG']) - 1)
                 self.components_state['CDP_DG'][z].head = 'neutral'
                 self.components_state['CL'].append(self.components_state['CDP_DG'][z])
                 self.components_state['CL'][-1].__class__ = components.CL
@@ -456,10 +456,10 @@ class Reactions:
                             fa.C == 16 for fa in self.components_state['acyl_coa_unsaturated']) and any(
                             fa.C == 18 for fa in self.components_state['acyl_coa_unsaturated']) and len(
                     self.components_state['ergosterol']) > 1:
-                z = np.random.randint(0, len(self.components_state['ergosterol']) - 1)
+                z = np.random.randint(0, len(self.components_state['ergosterol']))
                 j = 0
                 while j < 5:
-                    fa_index = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated']) - 1)
+                    fa_index = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated']))
                     if self.components_state['acyl_coa_unsaturated'][fa_index].C == 18 and np.random.random() < 0.33:
                         self.components_state['sterylester'].append(
                             components.Sterylester('sterylester', 'C18:1', None, self.WEIGHTS['compartments']))
@@ -484,7 +484,7 @@ class Reactions:
             if x >= self.probabilities['sphingolipid_synthase'] and len(self.components_state['PI']) >= 2 and self.precursors_state[
                 'ceramide'] > 1 and self.precursors_state['GDP-mannose'] > 1:
                 self.components_state['sphingolipid'].append(components.Sphingolipid('ceramide', None, self.WEIGHTS['compartments']))
-                z = np.random.randint(0, len(self.components_state['PI']) - 2)
+                z = np.random.randint(0, len(self.components_state['PI']) - 1)
                 del self.components_state['PI'][z:z + 1]
                 self.precursors_state['ceramide'] -= 1
                 self.precursors_state['GDP-mannose'] -= 1
@@ -503,7 +503,7 @@ class Reactions:
             if lipid == self.components_state['TAG'] or lipid == self.components_state['sterylester']:
                 if len(lipid) > 10:
                     for j in range(len(lipid) / 10):
-                        z = np.random.randint(0, len(lipid) - 1)
+                        z = np.random.randint(0, len(lipid))
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'lipid_droplets':
                             self.membranes_state['lipid_droplets'].append(lipid[z])
@@ -511,7 +511,7 @@ class Reactions:
             else:
                 if len(lipid) > 5:
                     for j in range(len(lipid) / 10):
-                        z = np.random.randint(0, len(lipid) - 1)
+                        z = np.random.randint(0, len(lipid))
                         lipid[z].comp_choice()
                         if lipid[z].comp == 'plasma_membrane':
                             self.membranes_state['plasma_membrane'].append(lipid[z])
