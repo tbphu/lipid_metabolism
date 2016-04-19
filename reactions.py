@@ -48,7 +48,7 @@ class Reactions:
                          self.acyl_synthase,
                          self.PA_synthesis,
                          self.CDP_DG_synthase,
-                         self.TAG_synthese,
+                         self.TAG_synthesis,
                          self.PS_synthase,
                          self.PI_synthase,
                          self.PE_synthase,
@@ -213,6 +213,7 @@ class Reactions:
         if x >= self.probabilities['lyso_PA_synthase'] and len(self.components_state['acyl_coa_saturated']) > 1 and len(
                 self.components_state['acyl_coa_unsaturated']) > 1 and (
                 self.precursors_state['DHAP'] > 1 and self.precursors_state['glycerol-3-p'] > 1):  # at least 1 ffa has to be unsaturated
+            # choice of used FA
             if np.random.choice(choice_list, p=self.WEIGHTS['FA']) == 0:
                 sn1_chain = np.random.randint(0, (len(self.components_state['acyl_coa_saturated'])))
                 chainlength_sn1 = self.components_state['acyl_coa_saturated'][sn1_chain].C
@@ -225,6 +226,7 @@ class Reactions:
                                            self.WEIGHTS['compartments'])
                 del self.components_state['acyl_coa_unsaturated'][sn1_chain]
             self.components_state['lyso_PA'].append(lyso_pa)
+            # choice of used precursor
             i = np.random.choice(choice_list, p=weights_pa)
             if i == 0:
                 self.precursors_state['DHAP'] -= 1
@@ -262,7 +264,7 @@ class Reactions:
                 self.precursors_state['CTP'] -= 1
                 self.precursors_state['Pi'] += 2
 
-    def TAG_synthese(self):
+    def TAG_synthesis(self):
         '''
         Function for TAG synthesis divided in production of DAG and TAG afterwards
         '''
