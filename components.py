@@ -227,8 +227,6 @@ class Sterol(object):
         # possible final compartments
         self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane']
-        # compartment weights (probabilities)
-        self.compartment_weights = [0.665, 0.01, 0.155, 0.10, 0.005, 0.01, 0.04, 0.015]
         # experimental data: membrane compositions
         self.plasma_membrane_comp = {'ES': 0.48454}
         self.secretory_vesicles_comp = {'ES': 0.42900}
@@ -359,8 +357,6 @@ class Sphingolipid(object):
         # possible final compartments
         self.compartment = ['plasma_membrane', 'secretory_vesicles', 'vacuoles', 'nucleus', 'peroxisomes', 'light_microsomes',
                             'inner_mit_membrane', 'outer_mit_membrane']
-        # compartment weights (probabilities)
-        self.compartment_weights = [0.665, 0.01, 0.155, 0.10, 0.005, 0.01, 0.04, 0.015]
         # experimental data: membrane compositions
         self.plasma_membrane_comp = {'SL': 0.03557}
         self.secretory_vesicles_comp = {'SL': 0.05029}
