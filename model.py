@@ -378,9 +378,7 @@ class Model:
         """
         compositions_start = {}
 
-        # numbers of the comp_start lists should yield 1 when summed
-        # correction of error to ensure sentence above
-        # TODO: use original Zinser data and remove section: compostiion_start = self.MEMBRANE_COMPOSITIONS_START
+        # correction of numerical uncertainties to ensure sum = 1
         for mem in self.MEMBRANE_COMPOSITIONS_START:
             membrane_comp_start_ratio = [component / sum(self.MEMBRANE_COMPOSITIONS_START[mem]) for component in self.MEMBRANE_COMPOSITIONS_START[mem]]
             compositions_start[mem] = membrane_comp_start_ratio
@@ -628,5 +626,3 @@ if __name__ == '__main__':
     for lili in mem:
         mat.plot(m.t, mem[lili])
     mat.show()
-
-    print m.comp_ratio_dict
