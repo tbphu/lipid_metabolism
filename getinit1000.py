@@ -4,7 +4,7 @@ import model
 m = model.Model()
 for membrane in m.membranes_state:
     with open('./' + membrane + '.txt', 'wb') as lipid_file:
-        line = "Time, "
+        line = ""
         timerange = range(0, 7200)
         for i in timerange:
             line += str(i) + ", "
@@ -13,7 +13,7 @@ for membrane in m.membranes_state:
 
 for membrane in m.comp_ratio_dict:
     with open('./' + membrane + '_comp.txt', 'wb') as comp_file:
-        line = "Lipid:, "
+        line = ""
         for lip in m.MEMBRANE_LIPID_NAMES:
             line += lip + ", "
         line += "\n"
@@ -25,17 +25,23 @@ for i in range(3):
     m = model.Model()
     i += 1
     print i
-    r, mem, s = m.run(0)
-    for membrane in m.membranes_state:
+    r, mem, s = m.run(7200)
+    for membrane in mem:
         with open('./' + membrane + '.txt', 'a') as lipid_file:
-            line = str(len(m.membranes_state[membrane])) + '\n'
+            line = ""
+            for tp in mem[membrane]:
+                line += str(tp) + ", "
+            line += "\n"
             lipid_file.write(line)
 
     for membrane in m.comp_ratio_dict:
         with open('./' + membrane + '_comp.txt', 'a') as comp_file:
             line = ""
-            for lipid in m.comp_ratio_dict[mem]:
-                line += m.comp_ratio_dict[mem][lipid] + ", "
+            for lipid in m.MEMBRANE_LIPID_NAMES:
+                line += str(m.comp_ratio_dict[membrane][lipid]) + ", "
             line += '\n'
             comp_file.write(line)
     m = None
+    r = None
+    mem = None
+    s = None
