@@ -1,4 +1,5 @@
 import model
+import sys
 
 def SA(rate):
     changes_rates = {'glycerol_3_p_synthesis': 1,
@@ -51,7 +52,7 @@ def SA(rate):
 
     # make simulations and save result
     i = 0
-    for i in range(3):
+    for i in range(1000):
         m = model.Model()
         m.RATES[rate] += changes_rates[rate]
         i += 1
@@ -87,4 +88,4 @@ def SA(rate):
 
 
 if __name__ == '__main__':
-    SA('glycerol_3_p_synthesis')
+    SA(sys.argv[1])
