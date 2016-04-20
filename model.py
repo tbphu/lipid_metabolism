@@ -40,7 +40,7 @@ class Model:
                       'acyl_synthase': 450,
                       'PA_synthesis': 17,
                       'CDP_DG_synthase': 20,
-                      'TAG_synthesis': 30,
+                      'TAG_synthesis': 34,  # former 30
                       'TAG_lipase': 23,
                       'DAG_kinase': 40,
                       'PS_synthase': 18,
@@ -49,7 +49,7 @@ class Model:
                       'PC_synthase': 5,
                       'CL_synthase': 2,
                       'ergosterol_synthase': 25,
-                      'sterylester_synthase': 25,
+                      'sterylester_synthase': 27,  # former 25
                       'sphingolipid_synthase': 2}
 
         # probabilities of reaction to take place
