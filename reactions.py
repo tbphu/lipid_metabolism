@@ -462,6 +462,7 @@ class Reactions:
                 j = 0
                 while j < 5:
                     fa_index = np.random.randint(0, len(self.components_state['acyl_coa_unsaturated']))
+                    # sterylester fa saturation differs from phospholipid fa saturation
                     if self.components_state['acyl_coa_unsaturated'][fa_index].C == 18 and np.random.random() < 0.33:
                         self.components_state['sterylester'].append(
                             components.Sterylester('sterylester', 'C18:1', None, self.WEIGHTS['compartments']))
@@ -502,35 +503,25 @@ class Reactions:
                            self.components_state['sphingolipid']]
 
         for lipid in transport_lists:
-            if lipid == self.components_state['TAG'] or lipid == self.components_state['sterylester']:
-                if len(lipid) > 10:
-                    for j in range(len(lipid) / 10):
-                        z = np.random.randint(0, len(lipid))
-                        lipid[z].comp_choice()
-                        if lipid[z].comp == 'lipid_droplets':
-                            self.membranes_state['lipid_droplets'].append(lipid[z])
-                        del lipid[z]
-            else:
-                if len(lipid) > 5:
-                    for j in range(len(lipid) / 10):
-                        z = np.random.randint(0, len(lipid))
-                        lipid[z].comp_choice()
-                        if lipid[z].comp == 'plasma_membrane':
-                            self.membranes_state['plasma_membrane'].append(lipid[z])
-                        elif lipid[z].comp == 'secretory_vesicles':
-                            self.membranes_state['secretory_vesicles'].append(lipid[z])
-                        elif lipid[z].comp == 'vacuoles':
-                            self.membranes_state['vacuoles'].append(lipid[z])
-                        elif lipid[z].comp == 'nucleus':
-                            self.membranes_state['nucleus'].append(lipid[z])
-                        elif lipid[z].comp == 'peroxisomes':
-                            self.membranes_state['peroxisomes'].append(lipid[z])
-                        elif lipid[z].comp == 'light_microsomes':
-                            self.membranes_state['light_microsomes'].append(lipid[z])
-                        elif lipid[z].comp == 'inner_mit_membrane':
-                            self.membranes_state['inner_mit_membrane'].append(lipid[z])
-                        elif lipid[z].comp == 'outer_mit_membrane':
-                            self.membranes_state['outer_mit_membrane'].append(lipid[z])
-                        elif lipid[z].comp == 'lipid_droplets':
-                            self.membranes_state['lipid_droplets'].append(lipid[z])
-                        del lipid[z]
+            for j in range(len(lipid) / 10):  # transport 10 % of free components
+                z = np.random.randint(0, len(lipid))
+                lipid[z].comp_choice()
+                if lipid[z].comp == 'plasma_membrane':
+                    self.membranes_state['plasma_membrane'].append(lipid[z])
+                elif lipid[z].comp == 'secretory_vesicles':
+                    self.membranes_state['secretory_vesicles'].append(lipid[z])
+                elif lipid[z].comp == 'vacuoles':
+                    self.membranes_state['vacuoles'].append(lipid[z])
+                elif lipid[z].comp == 'nucleus':
+                    self.membranes_state['nucleus'].append(lipid[z])
+                elif lipid[z].comp == 'peroxisomes':
+                    self.membranes_state['peroxisomes'].append(lipid[z])
+                elif lipid[z].comp == 'light_microsomes':
+                    self.membranes_state['light_microsomes'].append(lipid[z])
+                elif lipid[z].comp == 'inner_mit_membrane':
+                    self.membranes_state['inner_mit_membrane'].append(lipid[z])
+                elif lipid[z].comp == 'outer_mit_membrane':
+                    self.membranes_state['outer_mit_membrane'].append(lipid[z])
+                elif lipid[z].comp == 'lipid_droplets':
+                    self.membranes_state['lipid_droplets'].append(lipid[z])
+                del lipid[z]
