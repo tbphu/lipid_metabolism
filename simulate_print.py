@@ -1,7 +1,8 @@
 import model
 
-# create files
+# create files to store time courses
 m = model.Model()
+# membrane sizes
 for membrane in m.membranes_state:
     with open('./' + membrane + '.txt', 'wb') as lipid_file:
         line = ""
@@ -11,6 +12,7 @@ for membrane in m.membranes_state:
         line += "\n"
         lipid_file.write(line)
 
+# membrane compositions
 for membrane in m.comp_ratio_dict:
     with open('./' + membrane + '_comp.txt', 'wb') as comp_file:
         line = ""
@@ -20,12 +22,14 @@ for membrane in m.comp_ratio_dict:
         comp_file.write(line)
 m = None
 
+# make simulations and save result
 i = 0
-for i in range(3):
+for i in range(1000):
     m = model.Model()
     i += 1
     print i
     r, mem, s = m.run(7200)
+    # save membrane size time courses
     for membrane in mem:
         with open('./' + membrane + '.txt', 'a') as lipid_file:
             line = ""
@@ -33,7 +37,7 @@ for i in range(3):
                 line += str(tp) + ", "
             line += "\n"
             lipid_file.write(line)
-
+    # save membrane compositions at t = 7200
     for membrane in m.comp_ratio_dict:
         with open('./' + membrane + '_comp.txt', 'a') as comp_file:
             line = ""
