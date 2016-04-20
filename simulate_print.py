@@ -20,6 +20,13 @@ for membrane in m.comp_ratio_dict:
             line += lip + ", "
         line += "\n"
         comp_file.write(line)
+
+# FA distribution
+with open('./fa_distribution.txt', 'wb') as fa_file:
+    line = ""
+    for fa in m.saturation_composition_total:
+        line += fa + ", "
+    line += "\n"
 m = None
 
 # make simulations and save result
@@ -45,6 +52,13 @@ for i in range(1000):
                 line += str(m.comp_ratio_dict[membrane][lipid]) + ", "
             line += '\n'
             comp_file.write(line)
+    # save fa composition at t = 7200
+    with open('./fa_distribution.txt', 'a') as fa_file:
+        line = ""
+        for fa in m.saturation_composition_total:
+            line += m.saturation_composition_total[fa]
+        line += '\n'
+        fa_file.write(line)
     m = None
     r = None
     mem = None
