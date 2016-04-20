@@ -79,21 +79,21 @@ class Model:
 
         # Km values of all reactions
         self.KM = {'glycerol_3_p_synthesis': {'DHAP': 1000.},
-              'inositol_synthesis': {'glucose_6_p': 1000.},
-              'ceramide_synthesis': {'serine': 250.},
-              'acetyl_coa_synthase': {'pyruvate': 550.},
-              'acyl_synthase': {'acetyl_coa': 1000.},
-              'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': 481.48},
-              'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},
-              'CDP_DG_synthase': {'PA': 5., 'CTP': 1.},
-              'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.},
-              'PS_synthase': {'CDP_DG': 5., 'serine': 150.},
-              'PI_synthase': {'CDP_DG': 5., 'inositol': 210.},
-              'PE_synthase': {'PS': 5.},
-              'PC_synthase': {'PE': 5., 'SAM': 198.6},
-              'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': 750.},
-              'ergosterol_synthase': {'acetyl_coa': 666.67},
-              'sphingolipid_synthase': {'PI': 5., 'ceramide': 300.}}
+                   'inositol_synthesis': {'glucose_6_p': 1000.},
+                   'ceramide_synthesis': {'serine': 250.},
+                   'acetyl_coa_synthase': {'pyruvate': 550.},
+                   'acyl_synthase': {'acetyl_coa': 1000.},
+                   'lyso_PA_synthase': {'acyl_coa': 30., 'DHAP': 481.48},
+                   'PA_synthase': {'lyso-PA': 5., 'acyl_coa': 30.},
+                   'CDP_DG_synthase': {'PA': 5., 'CTP': 1.},
+                   'TAG_synthase': {'DAG': 5., 'acyl_coa': 30.},
+                   'PS_synthase': {'CDP_DG': 5., 'serine': 150.},
+                   'PI_synthase': {'CDP_DG': 5., 'inositol': 210.},
+                   'PE_synthase': {'PS': 5.},
+                   'PC_synthase': {'PE': 5., 'SAM': 198.6},
+                   'CL_synthase': {'CDP_DG': 5., 'glycerol_3_p_mito': 750.},
+                   'ergosterol_synthase': {'acetyl_coa': 666.67},
+                   'sphingolipid_synthase': {'PI': 5., 'ceramide': 300.}}
 
         # probabilities in CC phase G1
         # adjusted manually
@@ -142,6 +142,14 @@ class Model:
         # model output: membrane ratios for every time step
         self.comp_ratio_dict = \
             {comp: dict(zip(self.MEMBRANE_LIPID_NAMES, [0] * 10)) for comp in self.membranes_state.keys()}
+        # saturation distribution of FAs at sn1 (phospholipids)
+        self.saturation_composition_sn1 = {'C16:0': 0, 'C16:1': 0, 'C18:0': 0, 'C18_1': 0}
+        # FA distribution at sn2 (phospholipids)
+        self.saturation_composition_sn2 = {'C16:0': 0, 'C16:1': 0, 'C18:0': 0, 'C18_1': 0}
+        # whole FA distribution of phospholipids
+        self.saturation_composition_total = {'C16:0': 0, 'C16:1': 0, 'C18:0': 0, 'C18:1': 0}
+        # FA distribution of syerylesters
+        self.composition_sterylester = {'C16:1: ': 0, 'C18:1: ': 0}
 
     def __init_precursors(self):
         """
@@ -212,7 +220,7 @@ class Model:
         Initialise simulation and time course vectors.
         """
         # time point list for plotting
-        self.t = None
+        self.t = []
         
         # lists of all precursors, needed for plotting
         self.precursors_tc = {'pyruvate': [], 'acetyl_coa': [], 'glycerol-3-p': [], 'DHAP': [], 'serine': [],
@@ -260,7 +268,7 @@ class Model:
             precursors_production = self.CC_PRECURSORS_PRODUCTION[self.cell_cycle(sim_time)]
 
             # add precursors every 10 seconds
-            #if sim_time % 10 == 0:
+            # former if sim_time % 10 == 0:
             for key in self.precursors_state:
                 self.precursors_state[key] += precursors_production[key]/10.
 
@@ -537,15 +545,15 @@ class Model:
             self.precursors_tc[precursor].append(self.precursors_state[precursor])
 
     def saturation_counter(self):
-        '''
+        """
         composition of fatty acids that should be reached: C16:0 = 10%, C16:1 = 30%, C18:0 = 10%, C18:1 = 50%
         these numbers are from Klug & Daum 2013 'Yeast lipid metabolism at a glance'
-        '''
-        self.c16_0_sn1 = 0
-        self.c16_1_sn1 = 0
-        self.c18_0_sn1 = 0
-        self.c18_1_sn1 = 0
-        self.wrong_fatty_acid = 0
+        """
+        c16_0_sn1 = 0
+        c16_1_sn1 = 0
+        c18_0_sn1 = 0
+        c18_1_sn1 = 0
+        wrong_fatty_acid = 0
         for c in self.membranes_state:
             if c == 'lipid_droplets':
                 continue
@@ -553,22 +561,22 @@ class Model:
                 for i in range(len(self.membranes_state[c])):
                     if hasattr(self.membranes_state[c][i], 'sn1'):
                         if self.membranes_state[c][i].sn1 == 'C16:0':
-                            self.c16_0_sn1 += 1
+                            c16_0_sn1 += 1
                         elif self.membranes_state[c][i].sn1 == 'C16:1':
-                            self.c16_1_sn1 += 1
+                            c16_1_sn1 += 1
                         elif self.membranes_state[c][i].sn1 == 'C18:0':
-                            self.c18_0_sn1 += 1
+                            c18_0_sn1 += 1
                         elif self.membranes_state[c][i].sn1 == 'C18:1':
-                            self.c18_1_sn1 += 1
+                            c18_1_sn1 += 1
                         else:
-                            self.wrong_fatty_acid += 1
-        self.saturation_composition_sn1 = {'C16:0': self.c16_0_sn1, 'C16:1': self.c16_1_sn1, 'C18:0': self.c18_0_sn1, 'C18_1': self.c18_1_sn1}
+                            wrong_fatty_acid += 1
+        self.saturation_composition_sn1 = {'C16:0': c16_0_sn1, 'C16:1': c16_1_sn1, 'C18:0': c18_0_sn1, 'C18_1': c18_1_sn1}
 
-        self.c16_0_sn2 = 0
-        self.c16_1_sn2 = 0
-        self.c18_0_sn2 = 0
-        self.c18_1_sn2 = 0
-        self.wrong_fatty_acid = 0
+        c16_0_sn2 = 0
+        c16_1_sn2 = 0
+        c18_0_sn2 = 0
+        c18_1_sn2 = 0
+        wrong_fatty_acid = 0
         for c in self.membranes_state:
             if c == 'lipid_droplets':
                 continue
@@ -576,53 +584,57 @@ class Model:
                 for i in range(len(self.membranes_state[c])):
                     if hasattr(self.membranes_state[c][i], 'sn2'):
                         if self.membranes_state[c][i].sn2 == 'C16:0':
-                            self.c16_0_sn2 += 1
+                            c16_0_sn2 += 1
                         elif self.membranes_state[c][i].sn2 == 'C16:1':
-                            self.c16_1_sn2 += 1
+                            c16_1_sn2 += 1
                         elif self.membranes_state[c][i].sn2 == 'C18:0':
-                            self.c18_0_sn2 += 1
+                            c18_0_sn2 += 1
                         elif self.membranes_state[c][i].sn2 == 'C18:1':
-                            self.c18_1_sn2 += 1
+                            c18_1_sn2 += 1
                         else:
-                            self.wrong_fatty_acid += 1
+                            wrong_fatty_acid += 1
 
-        self.saturation_composition_sn2 = {'C16:0': self.c16_0_sn2, 'C16:1': self.c16_1_sn2, 'C18:0': self.c18_0_sn2, 'C18_1': self.c18_1_sn2}
-        self.total_fatty_acids = self.c16_0_sn1 + self.c16_1_sn1 + self.c18_0_sn1 + self.c18_1_sn1 + self.c16_0_sn2 + self.c16_1_sn2 + self.c18_0_sn2 + self.c18_1_sn2
+        self.saturation_composition_sn2 = {'C16:0': c16_0_sn2, 'C16:1': c16_1_sn2, 'C18:0': c18_0_sn2, 'C18_1': c18_1_sn2}
+        total_fatty_acids = c16_0_sn1 + c16_1_sn1 + c18_0_sn1 + c18_1_sn1 + c16_0_sn2 + c16_1_sn2 + c18_0_sn2 + c18_1_sn2
 
-        self.sterylester_C16 = 0
-        self.sterylester_C18 = 0
+        sterylester_C16 = 0
+        sterylester_C18 = 0
         for c in self.membranes_state['lipid_droplets']:
             if c.head == 'sterylester':
                 if c.FA == 'C16:1':
-                    self.sterylester_C16 += 1
+                    sterylester_C16 += 1
                 elif c.FA == 'C18:1':
-                    self.sterylester_C18 += 1
+                    sterylester_C18 += 1
 
-        if self.sterylester_C16 > 0 or self.sterylester_C18 > 0:
-            self.composition_sterylester = {'C16:1: ': float(self.sterylester_C16) / (self.sterylester_C16 + self.sterylester_C18),\
-                                            'C18:1: ': float(self.sterylester_C18) / (self.sterylester_C16 + self.sterylester_C18)}
+        if sterylester_C16 > 0 or sterylester_C18 > 0:
+            self.composition_sterylester = {'C16:1: ': float(sterylester_C16) / (sterylester_C16 + sterylester_C18),
+                                            'C18:1: ': float(sterylester_C18) / (sterylester_C16 + sterylester_C18)}
 
-        if self.total_fatty_acids > 0:
-            self.saturation_composition_total = {'C16:0': float(self.c16_0_sn2 + self.c16_0_sn1) / self.total_fatty_acids,\
-                                                 'C16:1': float(self.c16_1_sn2 + self.c16_1_sn1) / self.total_fatty_acids,\
-                                                 'C18:0': float(self.c18_0_sn2 + self.c18_0_sn1) / self.total_fatty_acids,\
-                                                 'C18:1': float(self.c18_1_sn2 + self.c18_1_sn1) / self.total_fatty_acids}
+        if total_fatty_acids > 0:
+            self.saturation_composition_total = {'C16:0': float(c16_0_sn2 + c16_0_sn1) / total_fatty_acids,
+                                                 'C16:1': float(c16_1_sn2 + c16_1_sn1) / total_fatty_acids,
+                                                 'C18:0': float(c18_0_sn2 + c18_0_sn1) / total_fatty_acids,
+                                                 'C18:1': float(c18_1_sn2 + c18_1_sn1) / total_fatty_acids}
 
 if __name__ == '__main__':
     # Test run, with runtime tracker
     import time
 
+    # track runtime of the simulation
     st = time.time()
     m = Model()
     # test run: 5 sec
-    r, mem, s = m.run()
+    r, mem, s = m.run(5)
     et = time.time()
-    print len(m.t)
-    for lili in m.number_lipids_tc:
-        mat.plot(m.t, m.number_lipids_tc[lili])
+    # print free lipid time course
+    for lipid in m.number_lipids_tc:
+        mat.plot(m.t, m.number_lipids_tc[lipid])
+    # print runtime
     print "Runtime: " + str(et - st) + "s"
     mat.show()
-
-    for lili in mem:
-        mat.plot(m.t, mem[lili])
+    # print memebrane sizes
+    for membrane in mem:
+        mat.plot(m.t, mem[membrane])
     mat.show()
+
+    print m.saturation_composition_total
