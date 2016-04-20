@@ -27,6 +27,7 @@ with open('./fa_distribution.txt', 'wb') as fa_file:
     for fa in m.saturation_composition_total:
         line += fa + ", "
     line += "\n"
+    fa_file.write(line)
 m = None
 
 # make simulations and save result
@@ -56,7 +57,7 @@ for i in range(1000):
     with open('./fa_distribution.txt', 'a') as fa_file:
         line = ""
         for fa in m.saturation_composition_total:
-            line += m.saturation_composition_total[fa]
+            line += str(m.saturation_composition_total[fa])
         line += '\n'
         fa_file.write(line)
     m = None
