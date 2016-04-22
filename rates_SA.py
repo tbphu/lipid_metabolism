@@ -97,7 +97,7 @@ def SA(rate):
         with open('./fa_distribution_' + rate + '+' + str(changes_rates_neg[rate]) + '.txt', 'a') as fa_file:
             line = ""
             for fa in m.saturation_composition_total:
-                line += str(m.saturation_composition_total[fa])
+                line += str(m.saturation_composition_total[fa]) + ", "
             line += '\n'
             fa_file.write(line)
         m = None
