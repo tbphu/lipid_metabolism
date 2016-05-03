@@ -1,10 +1,10 @@
 import model
 
 # create files to store time courses
-m = model.Model()
+mod = model.Model()
 # membrane sizes
-for membrane in m.membranes_state:
-    with open('./' + membrane + '_erg.txt', 'wb') as lipid_file:
+for membrane in mod.membranes_state:
+    with open('./' + membrane + '_erg_test.txt', 'wb') as lipid_file:
         line = ""
         timerange = range(0, 7200)
         for i in timerange:
@@ -13,55 +13,59 @@ for membrane in m.membranes_state:
         lipid_file.write(line)
 
 # membrane compositions
-for membrane in m.comp_ratio_dict:
-    with open('./' + membrane + '_comp_erg.txt', 'wb') as comp_file:
+for membrane in mod.comp_ratio_dict:
+    with open('./' + membrane + '_comp_erg_test.txt', 'wb') as comp_file:
         line = ""
-        for lip in m.MEMBRANE_LIPID_NAMES:
+        for lip in mod.MEMBRANE_LIPID_NAMES:
             line += lip + ", "
         line += "\n"
         comp_file.write(line)
 
 # FA distribution
-with open('./fa_distribution_erg.txt', 'wb') as fa_file:
+with open('./fa_distribution_erg_test.txt', 'wb') as fa_file:
     line = ""
-    for fa in m.saturation_composition_total:
+    for fa in mod.saturation_composition_total:
         line += fa + ", "
     line += "\n"
     fa_file.write(line)
-m = None
+mod = None
 
-# make simulations and save result
+# make 1000 simulations and save result
 i = 0
 for i in range(1000):
-    m = model.Model()
-    m.RATES['ergosterol_synthase'] = 0
+    mod = model.Model()
+    # ---------------------------------------------------
+    # actual test condition
+    mod.RATES['ergosterol_synthase'] = 0
+    # ---------------------------------------------------
     i += 1
     print i
-    r, mem, s = m.run(7200)
+    sat, mem, comp = mod.run(7200)
     # save membrane size time courses
     for membrane in mem:
-        with open('./' + membrane + '_erg.txt', 'a') as lipid_file:
+        with open('./' + membrane + '_erg_test.txt', 'a') as lipid_file:
             line = ""
             for tp in mem[membrane]:
                 line += str(tp) + ", "
             line += "\n"
             lipid_file.write(line)
     # save membrane compositions at t = 7200
-    for membrane in m.comp_ratio_dict:
-        with open('./' + membrane + '_comp_erg.txt', 'a') as comp_file:
+    for membrane in mod.comp_ratio_dict:
+        with open('./' + membrane + '_comp_erg_test.txt', 'a') as comp_file:
             line = ""
-            for lipid in m.MEMBRANE_LIPID_NAMES:
-                line += str(m.comp_ratio_dict[membrane][lipid]) + ", "
+            for lipid in mod.MEMBRANE_LIPID_NAMES:
+                line += str(mod.comp_ratio_dict[membrane][lipid]) + ", "
             line += '\n'
             comp_file.write(line)
     # save fa composition at t = 7200
-    with open('./fa_distribution_erg.txt', 'a') as fa_file:
+    with open('./fa_distribution_erg_test.txt', 'a') as fa_file:
         line = ""
-        for fa in m.saturation_composition_total:
-            line += str(m.saturation_composition_total[fa]) + ", "
+        for fa in mod.saturation_composition_total:
+            line += str(mod.saturation_composition_total[fa]) + ", "
         line += '\n'
         fa_file.write(line)
-    m = None
-    r = None
+    # garbage collector
+    mod = None
+    sat = None
     mem = None
-    s = None
+    comp = None
