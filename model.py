@@ -302,6 +302,7 @@ class Model:
         # calculating the percentages of each fatty acid that was used
         self.saturation_counter()
 
+        # return saturation composition, membrane lengths and membrane composition dicts
         return self.saturation_composition_total, self.number_membranes_tc, self.comp_ratio_dict
 
     def __calculate_threshold(self):
