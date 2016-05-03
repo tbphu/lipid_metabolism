@@ -2,7 +2,7 @@
 """
 Created/Started on Wed June 03 2015
 
-@author: Vera
+@author: Vera Schuetzhold, Jens Hahn
 """
 import matplotlib.pyplot as mat
 import numpy as np

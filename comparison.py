@@ -1,5 +1,7 @@
 import random
 import matplotlib.pyplot as pyp
+# script to create supplementary figure S4 - image 4
+# @author Jens Hahn
 
 # x axis molecule numbers
 x = range(100000)

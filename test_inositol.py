@@ -1,6 +1,6 @@
 import model
-
-# create files to store time courses
+# @author Jens Hahn
+# create files to store time courses - Inositol test case
 mod = model.Model()
 # membrane sizes
 for membrane in mod.membranes_state:

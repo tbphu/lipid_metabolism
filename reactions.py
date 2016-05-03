@@ -1,6 +1,7 @@
 import numpy as np
 import components
 
+# @author: Vera Schuetzhold, Jens Hahn
 
 class Reactions:
     def __init__(self, rates, weights):
