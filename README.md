@@ -1,6 +1,6 @@
 # Yeast lipid Metabolism model
 Model of the lipid metabolism in the yeast *Saccharomyces cerevisiae*    
-Written by Vera Schützhold, Jens Hahn - 2015
+Written by Vera Schützhold, Jens Hahn - 2015    
 Written in Python 2.7
 
 ## Files 
@@ -47,7 +47,7 @@ Written in Python 2.7
     * membrane_compositions (saves membrane compositions)
     * saturation_counter (saves FA saturations)
 
-### Examples
+## Examples
 * comparison: comparison between stochastic and deterministic MM (supplementary Figure S4)
 
 ## Simulation
